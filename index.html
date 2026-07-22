@@ -32,22 +32,22 @@
     justify-content:center;
     padding:28px 16px 60px;
   }
-  .wrap{width:100%;max-width:460px;}
+ .wrap{width:100%;max-width:460px;}
 
-  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
-  .top h1{font-size:15px;font-weight:600;letter-spacing:.02em;margin:0;}
-  .top h1 span{color:var(--muted);font-weight:400;}
-  .status{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(239,68,68,.5);}
-  .dot.live{background:var(--green);animation:pulse 1.8s infinite;}
+ .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+ .top h1{font-size:15px;font-weight:600;letter-spacing:.02em;margin:0;}
+ .top h1 span{color:var(--muted);font-weight:400;}
+ .status{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted);}
+ .dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 rgba(239,68,68,.5);}
+ .dot.live{background:var(--green);animation:pulse 1.8s infinite;}
   @keyframes pulse{
     0%{box-shadow:0 0 0 0 rgba(34,197,94,.5);}
     70%{box-shadow:0 0 0 7px rgba(34,197,94,0);}
     100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}
   }
 
-  .controls{display:flex;gap:8px;margin-bottom:18px;}
-  select, .tickset{
+ .controls{display:flex;gap:8px;margin-bottom:18px;}
+  select,.tickset{
     background:var(--panel);
     border:1px solid var(--line);
     color:var(--text);
@@ -59,7 +59,7 @@
   }
   select:focus{outline:1px solid var(--blue);}
 
-  .price-card{
+ .price-card{
     background:linear-gradient(180deg, var(--panel-2), var(--panel));
     border:1px solid var(--line);
     border-radius:18px;
@@ -67,7 +67,7 @@
     text-align:center;
     margin-bottom:16px;
   }
-  .last-digit{
+ .last-digit{
     width:72px;height:72px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
     margin:0 auto 12px;
@@ -75,60 +75,60 @@
     background:var(--blue-dim);
     border:2px solid var(--blue);
     color:#fff;
-    transition:all .25s ease;
+    transition:all.25s ease;
   }
-  .price{font-family:var(--mono);font-size:22px;letter-spacing:.02em;color:var(--muted);}
-  .price b{color:var(--text);}
+ .price{font-family:var(--mono);font-size:22px;letter-spacing:.02em;color:var(--muted);}
+ .price b{color:var(--text);}
 
-  .signal-card{
+ .signal-card{
     border-radius:18px;
     padding:18px 20px;
     margin-bottom:16px;
     border:1px solid var(--line);
     background:var(--panel);
-    transition:all .3s ease;
+    transition:all.3s ease;
   }
-  .signal-card.active{
+ .signal-card.active{
     border-color:var(--green);
     background:linear-gradient(180deg, rgba(34,197,94,.10), var(--panel) 70%);
   }
-  .signal-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
-  .signal-main{display:flex;align-items:center;justify-content:space-between;}
-  .signal-text{font-size:15px;font-weight:600;}
-  .signal-text .digit{color:var(--green);font-family:var(--mono);}
-  .signal-text.none{color:var(--muted);font-weight:400;}
-  .badge{
+ .signal-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
+ .signal-main{display:flex;align-items:center;justify-content:space-between;}
+ .signal-text{font-size:15px;font-weight:600;}
+ .signal-text.digit{color:var(--green);font-family:var(--mono);}
+ .signal-text.none{color:var(--muted);font-weight:400;}
+ .badge{
     font-family:var(--mono);font-size:12px;font-weight:600;
     padding:4px 10px;border-radius:8px;
     background:rgba(34,197,94,.15);color:var(--green);
     border:1px solid rgba(34,197,94,.35);
   }
-  .badge.off{background:rgba(124,136,168,.12);color:var(--muted);border-color:var(--line);}
-  .signal-reason{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.5;}
+ .badge.off{background:rgba(124,136,168,.12);color:var(--muted);border-color:var(--line);}
+ .signal-reason{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.5;}
 
-  .grid{
+ .grid{
     display:grid;grid-template-columns:repeat(5,1fr);
     gap:8px;margin-bottom:18px;
   }
-  .cell{
+ .cell{
     background:var(--panel);
     border:1px solid var(--line);
     border-radius:12px;
     padding:12px 4px;
     text-align:center;
-    transition:all .25s ease;
+    transition:all.25s ease;
     position:relative;
   }
-  .cell .d{font-family:var(--mono);font-size:19px;font-weight:600;}
-  .cell .p{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px;}
-  .cell.eligible{border-color:var(--blue-dim);}
-  .cell.picked{
+ .cell.d{font-family:var(--mono);font-size:19px;font-weight:600;}
+ .cell.p{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px;}
+ .cell.eligible{border-color:var(--blue-dim);}
+ .cell.picked{
     border-color:var(--green);
     background:rgba(34,197,94,.10);
   }
-  .cell.picked .d{color:var(--green);}
-  .cell.picked .p{color:var(--green);}
-  .cell.picked::after{
+ .cell.picked.d{color:var(--green);}
+ .cell.picked.p{color:var(--green);}
+ .cell.picked::after{
     content:'';
     position:absolute;inset:-1px;
     border-radius:12px;
@@ -140,7 +140,7 @@
     100%{opacity:0;transform:scale(1.12);}
   }
 
-  .footer{
+ .footer{
     display:flex;justify-content:space-between;
     font-family:var(--mono);font-size:11px;color:var(--muted);
     padding-top:6px;
@@ -160,12 +160,12 @@
       <option value="R_10">Volatility 10</option>
       <option value="R_25">Volatility 25</option>
       <option value="R_50">Volatility 50</option>
-      <option value="R_75" selected>Volatility 75</option>
+      <option value="R_75">Volatility 75</option>
       <option value="R_100">Volatility 100</option>
       <option value="1HZ10V">Volatility 10 (1s)</option>
       <option value="1HZ25V">Volatility 25 (1s)</option>
       <option value="1HZ50V">Volatility 50 (1s)</option>
-      <option value="1HZ75V">Volatility 75 (1s)</option>
+      <option value="1HZ75V" selected>Volatility 75 (1s)</option>
       <option value="1HZ100V">Volatility 100 (1s)</option>
     </select>
     <select id="sampleSize">
@@ -200,13 +200,13 @@
 </div>
 
 <script>
-const THRESHOLD = 10;          // percent
+const THRESHOLD = 10; // percent
 const TARGET_DIGITS = [0,1,2,3];
 
 const state = {
-  symbol: 'R_75',
+  symbol: '1HZ75V', // FIXED: Changed from R_75 to 1HZ75V
   windowSize: 100,
-  digits: [],       // rolling history of last-digit values
+  digits: [], // rolling history of last-digit values
   counts: new Array(10).fill(0),
   ws: null,
 };
@@ -264,151 +264,4 @@ function recompute(){
 
   for(let d=0; d<10; d++){
     cells[d].classList.remove('eligible','picked');
-    document.getElementById(`pct-${d}`).textContent = pct[d].toFixed(1) + '%';
-    if(TARGET_DIGITS.includes(d) && pct[d] < THRESHOLD) cells[d].classList.add('eligible');
-  }
-
-  const pctMap = {};
-  for(let d=0; d<10; d++) pctMap[d] = pct[d];
-  const result = getLastDigitSignal(pctMap);
-
-  if(result.signal){
-    el.signalCard.classList.add('active');
-    el.signalText.classList.remove('none');
-    el.signalText.innerHTML = `Buy <span class="digit">OVER ${result.digit}</span>`;
-    el.signalBadge.textContent = 'FIRING';
-    el.signalBadge.classList.remove('off');
-    cells[result.digit].classList.add('picked');
-  } else {
-    el.signalCard.classList.remove('active');
-    el.signalText.classList.add('none');
-    el.signalText.textContent = 'No signal';
-    el.signalBadge.textContent = 'FLAT';
-    el.signalBadge.classList.add('off');
-  }
-  el.signalReason.textContent = result.reason;
-}
-
-function onTick(quote){
-  const priceStr = quote.toString();
-  el.price.innerHTML = `<b>${priceStr}</b>`;
-  const digitStr = priceStr.replace('.', '');
-  const digit = parseInt(digitStr[digitStr.length - 1], 10);
-  el.lastDigit.textContent = digit;
-
-  state.digits.push(digit);
-  state.counts[digit]++;
-  if(state.digits.length > state.windowSize){
-    const removed = state.digits.shift();
-    state.counts[removed]--;
-  }
-  recompute();
-}
-
-function resetSeries(){
-  state.digits = [];
-  state.counts = new Array(10).fill(0);
-  recompute();
-}
-
-let pingTimer = null;
-let reconnectTimer = null;
-let reconnectDelay = 1000; // backs off up to 15s
-
-function clearTimers(){
-  if(pingTimer){ clearInterval(pingTimer); pingTimer = null; }
-  if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer = null; }
-}
-
-function scheduleReconnect(){
-  clearTimers();
-  el.statusText.textContent = `reconnecting in ${Math.round(reconnectDelay/1000)}s`;
-  reconnectTimer = setTimeout(() => {
-    reconnectDelay = Math.min(reconnectDelay * 1.6, 15000);
-    connect();
-  }, reconnectDelay);
-}
-
-function connect(){
-  if(state.ws){ try{ state.ws.close(); }catch(e){} }
-  clearTimers();
-  el.dot.classList.remove('live');
-  el.statusText.textContent = 'connecting';
-
-  let ws;
-  try{
-    ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
-  } catch(err){
-    el.statusText.textContent = 'socket blocked: ' + err.message;
-    scheduleReconnect();
-    return;
-  }
-  state.ws = ws;
-
-  ws.onopen = () => {
-    reconnectDelay = 1000; // reset backoff on a clean connect
-    ws.send(JSON.stringify({ ticks: state.symbol, subscribe: 1 }));
-    // Deriv closes idle sockets ~ every 60-120s without traffic; keep it alive.
-    pingTimer = setInterval(() => {
-      if(ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ ping: 1 }));
-    }, 25000);
-  };
-
-  ws.onmessage = (msg) => {
-    let data;
-    try{ data = JSON.parse(msg.data); } catch(e){ return; }
-
-    if(data.msg_type === 'tick' && data.tick){
-      if(data.tick.symbol !== state.symbol) return; // stale tick from a previous subscription
-      el.dot.classList.add('live');
-      el.statusText.textContent = state.symbol;
-      onTick(data.tick.quote);
-    }
-    if(data.msg_type === 'ping'){
-      // keepalive ack, nothing to do
-    }
-    if(data.error){
-      el.dot.classList.remove('live');
-      el.statusText.textContent = 'error: ' + data.error.message;
-    }
-  };
-
-  ws.onclose = (ev) => {
-    el.dot.classList.remove('live');
-    el.statusText.textContent = `disconnected (${ev.code})`;
-    scheduleReconnect();
-  };
-
-  ws.onerror = () => {
-    el.statusText.textContent = 'connection error';
-    // onclose fires right after this and handles the reconnect
-  };
-}
-
-el.symbolSel.addEventListener('change', (e) => {
-  const newSymbol = e.target.value;
-  resetSeries();
-
-  if(state.ws && state.ws.readyState === WebSocket.OPEN){
-    // Reuse the live socket: drop the old subscription, subscribe to the new one.
-    state.ws.send(JSON.stringify({ forget_all: 'ticks' }));
-    state.symbol = newSymbol;
-    state.ws.send(JSON.stringify({ ticks: state.symbol, subscribe: 1 }));
-    el.statusText.textContent = state.symbol;
-  } else {
-    // Socket isn't up yet (connecting/reconnecting) — just point it at the new symbol.
-    state.symbol = newSymbol;
-    connect();
-  }
-});
-el.sampleSel.addEventListener('change', (e) => {
-  state.windowSize = parseInt(e.target.value, 10);
-  resetSeries();
-});
-
-state.symbol = el.symbolSel.value;
-state.windowSize = parseInt(el.sampleSel.value, 10);
-connect();
-</script>
-</body>
-</html>
+    document.getElementById(`pct-${d}`).textContent = pct[d].toFixed(1
