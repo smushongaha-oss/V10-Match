@@ -3,75 +3,204 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deriv Last Digit Signal Monitor</title>
+  <title>Deriv Last Digit Signal</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #12151c;
-      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0b0f19;
+      color: #ffffff;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
+      padding: 12px;
+      box-sizing: border-box;
     }
 
-    .container {
-      background-color: #1e222d;
-      border-radius: 12px;
-      padding: 24px;
-      width: 420px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    .app-card {
+      background-color: #121826;
+      border: 1px solid #1f293d;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
     }
 
-    h2 {
-      margin-top: 0;
-      font-size: 1.2rem;
-      color: #f8fafc;
-      text-align: center;
-      margin-bottom: 6px;
-    }
-
-    .status-bar {
-      font-size: 0.85rem;
-      text-align: center;
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 20px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+      animation: blink 1s infinite alternate;
+    }
+
+    .live-dot.offline {
+      background-color: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      animation: none;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .header-title {
+      font-size: 0.95rem;
+      font-weight: 600;
       color: #94a3b8;
     }
 
-    .status-online { color: #22c55e; }
-    .status-offline { color: #ef4444; }
+    .header-badge {
+      background-color: #1e293b;
+      color: #64748b;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
 
-    /* Digits Grid */
-    .digit-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
+    /* Center Giant Digit Display */
+    .hero-section {
+      text-align: center;
       margin-bottom: 20px;
     }
 
-    .digit-box {
-      background-color: #2a2e3d;
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      border: 2px solid transparent;
-      transition: all 0.3s ease;
-    }
-
-    .digit-number {
-      font-size: 1.1rem;
+    .digit-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #1e3a8a 0%, #1e293b 100%);
+      border: 3px solid #3b82f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 12px auto;
+      font-size: 2.5rem;
       font-weight: bold;
       color: #ffffff;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+      transition: transform 0.1s ease;
+    }
+
+    .digit-circle.pop {
+      transform: scale(1.08);
+    }
+
+    .price-text {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      font-family: monospace;
+    }
+
+    .price-val {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* Signal Card */
+    .signal-card {
+      background-color: #1a2234;
+      border: 1px solid #28354d;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .signal-title {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #64748b;
       margin-bottom: 4px;
     }
 
-    .digit-pct {
-      font-size: 0.85rem;
-      color: #94a3b8;
+    .signal-status {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #38bdf8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
     }
 
-    /* Target highlight for 0, 1, 2, 3 */
+    .signal-desc {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    /* Active Triggered State */
+    .signal-card.TRIGGERED {
+      background-color: rgba(34, 197, 94, 0.15);
+      border-color: #22c55e;
+      animation: pulse 1s infinite alternate;
+    }
+
+    .signal-card.TRIGGERED .signal-title {
+      color: #22c55e;
+    }
+
+    .signal-card.TRIGGERED .signal-status {
+      color: #ffffff;
+    }
+
+    .signal-badge-action {
+      background-color: #22c55e;
+      color: #000000;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    /* Digits Grid 2x5 */
+    .digit-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .digit-box {
+      background-color: #1a2234;
+      border-radius: 6px;
+      padding: 8px 4px;
+      text-align: center;
+      border: 1px solid #28354d;
+      transition: all 0.2s ease;
+    }
+
+    .digit-num {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 2px;
+    }
+
+    .digit-pct {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    /* Highlight 0-3 when under 10% */
     .digit-box.target-under {
       background-color: rgba(239, 68, 68, 0.15);
       border-color: #ef4444;
@@ -82,44 +211,51 @@
       font-weight: bold;
     }
 
-    /* Signal Card */
-    .signal-box {
-      border-radius: 8px;
-      padding: 16px;
+    /* Footer */
+    .footer {
       text-align: center;
-      font-size: 1.1rem;
-      font-weight: bold;
-      background-color: #2a2e3d;
-      color: #64748b;
-      border: 2px dashed #475569;
-    }
-
-    .signal-box.TRIGGERED {
-      background-color: #15803d;
-      color: #ffffff;
-      border: 2px solid #22c55e;
-      animation: pulse 1s infinite alternate;
+      font-size: 0.7rem;
+      color: #475569;
     }
 
     @keyframes pulse {
-      0% { transform: scale(1); box-shadow: 0 0 0px #22c55e; }
-      100% { transform: scale(1.02); box-shadow: 0 0 15px #22c55e; }
+      0% { transform: scale(1); }
+      100% { transform: scale(1.02); }
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h2>Volatility 75 Index — Digit Monitor</h2>
-    <div class="status-bar" id="connection-status">Connecting...</div>
+  <div class="app-card">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="live-dot" id="live-dot"></div>
+        <div class="header-title">Volatility 75</div>
+      </div>
+      <div class="header-badge" id="tick-count-badge">last 100 ticks</div>
+    </div>
 
-    <!-- Digits Grid -->
-    <div class="digit-grid" id="digit-grid"></div>
+    <!-- Live Giant Circle & Price -->
+    <div class="hero-section">
+      <div class="digit-circle" id="hero-digit">-</div>
+      <div class="price-text">price <span class="price-val" id="hero-price">---</span></div>
+    </div>
 
     <!-- Signal Banner -->
-    <div class="signal-box" id="signal-box">
-      INITIALIZING...
+    <div class="signal-card" id="signal-card">
+      <div class="signal-title">SIGNAL</div>
+      <div class="signal-status" id="signal-text">
+        <span>WAITING...</span>
+      </div>
+      <div class="signal-desc">Digits 0-3 all under 10%</div>
     </div>
+
+    <!-- Digits Grid 0 to 9 -->
+    <div class="digit-grid" id="digit-grid"></div>
+
+    <!-- Footer -->
+    <div class="footer">Live Feed • Deriv WS API</div>
   </div>
 
   <script>
@@ -130,27 +266,32 @@
     let tickHistory = [];
     let ws;
     let pingInterval;
+    let watchDogTimeout;
 
-    // Render Digits Grid 0 to 9
+    // Render Digits Grid (0-9)
     const gridContainer = document.getElementById('digit-grid');
     for (let i = 0; i <= 9; i++) {
       const box = document.createElement('div');
       box.className = 'digit-box';
       box.id = `digit-${i}`;
       box.innerHTML = `
-        <div class="digit-number">${i}</div>
+        <div class="digit-num">${i}</div>
         <div class="digit-pct" id="pct-${i}">0.0%</div>
       `;
       gridContainer.appendChild(box);
     }
 
     function connectWebSocket() {
+      if (ws) {
+        ws.close();
+      }
+
       ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
 
       ws.onopen = () => {
-        document.getElementById('connection-status').innerHTML = 'Status: <span class="status-online">Connected</span>';
-        
-        // 1. Fetch initial 100 historical ticks right away so it populates immediately
+        document.getElementById('live-dot').classList.remove('offline');
+
+        // Fetch historical ticks
         ws.send(JSON.stringify({
           ticks_history: SYMBOL,
           count: STATS_PERIOD,
@@ -158,57 +299,83 @@
           style: 'ticks'
         }));
 
-        // 2. Subscribe to live stream ticks
+        // Subscribe to live stream ticks
         ws.send(JSON.stringify({
           ticks: SYMBOL,
           subscribe: 1
         }));
 
-        // 3. Keep connection alive with a ping every 30 seconds
+        // Connection Keep-Alive Ping
         clearInterval(pingInterval);
         pingInterval = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ ping: 1 }));
           }
-        }, 30000);
+        }, 15000);
       };
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        resetWatchDog();
 
-        // Handle Historical Ticks Payload
         if (data.msg_type === 'history') {
           const prices = data.history.prices;
           tickHistory = prices.map(p => parseLastDigit(p));
+          
+          const lastPrice = prices[prices.length - 1];
+          const lastDigit = parseLastDigit(lastPrice);
+
+          updateDisplay(lastPrice, lastDigit);
           calculatePercentages();
         }
 
-        // Handle Live Tick Streaming
         if (data.msg_type === 'tick') {
-          const lastDigit = parseLastDigit(data.tick.quote);
+          const price = data.tick.quote;
+          const lastDigit = parseLastDigit(price);
+
           tickHistory.push(lastDigit);
           if (tickHistory.length > STATS_PERIOD) {
             tickHistory.shift();
           }
+
+          updateDisplay(price, lastDigit);
           calculatePercentages();
         }
       };
 
       ws.onclose = () => {
-        document.getElementById('connection-status').innerHTML = 'Status: <span class="status-offline">Disconnected. Reconnecting...</span>';
-        clearInterval(pingInterval);
-        setTimeout(connectWebSocket, 3000);
+        document.getElementById('live-dot').classList.add('offline');
+        setTimeout(connectWebSocket, 2000);
       };
 
-      ws.onerror = (err) => {
-        console.error("WS Error:", err);
+      ws.onerror = () => {
+        ws.close();
       };
     }
 
+    // Auto-reconnect watchdog if feed stops streaming for 5 seconds
+    function resetWatchDog() {
+      clearTimeout(watchDogTimeout);
+      watchDogTimeout = setTimeout(() => {
+        console.warn("Feed stalled. Reconnecting...");
+        connectWebSocket();
+      }, 5000);
+    }
+
     function parseLastDigit(price) {
-      // Formats quote reliably regardless of trailing zeroes
-      const str = Number(price).toFixed(4); 
+      const str = Number(price).toFixed(4);
       return parseInt(str.slice(-1));
+    }
+
+    function updateDisplay(price, digit) {
+      const heroDigit = document.getElementById('hero-digit');
+      document.getElementById('hero-price').textContent = Number(price).toFixed(4);
+      heroDigit.textContent = digit;
+      document.getElementById('tick-count-badge').textContent = `last ${tickHistory.length} ticks`;
+
+      // Pulse animation on tick refresh
+      heroDigit.classList.add('pop');
+      setTimeout(() => heroDigit.classList.remove('pop'), 100);
     }
 
     function calculatePercentages() {
@@ -220,7 +387,7 @@
 
       const percentages = counts.map(count => (count / total) * 100);
 
-      // Update Digit Boxes UI
+      // Update 0-9 percentage grid
       for (let i = 0; i <= 9; i++) {
         const pct = percentages[i];
         const pctElement = document.getElementById(`pct-${i}`);
@@ -228,7 +395,6 @@
 
         pctElement.textContent = `${pct.toFixed(1)}%`;
 
-        // Target highlight for 0, 1, 2, 3 under 10%
         if (i <= 3 && pct < 10.0) {
           boxElement.classList.add('target-under');
         } else {
@@ -236,7 +402,7 @@
         }
       }
 
-      // Signal Condition: Digits 0, 1, 2, AND 3 are ALL below 10%
+      // Check Signal Condition: 0, 1, 2, 3 ALL < 10%
       const conditionMet = percentages[0] < 10.0 && 
                            percentages[1] < 10.0 && 
                            percentages[2] < 10.0 && 
@@ -246,19 +412,18 @@
     }
 
     function updateSignal(isMet) {
-      const signalBox = document.getElementById('signal-box');
+      const signalCard = document.getElementById('signal-card');
+      const signalText = document.getElementById('signal-text');
+
       if (isMet && tickHistory.length >= STATS_PERIOD) {
-        signalBox.className = 'signal-box TRIGGERED';
-        signalBox.innerHTML = '🚨 BUY SIGNAL ACTIVE! 🚨<br><span style="font-size:0.85rem">0, 1, 2, 3 are ALL &lt; 10%</span>';
+        signalCard.className = 'signal-card TRIGGERED';
+        signalText.innerHTML = `<span>BUY OVER 3</span><span class="signal-badge-action">MATCH</span>`;
       } else {
-        signalBox.className = 'signal-box';
-        signalBox.textContent = tickHistory.length < STATS_PERIOD 
-          ? `LOADING TICKS (${tickHistory.length}/${STATS_PERIOD})` 
-          : 'WAITING FOR CONDITION...';
+        signalCard.className = 'signal-card';
+        signalText.innerHTML = `<span>WAITING...</span>`;
       }
     }
 
-    // Launch
     connectWebSocket();
   </script>
 </body>
