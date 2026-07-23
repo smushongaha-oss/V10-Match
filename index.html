@@ -24,8 +24,7 @@
   body{
     margin:0;
     min-height:100vh;
-    background:
-      radial-gradient(ellipse at top, #0F1526 0%, var(--bg) 60%);
+    background: radial-gradient(ellipse at top, #0F1526 0%, var(--bg) 60%);
     color:var(--text);
     font-family:var(--sans);
     display:flex;
@@ -47,7 +46,7 @@
   }
 
   .controls{display:flex;gap:8px;margin-bottom:18px;}
-  select, .tickset{
+  select{
     background:var(--panel);
     border:1px solid var(--line);
     color:var(--text);
@@ -156,6 +155,8 @@
     <div class="status"><span class="dot" id="dot"></span><span id="statusText">connecting</span></div>
   </div>
 
+  <div id="debugBox" style="display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-family:var(--mono);font-size:11px;color:var(--muted);white-space:pre-wrap;word-break:break-all;max-height:160px;overflow:auto;"></div>
+
   <div class="controls">
     <select id="symbol" disabled>
       <option value="">loading symbols…</option>
@@ -192,27 +193,18 @@
 </div>
 
 <script>
-const THRESHOLD = 10;          // percent
+const THRESHOLD = 10;
 const TARGET_DIGITS = [0,1,2,3];
 
-// Fallback list used only if the active_symbols call itself fails
-// (e.g. network hiccup) — never used to *force* a request, only as
-// a last-resort default set to populate the dropdown from.
-const FALLBACK_SYMBOLS = [
-  {symbol:'R_10',  display_name:'Volatility 10 Index'},
-  {symbol:'R_25',  display_name:'Volatility 25 Index'},
-  {symbol:'R_50',  display_name:'Volatility 50 Index'},
-  {symbol:'R_75',  display_name:'Volatility 75 Index'},
-  {symbol:'R_100', display_name:'Volatility 100 Index'},
-];
-
 const state = {
-  symbol: null,          // set only once we know it's real
+  symbol: null,
+  pipSize: 2,
   windowSize: 100,
   digits: [],
   counts: new Array(10).fill(0),
   ws: null,
   symbolsLoaded: false,
+  symbolPipMap: {},
 };
 
 const el = {
@@ -228,9 +220,15 @@ const el = {
   sampleCount: document.getElementById('sampleCount'),
   symbolSel: document.getElementById('symbol'),
   sampleSel: document.getElementById('sampleSize'),
+  debugBox: document.getElementById('debugBox'),
 };
 
-// build the 0-9 grid cells once
+function showDebug(label, obj){
+  el.debugBox.style.display = 'block';
+  const body = typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+  el.debugBox.textContent = `[${new Date().toLocaleTimeString()}] ${label}\n${body}`;
+}
+
 const cells = [];
 for(let d=0; d<10; d++){
   const c = document.createElement('div');
@@ -293,11 +291,15 @@ function recompute(){
   el.signalReason.textContent = result.reason;
 }
 
-function onTick(quote){
-  const priceStr = quote.toString();
-  el.price.innerHTML = `<b>${priceStr}</b>`;
-  const digitStr = priceStr.replace('.', '');
-  const digit = parseInt(digitStr[digitStr.length - 1], 10);
+function onTick(quote, pipSize){
+  const formattedPrice = (typeof quote === 'number') ? quote.toFixed(pipSize) : String(quote);
+  el.price.innerHTML = `<b>${formattedPrice}</b>`;
+  
+  const cleanStr = formattedPrice.replace('.', '');
+  const digit = parseInt(cleanStr[cleanStr.length - 1], 10);
+  
+  if(isNaN(digit)) return;
+
   el.lastDigit.textContent = digit;
 
   state.digits.push(digit);
@@ -315,38 +317,49 @@ function resetSeries(){
   recompute();
 }
 
-// --- Populate the symbol dropdown from whatever the server actually
-// reports as tradeable, instead of a hardcoded guess. This is what
-// fixes "Symbol R_75 is invalid" style errors for good: we only ever
-// subscribe to a symbol the API just told us exists. ---
 function populateSymbolDropdown(symbolList){
-  const synthetics = symbolList
-    .filter(s => s.market === 'synthetic_index')
-    .sort((a,b) => a.display_name.localeCompare(b.display_name));
+  try {
+    const synthetics = symbolList
+      .filter(s => s.market === 'synthetic_index')
+      .sort((a,b) => a.display_name.localeCompare(b.display_name));
 
-  const list = synthetics.length ? synthetics : symbolList;
-  if(!list.length) return false;
+    const list = synthetics.length ? synthetics : symbolList;
+    if(!list.length) return false;
 
-  el.symbolSel.innerHTML = '';
-  list.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.symbol;
-    opt.textContent = s.display_name || s.symbol;
-    el.symbolSel.appendChild(opt);
-  });
+    el.symbolSel.innerHTML = '';
+    state.symbolPipMap = {};
 
-  // Prefer a Volatility 75-ish default if present, else first item
-  const preferred = list.find(s => s.symbol === 'R_75') || list[0];
-  el.symbolSel.value = preferred.symbol;
-  el.symbolSel.disabled = false;
-  state.symbol = preferred.symbol;
-  state.symbolsLoaded = true;
-  return true;
+    list.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.symbol;
+      opt.textContent = s.display_name;
+      el.symbolSel.appendChild(opt);
+
+      let pips = 2;
+      if (s.pip !== undefined) {
+        const str = String(s.pip);
+        pips = str.includes('.') ? str.split('.')[1].length : 0;
+      }
+      state.symbolPipMap[s.symbol] = pips;
+    });
+
+    const preferred = list.find(s => s.symbol === 'R_100') || list[0];
+    el.symbolSel.value = preferred.symbol;
+    el.symbolSel.disabled = false;
+    
+    state.symbol = preferred.symbol;
+    state.pipSize = state.symbolPipMap[preferred.symbol] || 2;
+    state.symbolsLoaded = true;
+    return true;
+  } catch(err){
+    showDebug('populateSymbolDropdown threw', String(err));
+    return false;
+  }
 }
 
 let pingTimer = null;
 let reconnectTimer = null;
-let reconnectDelay = 1000; // backs off up to 15s
+let reconnectDelay = 1000;
 
 function clearTimers(){
   if(pingTimer){ clearInterval(pingTimer); pingTimer = null; }
@@ -383,11 +396,9 @@ function connect(){
   state.ws = ws;
 
   ws.onopen = () => {
-    reconnectDelay = 1000; // reset backoff on a clean connect
+    reconnectDelay = 1000;
 
     if(!state.symbolsLoaded){
-      // Ask the server what's actually tradeable before subscribing
-      // to anything. This is the fix: never guess a symbol code.
       el.statusText.textContent = 'loading symbols…';
       ws.send(JSON.stringify({ active_symbols: 'brief', product_type: 'basic' }));
     } else {
@@ -403,35 +414,29 @@ function connect(){
     let data;
     try{ data = JSON.parse(msg.data); } catch(e){ return; }
 
-    if(data.msg_type === 'active_symbols' && data.active_symbols){
-      const ok = populateSymbolDropdown(data.active_symbols);
-      if(!ok){
-        el.statusText.textContent = 'no symbols returned';
-        return;
+    if(data.msg_type === 'active_symbols'){
+      if(data.active_symbols && data.active_symbols.length){
+        const ok = populateSymbolDropdown(data.active_symbols);
+        if(ok) subscribeToSymbol(ws, state.symbol);
+      } else {
+        el.statusText.textContent = 'failed to load active symbols';
       }
-      subscribeToSymbol(ws, state.symbol);
       return;
     }
 
     if(data.msg_type === 'tick' && data.tick){
-      if(data.tick.symbol !== state.symbol) return; // stale tick from a previous subscription
+      if(data.tick.symbol !== state.symbol) return;
       el.dot.classList.add('live');
       el.statusText.textContent = state.symbol;
-      onTick(data.tick.quote);
+      
+      const pip = data.tick.pip || state.pipSize || 2;
+      onTick(data.tick.quote, pip);
     }
-    if(data.msg_type === 'ping'){
-      // keepalive ack, nothing to do
-    }
+
     if(data.error){
+      showDebug('API error', data);
       el.dot.classList.remove('live');
       el.statusText.textContent = 'error: ' + data.error.message;
-
-      // If our chosen symbol was rejected, fall back to the static
-      // list so the tool degrades gracefully instead of hanging.
-      if(!state.symbolsLoaded){
-        const ok = populateSymbolDropdown(FALLBACK_SYMBOLS);
-        if(ok) subscribeToSymbol(ws, state.symbol);
-      }
     }
   };
 
@@ -443,7 +448,6 @@ function connect(){
 
   ws.onerror = () => {
     el.statusText.textContent = 'connection error';
-    // onclose fires right after this and handles the reconnect
   };
 }
 
@@ -452,16 +456,18 @@ el.symbolSel.addEventListener('change', (e) => {
   if(!newSymbol) return;
   resetSeries();
 
+  state.symbol = newSymbol;
+  state.pipSize = state.symbolPipMap[newSymbol] || 2;
+
   if(state.ws && state.ws.readyState === WebSocket.OPEN){
     state.ws.send(JSON.stringify({ forget_all: 'ticks' }));
-    state.symbol = newSymbol;
     subscribeToSymbol(state.ws, state.symbol);
     el.statusText.textContent = state.symbol;
   } else {
-    state.symbol = newSymbol;
     connect();
   }
 });
+
 el.sampleSel.addEventListener('change', (e) => {
   state.windowSize = parseInt(e.target.value, 10);
   resetSeries();
