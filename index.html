@@ -196,6 +196,20 @@
 const THRESHOLD = 10;
 const TARGET_DIGITS = [0,1,2,3];
 
+// Default fallback symbols so the app never hangs on load failure
+const FALLBACK_SYMBOLS = [
+  { symbol: 'R_100', display_name: 'Volatility 100 Index', pip: 0.01 },
+  { symbol: 'R_75',  display_name: 'Volatility 75 Index',  pip: 0.0001 },
+  { symbol: 'R_50',  display_name: 'Volatility 50 Index',  pip: 0.01 },
+  { symbol: 'R_25',  display_name: 'Volatility 25 Index',  pip: 0.01 },
+  { symbol: 'R_10',  display_name: 'Volatility 10 Index',  pip: 0.001 },
+  { symbol: '1HZ10V', display_name: 'Volatility 10 (1s) Index', pip: 0.001 },
+  { symbol: '1HZ25V', display_name: 'Volatility 25 (1s) Index', pip: 0.01 },
+  { symbol: '1HZ50V', display_name: 'Volatility 50 (1s) Index', pip: 0.01 },
+  { symbol: '1HZ75V', display_name: 'Volatility 75 (1s) Index', pip: 0.01 },
+  { symbol: '1HZ100V', display_name: 'Volatility 100 (1s) Index', pip: 0.01 }
+];
+
 const state = {
   symbol: null,
   pipSize: 2,
@@ -319,11 +333,7 @@ function resetSeries(){
 
 function populateSymbolDropdown(symbolList){
   try {
-    const synthetics = symbolList
-      .filter(s => s.market === 'synthetic_index')
-      .sort((a,b) => a.display_name.localeCompare(b.display_name));
-
-    const list = synthetics.length ? synthetics : symbolList;
+    const list = symbolList.filter(s => s.symbol);
     if(!list.length) return false;
 
     el.symbolSel.innerHTML = '';
@@ -332,7 +342,7 @@ function populateSymbolDropdown(symbolList){
     list.forEach(s => {
       const opt = document.createElement('option');
       opt.value = s.symbol;
-      opt.textContent = s.display_name;
+      opt.textContent = s.display_name || s.symbol;
       el.symbolSel.appendChild(opt);
 
       let pips = 2;
@@ -343,7 +353,7 @@ function populateSymbolDropdown(symbolList){
       state.symbolPipMap[s.symbol] = pips;
     });
 
-    const preferred = list.find(s => s.symbol === 'R_100') || list[0];
+    const preferred = list.find(s => s.symbol === 'R_100' || s.symbol === '1HZ100V') || list[0];
     el.symbolSel.value = preferred.symbol;
     el.symbolSel.disabled = false;
     
@@ -400,7 +410,7 @@ function connect(){
 
     if(!state.symbolsLoaded){
       el.statusText.textContent = 'loading symbols…';
-      ws.send(JSON.stringify({ active_symbols: 'brief', product_type: 'basic' }));
+      ws.send(JSON.stringify({ active_symbols: 'brief' }));
     } else {
       subscribeToSymbol(ws, state.symbol);
     }
@@ -415,12 +425,18 @@ function connect(){
     try{ data = JSON.parse(msg.data); } catch(e){ return; }
 
     if(data.msg_type === 'active_symbols'){
-      if(data.active_symbols && data.active_symbols.length){
-        const ok = populateSymbolDropdown(data.active_symbols);
-        if(ok) subscribeToSymbol(ws, state.symbol);
+      let symbols = data.active_symbols;
+      if (symbols && symbols.length) {
+        // Filter synthetics if present
+        const synthetics = symbols.filter(s => s.market === 'synthetic_index');
+        if (synthetics.length) symbols = synthetics;
       } else {
-        el.statusText.textContent = 'failed to load active symbols';
+        // Fallback if API returned empty array
+        symbols = FALLBACK_SYMBOLS;
       }
+      
+      const ok = populateSymbolDropdown(symbols);
+      if(ok) subscribeToSymbol(ws, state.symbol);
       return;
     }
 
@@ -436,7 +452,14 @@ function connect(){
     if(data.error){
       showDebug('API error', data);
       el.dot.classList.remove('live');
-      el.statusText.textContent = 'error: ' + data.error.message;
+      
+      // If error occurs during active_symbols request, load fallbacks immediately
+      if(!state.symbolsLoaded){
+        populateSymbolDropdown(FALLBACK_SYMBOLS);
+        subscribeToSymbol(ws, state.symbol);
+      } else {
+        el.statusText.textContent = 'error: ' + data.error.message;
+      }
     }
   };
 
