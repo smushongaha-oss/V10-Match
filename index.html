@@ -231,7 +231,20 @@
     <div class="header">
       <div class="header-left">
         <div class="live-dot" id="live-dot"></div>
-        <div class="header-title">Volatility 75</div>
+        <select id="symbol-select" style="background:#1e293b;color:#94a3b8;border:1px solid #28354d;border-radius:6px;font-size:0.85rem;font-weight:600;padding:3px 6px;">
+          <option value="R_10">Volatility 10</option>
+          <option value="R_25">Volatility 25</option>
+          <option value="R_50">Volatility 50</option>
+          <option value="R_75" selected>Volatility 75</option>
+          <option value="R_100">Volatility 100</option>
+          <option value="1HZ10V">Volatility 10 (1s)</option>
+          <option value="1HZ25V">Volatility 25 (1s)</option>
+          <option value="1HZ50V">Volatility 50 (1s)</option>
+          <option value="1HZ75V">Volatility 75 (1s)</option>
+          <option value="1HZ100V">Volatility 100 (1s)</option>
+          <option value="frxEURUSD">EUR/USD (test)</option>
+          <option value="cryBTCUSD">BTC/USD (test)</option>
+        </select>
       </div>
       <div class="header-badge" id="tick-count-badge">last 100 ticks</div>
     </div>
@@ -260,13 +273,14 @@
 
   <script>
     const APP_ID = '1089';
-    const SYMBOL = 'R_75';
+    let SYMBOL = 'R_75';
     const STATS_PERIOD = 100;
 
     let tickHistory = [];
     let ws;
     let pingInterval;
     let watchDogTimeout;
+    let pipSize = 2; // overwritten once the API tells us the real decimal precision for this symbol
 
     // Render Digits Grid (0-9)
     const gridContainer = document.getElementById('digit-grid');
@@ -319,6 +333,7 @@
         resetWatchDog();
 
         if (data.msg_type === 'history') {
+          if (typeof data.pip_size === 'number') pipSize = data.pip_size;
           const prices = data.history.prices;
           tickHistory = prices.map(p => parseLastDigit(p));
           
@@ -330,6 +345,7 @@
         }
 
         if (data.msg_type === 'tick') {
+          if (typeof data.tick.pip_size === 'number') pipSize = data.tick.pip_size;
           const price = data.tick.quote;
           const lastDigit = parseLastDigit(price);
 
@@ -363,13 +379,13 @@
     }
 
     function parseLastDigit(price) {
-      const str = Number(price).toFixed(4);
+      const str = Number(price).toFixed(pipSize);
       return parseInt(str.slice(-1));
     }
 
     function updateDisplay(price, digit) {
       const heroDigit = document.getElementById('hero-digit');
-      document.getElementById('hero-price').textContent = Number(price).toFixed(4);
+      document.getElementById('hero-price').textContent = Number(price).toFixed(pipSize);
       heroDigit.textContent = digit;
       document.getElementById('tick-count-badge').textContent = `last ${tickHistory.length} ticks`;
 
@@ -408,21 +424,41 @@
                            percentages[2] < 10.0 && 
                            percentages[3] < 10.0;
 
-      updateSignal(conditionMet);
+      updateSignal(conditionMet, percentages);
     }
 
-    function updateSignal(isMet) {
+    function updateSignal(isMet, percentages) {
       const signalCard = document.getElementById('signal-card');
       const signalText = document.getElementById('signal-text');
 
       if (isMet && tickHistory.length >= STATS_PERIOD) {
+        // Pick whichever of 0-3 actually has the lowest observed percentage
+        let pickDigit = 0;
+        let pickPct = percentages[0];
+        for (let d = 1; d <= 3; d++) {
+          if (percentages[d] < pickPct) { pickPct = percentages[d]; pickDigit = d; }
+        }
         signalCard.className = 'signal-card TRIGGERED';
-        signalText.innerHTML = `<span>BUY OVER 3</span><span class="signal-badge-action">MATCH</span>`;
+        signalText.innerHTML = `<span>BUY OVER ${pickDigit}</span><span class="signal-badge-action">MATCH</span>`;
       } else {
         signalCard.className = 'signal-card';
         signalText.innerHTML = `<span>WAITING...</span>`;
       }
     }
+
+    document.getElementById('symbol-select').addEventListener('change', (e) => {
+      SYMBOL = e.target.value;
+      tickHistory = [];
+      pipSize = 2;
+      document.getElementById('hero-digit').textContent = '-';
+      document.getElementById('hero-price').textContent = '---';
+      for (let i = 0; i <= 9; i++) {
+        document.getElementById(`pct-${i}`).textContent = '0.0%';
+        document.getElementById(`digit-${i}`).classList.remove('target-under');
+      }
+      updateSignal(false, []);
+      connectWebSocket();
+    });
 
     connectWebSocket();
   </script>
