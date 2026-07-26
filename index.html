@@ -534,8 +534,13 @@
         let raw = null;
         let detail = '';
 
+        // NEW RULE: Digits 1, 2, 3 all under 10% → OVER signal (priority)
+        if (pct[1] < 10 && pct[2] < 10 && pct[3] < 10) {
+            raw = 'over';
+            detail = `1,2,3 all <10% (${pct[1].toFixed(1)}%, ${pct[2].toFixed(1)}%, ${pct[3].toFixed(1)}%) → OVER`;
+        }
         // 1) Group imbalance (stronger signal)
-        if (lowPct <= (50 - settings.minDiff * 2) && lowPct < highPct) {
+        else if (lowPct <= (50 - settings.minDiff * 2) && lowPct < highPct) {
             raw = 'over';
             detail = `Low group cold (${lowPct.toFixed(1)}%) → OVER  |  Best digit ${bestDigit}`;
         } else if (highPct <= (50 - settings.minDiff * 2) && highPct < lowPct) {
