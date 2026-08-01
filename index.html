@@ -29,7 +29,6 @@
         position: relative;
     }
 
-    /* Living particle grid background */
     body::before {
         content: '';
         position: fixed;
@@ -58,7 +57,6 @@
         padding: 20px 16px 40px;
     }
 
-    /* Header */
     .header {
         display: flex;
         justify-content: space-between;
@@ -122,7 +120,6 @@
         100% { left: 100%; }
     }
 
-    /* Controls */
     .controls-row {
         margin-bottom: 16px;
     }
@@ -155,7 +152,6 @@
         box-shadow: 0 0 20px rgba(0, 243, 255, 0.25);
     }
 
-    /* Settings accordion */
     details.settings {
         background: var(--glass);
         backdrop-filter: blur(16px);
@@ -216,7 +212,6 @@
         box-shadow: 0 0 40px rgba(0, 243, 255, 0.6);
     }
 
-    /* Chart */
     .chart-box {
         width: 100%;
         height: 200px;
@@ -256,7 +251,6 @@
         letter-spacing: 1px;
     }
 
-    /* Price Card */
     .price-card {
         background: var(--glass);
         backdrop-filter: blur(20px);
@@ -301,7 +295,6 @@
         letter-spacing: 2px;
     }
 
-    /* Signal Box - Living Orb */
     .signal-box {
         padding: 24px;
         border-radius: 18px;
@@ -348,7 +341,6 @@
         50% { box-shadow: 0 0 60px rgba(255, 42, 109, 0.6); }
     }
 
-    /* Info Row */
     .info-row {
         display: grid;
         grid-template-columns: 1fr 1.3fr 1fr;
@@ -376,7 +368,6 @@
         box-shadow: 0 0 20px rgba(255, 235, 59, 0.2);
     }
 
-    /* Digit Grid - Quantum Matrix */
     .digit-grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
@@ -443,7 +434,6 @@
         100% { transform: translateX(100%); }
     }
 
-    /* History */
     .history-section {
         margin-top: 24px;
         background: var(--glass);
@@ -536,7 +526,6 @@
         opacity: 0.7;
     }
 
-    /* Responsive */
     @media (max-width: 520px) {
         .settings-body { grid-template-columns: 1fr; }
         .info-row { grid-template-columns: 1fr; }
@@ -649,7 +638,6 @@
 </div>
 
 <script>
-    // ===== ORIGINAL LOGIC FULLY PRESERVED =====
     const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
 
     const SYMBOL_NAMES = {
@@ -702,7 +690,6 @@
         digitBufHead = (digitBufHead + 1) % settings.windowSize;
     }
 
-    // ---------- Chart ----------
     function resetChart() {
         chartPoints = [];
         const c = document.getElementById('priceChart');
@@ -741,7 +728,6 @@
         const stepX = W / (chartPoints.length - 1);
         const sy = v => H - ((v - min) / (max - min)) * H;
 
-        // Glow fill
         ctx.beginPath();
         ctx.moveTo(0, sy(prices[0]));
         prices.forEach((p, i) => ctx.lineTo(i * stepX, sy(p)));
@@ -751,7 +737,6 @@
         g.addColorStop(1, 'rgba(0,243,255,0)');
         ctx.fillStyle = g; ctx.fill();
 
-        // Neon line
         ctx.beginPath();
         prices.forEach((p, i) => {
             const x = i * stepX, y = sy(p);
@@ -764,7 +749,6 @@
         ctx.stroke();
         ctx.shadowBlur = 0;
 
-        // End point
         ctx.beginPath();
         ctx.arc((prices.length-1)*stepX, sy(prices[prices.length-1]), 4, 0, Math.PI*2);
         ctx.fillStyle = '#00e5ff';
@@ -776,7 +760,6 @@
         document.getElementById('chartMinLabel').innerText = min.toFixed(2);
     }
 
-    // ---------- Core logic (unchanged) ----------
     function evaluateOverUnder(rawQuote, price) {
         const d = getLastDigit(rawQuote);
         if (d === null) return;
@@ -803,8 +786,9 @@
             }
         }
 
+        // Fixed: always show clear percentage even when 0.0%
         document.getElementById('bestDigitBox').innerHTML =
-            `BEST DIGIT: <span style="font-size:1.4em">${bestDigit}</span> (${bestPct.toFixed(1)}%)`;
+            `BEST DIGIT: <span style="font-size:1.4em">${bestDigit}</span> <span style="opacity:0.9">(${bestPct === 0 ? '0.0' : bestPct.toFixed(1)}%)</span>`;
 
         renderDigitGrid(pct, bestDigit);
 
@@ -871,12 +855,16 @@
         currentSignal = final;
     }
 
+    // Fixed: digit 0 always shows "0.0%" clearly
     function renderDigitGrid(pct, bestDigit) {
         const grid = document.getElementById('digitGrid');
         grid.innerHTML = '';
         for (let i = 0; i < 10; i++) {
             const cell = document.createElement('div');
-            const val = pct ? pct[i].toFixed(1) + '%' : '--';
+            let val = '--';
+            if (pct) {
+                val = (pct[i] === 0 ? '0.0' : pct[i].toFixed(1)) + '%';
+            }
             let cls = 'digit-cell';
             if (pct) {
                 if (i === bestDigit) cls += ' best';
@@ -884,12 +872,14 @@
                 else if (pct[i] >= 12) cls += ' hot';
             }
             cell.className = cls;
-            cell.innerHTML = `<div class="digit-label">${i}</div><div class="digit-value">${val}</div>`;
+            cell.innerHTML = `
+                <div class="digit-label">${i}</div>
+                <div class="digit-value">${val}</div>
+            `;
             grid.appendChild(cell);
         }
     }
 
-    // ---------- Notifications & History ----------
     function ensureNotifyPermission() {
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
@@ -954,7 +944,6 @@
         });
     }
 
-    // ---------- WebSocket ----------
     function clearPing() {
         if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
     }
@@ -1044,7 +1033,6 @@
         ws.onerror = () => document.getElementById('logConsole').innerText = 'WebSocket error';
     }
 
-    // ---------- UI ----------
     function loadSettings() {
         try {
             const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
