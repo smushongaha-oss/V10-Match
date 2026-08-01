@@ -120,9 +120,7 @@
         100% { left: 100%; }
     }
 
-    .controls-row {
-        margin-bottom: 16px;
-    }
+    .controls-row { margin-bottom: 16px; }
 
     label {
         font-size: 0.75rem;
@@ -609,7 +607,7 @@
     </div>
 
     <div class="info-row">
-        <div class="info-box" id="lowInfo">LOW 0-4: —</div>
+        <div class="info-box" id="lowInfo">LOW 1-4: —</div>
         <div class="info-box best-digit" id="bestDigitBox">BEST DIGIT: —</div>
         <div class="info-box" id="highInfo">HIGH 5-9: —</div>
     </div>
@@ -632,7 +630,7 @@
 
     <div id="logConsole"></div>
     <div class="disclaimer">
-        PUBLIC DERIV QUANTUM API • OVER/UNDER + BEST SINGLE DIGIT FOR 1-TICK CONTRACTS<br>
+        PUBLIC DERIV QUANTUM API • OVER/UNDER + BEST SINGLE DIGIT (1-9 ONLY) FOR 1-TICK CONTRACTS<br>
         EXPERIMENTAL NEURAL TOOL — NOT FINANCIAL ADVICE • 2050 PROTOCOL
     </div>
 </div>
@@ -778,23 +776,24 @@
 
         const pct = digitCounts.map(c => (c / digitBufCount) * 100);
 
-        let bestDigit = 0, bestPct = pct[0];
-        for (let i = 1; i < 10; i++) {
+        // ===== EXCLUDE 0 COMPLETELY – start from 1,2,3 =====
+        let bestDigit = 1, bestPct = pct[1];
+        for (let i = 2; i <= 9; i++) {
             if (pct[i] < bestPct) {
                 bestPct = pct[i];
                 bestDigit = i;
             }
         }
 
-        // Fixed: always show clear percentage even when 0.0%
         document.getElementById('bestDigitBox').innerHTML =
             `BEST DIGIT: <span style="font-size:1.4em">${bestDigit}</span> <span style="opacity:0.9">(${bestPct === 0 ? '0.0' : bestPct.toFixed(1)}%)</span>`;
 
         renderDigitGrid(pct, bestDigit);
 
-        const lowPct  = pct[0]+pct[1]+pct[2]+pct[3]+pct[4];
-        const highPct = pct[5]+pct[6]+pct[7]+pct[8]+pct[9];
-        document.getElementById('lowInfo').innerText  = `LOW 0-4: ${lowPct.toFixed(1)}%`;
+        // Low group now starts from 1 (0 is excluded)
+        const lowPct  = pct[1] + pct[2] + pct[3] + pct[4];
+        const highPct = pct[5] + pct[6] + pct[7] + pct[8] + pct[9];
+        document.getElementById('lowInfo').innerText  = `LOW 1-4: ${lowPct.toFixed(1)}%`;
         document.getElementById('highInfo').innerText = `HIGH 5-9: ${highPct.toFixed(1)}%`;
 
         const avg = 10;
@@ -810,7 +809,7 @@
         }
         else if (lowPct <= (50 - settings.minDiff * 2) && lowPct < highPct) {
             raw = 'over';
-            detail = `Low group cold (${lowPct.toFixed(1)}%) → OVER  |  Best digit ${bestDigit}`;
+            detail = `Low group (1-4) cold (${lowPct.toFixed(1)}%) → OVER  |  Best digit ${bestDigit}`;
         } else if (highPct <= (50 - settings.minDiff * 2) && highPct < lowPct) {
             raw = 'under';
             detail = `High group cold (${highPct.toFixed(1)}%) → UNDER  |  Best digit ${bestDigit}`;
@@ -855,7 +854,6 @@
         currentSignal = final;
     }
 
-    // Fixed: digit 0 always shows "0.0%" clearly
     function renderDigitGrid(pct, bestDigit) {
         const grid = document.getElementById('digitGrid');
         grid.innerHTML = '';
