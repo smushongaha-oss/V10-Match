@@ -3,236 +3,296 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deriv Under Signal – Lowest % Digit (6-9)</title>
+<title>Deriv Over / Under Signal – Lowest % Digit</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
+  
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
+  
   body {
     font-family: 'Inter', sans-serif;
     background: linear-gradient(135deg, #0f172a, #1e293b);
     color: #e2e8f0;
     min-height: 100vh;
+    padding: 20px;
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 20px;
   }
-
+  
   .container {
     background: #1e293b;
     border-radius: 20px;
-    padding: 30px;
+    padding: 28px;
     width: 100%;
-    max-width: 480px;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    max-width: 520px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
     border: 1px solid #334155;
   }
-
+  
   h1 {
     text-align: center;
-    font-size: 1.6rem;
-    margin-bottom: 8px;
+    font-size: 1.5rem;
     color: #38bdf8;
+    margin-bottom: 6px;
   }
-
+  
   .subtitle {
     text-align: center;
     font-size: 0.9rem;
     color: #94a3b8;
-    margin-bottom: 25px;
+    margin-bottom: 24px;
   }
-
+  
+  .section {
+    margin-bottom: 30px;
+  }
+  
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .over { color: #4ade80; }
+  .under { color: #f87171; }
+  
   .input-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 25px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
   }
-
+  
   .digit-box {
     background: #0f172a;
     border-radius: 12px;
-    padding: 15px;
+    padding: 12px 6px;
     text-align: center;
     border: 2px solid #334155;
-    transition: all 0.3s;
+    transition: all 0.25s ease;
   }
-
+  
   .digit-box.lowest {
     border-color: #22c55e;
     background: #14532d;
-    transform: scale(1.05);
+    transform: scale(1.07);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
   }
-
+  
   .digit-label {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
-
+  
   input[type="number"] {
     width: 100%;
-    padding: 10px;
+    padding: 9px 4px;
     border: none;
     border-radius: 8px;
     background: #1e293b;
     color: #f8fafc;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     text-align: center;
     font-weight: 600;
   }
-
+  
   input:focus {
     outline: 2px solid #38bdf8;
   }
-
+  
   .result {
     background: #0f172a;
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 14px;
+    padding: 16px;
     text-align: center;
-    margin-top: 10px;
+    margin-top: 16px;
+    display: none;
   }
-
+  
   .result-title {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: #94a3b8;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
-
+  
   .lowest-digit {
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: 700;
     color: #22c55e;
     line-height: 1;
   }
-
+  
   .suggestion {
-    margin-top: 15px;
+    margin-top: 12px;
     padding: 12px;
     background: #1e3a5f;
     border-radius: 10px;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
     color: #7dd3fc;
+    line-height: 1.4;
   }
-
-  .btn {
-    width: 100%;
-    margin-top: 20px;
-    padding: 14px;
-    background: #0ea5e9;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .btn:hover {
-    background: #0284c7;
-  }
-
+  
   .note {
-    margin-top: 18px;
+    margin-top: 20px;
     font-size: 0.8rem;
     color: #64748b;
     text-align: center;
-    line-height: 1.4;
+    line-height: 1.5;
   }
 </style>
 </head>
 <body>
   <div class="container">
-    <h1>Deriv UNDER Signal</h1>
-    <p class="subtitle">Lowest % digit from 6 → 9</p>
+    <h1>Deriv Over / Under Signal</h1>
+    <p class="subtitle">Shows the digit with the <strong>lowest %</strong></p>
 
-    <div class="input-grid">
-      <div class="digit-box" id="box6">
-        <div class="digit-label">6</div>
-        <input type="number" id="pct6" placeholder="%" step="0.1" min="0" max="100">
+    <!-- OVER Section -->
+    <div class="section">
+      <div class="section-title over">▲ OVER — Lowest % from 0 to 3</div>
+      <div class="input-grid">
+        <div class="digit-box" id="obox0">
+          <div class="digit-label">0</div>
+          <input type="number" id="opct0" step="0.1" min="0" max="100" placeholder="%">
+        </div>
+        <div class="digit-box" id="obox1">
+          <div class="digit-label">1</div>
+          <input type="number" id="opct1" step="0.1" min="0" max="100" placeholder="%">
+        </div>
+        <div class="digit-box" id="obox2">
+          <div class="digit-label">2</div>
+          <input type="number" id="opct2" step="0.1" min="0" max="100" placeholder="%">
+        </div>
+        <div class="digit-box" id="obox3">
+          <div class="digit-label">3</div>
+          <input type="number" id="opct3" step="0.1" min="0" max="100" placeholder="%">
+        </div>
       </div>
-      <div class="digit-box" id="box7">
-        <div class="digit-label">7</div>
-        <input type="number" id="pct7" placeholder="%" step="0.1" min="0" max="100">
-      </div>
-      <div class="digit-box" id="box8">
-        <div class="digit-label">8</div>
-        <input type="number" id="pct8" placeholder="%" step="0.1" min="0" max="100">
-      </div>
-      <div class="digit-box" id="box9">
-        <div class="digit-label">9</div>
-        <input type="number" id="pct9" placeholder="%" step="0.1" min="0" max="100">
+      <div class="result" id="oresult">
+        <div class="result-title">Lowest digit is</div>
+        <div class="lowest-digit" id="olowest">–</div>
+        <div class="suggestion" id="osuggestion">–</div>
       </div>
     </div>
 
-    <button class="btn" onclick="calculate()">Calculate Signal</button>
-
-    <div class="result" id="result" style="display:none;">
-      <div class="result-title">Lowest percentage digit</div>
-      <div class="lowest-digit" id="lowestDigit">–</div>
-      <div class="suggestion" id="suggestion">–</div>
+    <!-- UNDER Section -->
+    <div class="section">
+      <div class="section-title under">▼ UNDER — Lowest % from 6 to 9</div>
+      <div class="input-grid">
+        <div class="digit-box" id="ubox6">
+          <div class="digit-label">6</div>
+          <input type="number" id="upct6" step="0.1" min="0" max="100" placeholder="%">
+        </div>
+        <div class="digit-box" id="ubox7">
+          <div class="digit-label">7</div>
+          <input type="number" id="upct7" step="0.1" min="0" max="100" placeholder="%">
+        </div>
+        <div class="digit-box" id="ubox8">
+          <div class="digit-label">8</div>
+          <input type="number" id="upct8" step="0.1" min="0" max="100" placeholder="%">
+        </div>
+        <div class="digit-box" id="ubox9">
+          <div class="digit-label">9</div>
+          <input type="number" id="upct9" step="0.1" min="0" max="100" placeholder="%">
+        </div>
+      </div>
+      <div class="result" id="uresult">
+        <div class="result-title">Lowest digit is</div>
+        <div class="lowest-digit" id="ulowest">–</div>
+        <div class="suggestion" id="usuggestion">–</div>
+      </div>
     </div>
 
     <p class="note">
-      Enter the current percentages from Deriv’s Digit Stats tool.<br>
-      Stronger signal when the lowest digit is under 10%.
+      Type the percentages from Deriv’s Digit Stats tool.<br>
+      The box with the lowest % turns green and shows the recommended trade.
     </p>
   </div>
 
 <script>
-function calculate() {
-  const values = [
-    { digit: 6, pct: parseFloat(document.getElementById('pct6').value) || 999 },
-    { digit: 7, pct: parseFloat(document.getElementById('pct7').value) || 999 },
-    { digit: 8, pct: parseFloat(document.getElementById('pct8').value) || 999 },
-    { digit: 9, pct: parseFloat(document.getElementById('pct9').value) || 999 }
-  ];
+  // OVER calculation (0-3)
+  function calcOver() {
+    const vals = [
+      { d: 0, p: parseFloat(document.getElementById('opct0').value) || 999 },
+      { d: 1, p: parseFloat(document.getElementById('opct1').value) || 999 },
+      { d: 2, p: parseFloat(document.getElementById('opct2').value) || 999 },
+      { d: 3, p: parseFloat(document.getElementById('opct3').value) || 999 }
+    ];
 
-  // Reset highlights
-  [6,7,8,9].forEach(d => {
-    document.getElementById('box' + d).classList.remove('lowest');
+    // Remove previous highlights
+    [0,1,2,3].forEach(d => document.getElementById('obox' + d).classList.remove('lowest'));
+
+    // Find lowest
+    const low = vals.reduce((a, b) => a.p < b.p ? a : b);
+
+    // Highlight
+    document.getElementById('obox' + low.d).classList.add('lowest');
+    document.getElementById('oresult').style.display = 'block';
+    document.getElementById('olowest').textContent = low.d;
+
+    // Suggestion
+    let sug = '';
+    if (low.d === 0 || low.d === 1) {
+      sug = 'Strong → Trade OVER 3';
+    } else if (low.d === 2) {
+      sug = 'Good → Trade OVER 3';
+    } else {
+      sug = 'Moderate → Trade OVER 3 (or wait)';
+    }
+
+    if (low.p < 9.5) sug += '  •  Very strong signal';
+    else if (low.p < 10.5) sug += '  •  Good strength';
+
+    document.getElementById('osuggestion').textContent = sug;
+  }
+
+  // UNDER calculation (6-9)
+  function calcUnder() {
+    const vals = [
+      { d: 6, p: parseFloat(document.getElementById('upct6').value) || 999 },
+      { d: 7, p: parseFloat(document.getElementById('upct7').value) || 999 },
+      { d: 8, p: parseFloat(document.getElementById('upct8').value) || 999 },
+      { d: 9, p: parseFloat(document.getElementById('upct9').value) || 999 }
+    ];
+
+    // Remove previous highlights
+    [6,7,8,9].forEach(d => document.getElementById('ubox' + d).classList.remove('lowest'));
+
+    // Find lowest
+    const low = vals.reduce((a, b) => a.p < b.p ? a : b);
+
+    // Highlight
+    document.getElementById('ubox' + low.d).classList.add('lowest');
+    document.getElementById('uresult').style.display = 'block';
+    document.getElementById('ulowest').textContent = low.d;
+
+    // Suggestion
+    let sug = '';
+    if (low.d === 9 || low.d === 8) {
+      sug = 'Strong → Trade UNDER 7 (or UNDER 6)';
+    } else if (low.d === 7) {
+      sug = 'Good → Trade UNDER 6';
+    } else {
+      sug = 'Moderate → Trade UNDER 6 (or wait)';
+    }
+
+    if (low.p < 9.5) sug += '  •  Very strong signal';
+    else if (low.p < 10.5) sug += '  •  Good strength';
+
+    document.getElementById('usuggestion').textContent = sug;
+  }
+
+  // Auto-update while typing
+  ['opct0','opct1','opct2','opct3'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calcOver);
   });
 
-  // Find lowest
-  let lowest = values.reduce((min, curr) => curr.pct < min.pct ? curr : min);
-
-  // Highlight
-  document.getElementById('box' + lowest.digit).classList.add('lowest');
-
-  // Show result
-  document.getElementById('result').style.display = 'block';
-  document.getElementById('lowestDigit').textContent = lowest.digit;
-
-  // Suggestion logic (flipped from Over 0-3)
-  let suggestion = '';
-  if (lowest.digit === 9 || lowest.digit === 8) {
-    suggestion = 'Strong → Trade UNDER 7 (or UNDER 6)';
-  } else if (lowest.digit === 7) {
-    suggestion = 'Good → Trade UNDER 6';
-  } else {
-    suggestion = 'Moderate → Trade UNDER 6 (or wait for clearer setup)';
-  }
-
-  // Extra strength check
-  if (lowest.pct < 9.5) {
-    suggestion += '  •  Very strong (lowest < 9.5%)';
-  } else if (lowest.pct < 10.5) {
-    suggestion += '  •  Good strength';
-  }
-
-  document.getElementById('suggestion').textContent = suggestion;
-}
-
-// Auto-calculate when typing
-['pct6','pct7','pct8','pct9'].forEach(id => {
-  document.getElementById(id).addEventListener('input', calculate);
-});
+  ['upct6','upct7','upct8','upct9'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calcUnder);
+  });
 </script>
 </body>
 </html>
