@@ -3,1192 +3,430 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEURAL DIGIT CORE // 2050</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>NEURAL DIGIT CORE // Working</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 <style>
     :root {
-        --neon-cyan: #00f3ff;
-        --neon-magenta: #ff00aa;
-        --neon-green: #00ff9d;
-        --neon-red: #ff2a6d;
-        --bg-deep: #02040a;
-        --glass: rgba(8, 16, 32, 0.65);
-        --glass-border: rgba(0, 243, 255, 0.25);
-        --text-primary: #e0f7ff;
-        --text-dim: #6b8a9e;
+        --cyan: #00f3ff;
+        --green: #00ff9d;
+        --red: #ff2a6d;
+        --bg: #02040a;
+        --glass: rgba(8,16,32,0.7);
+        --border: rgba(0,243,255,0.25);
+        --text: #e0f7ff;
+        --dim: #6b8a9e;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
         font-family: 'Rajdhani', sans-serif;
-        background: var(--bg-deep);
-        color: var(--text-primary);
+        background: var(--bg);
+        color: var(--text);
         min-height: 100vh;
-        overflow-x: hidden;
-        position: relative;
-    }
-
-    body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background: 
-            radial-gradient(circle at 20% 30%, rgba(0, 243, 255, 0.08) 0%, transparent 40%),
-            radial-gradient(circle at 80% 70%, rgba(255, 0, 170, 0.06) 0%, transparent 40%),
-            linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
-        background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-        animation: gridPulse 12s ease-in-out infinite;
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    @keyframes gridPulse {
-        0%, 100% { opacity: 0.6; }
-        50% { opacity: 1; }
-    }
-
-    .container {
-        position: relative;
-        z-index: 1;
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 20px 16px 40px;
-    }
-
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        padding: 16px 20px;
-        background: var(--glass);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
-    }
-
-    .header h2 {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.15rem;
-        font-weight: 700;
-        letter-spacing: 2px;
-        background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
-    }
-
-    .status-badge {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.7rem;
-        letter-spacing: 1px;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 600;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .status-badge.connected {
-        background: rgba(0, 255, 157, 0.15);
-        color: var(--neon-green);
-        border: 1px solid var(--neon-green);
-        box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
-    }
-
-    .status-badge.disconnected {
-        background: rgba(255, 42, 109, 0.15);
-        color: var(--neon-red);
-        border: 1px solid var(--neon-red);
-        box-shadow: 0 0 15px rgba(255, 42, 109, 0.3);
-    }
-
-    .status-badge::after {
-        content: '';
-        position: absolute;
-        top: 0; left: -100%;
-        width: 100%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        animation: scan 2.5s infinite;
-    }
-
-    @keyframes scan {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-
-    .controls-row { margin-bottom: 16px; }
-
-    label {
-        font-size: 0.75rem;
-        letter-spacing: 1px;
-        color: var(--text-dim);
-        display: block;
-        margin-bottom: 6px;
-        text-transform: uppercase;
-    }
-
-    select, input[type=number] {
-        width: 100%;
-        background: rgba(0, 20, 40, 0.7);
-        border: 1px solid var(--glass-border);
-        border-radius: 10px;
-        padding: 12px 14px;
-        color: var(--text-primary);
-        font-family: 'Rajdhani', sans-serif;
-        font-size: 1rem;
-        font-weight: 500;
-        outline: none;
-        transition: all 0.3s;
-    }
-
-    select:focus, input[type=number]:focus {
-        border-color: var(--neon-cyan);
-        box-shadow: 0 0 20px rgba(0, 243, 255, 0.25);
-    }
-
-    details.settings {
-        background: var(--glass);
-        backdrop-filter: blur(16px);
-        border: 1px solid var(--glass-border);
-        border-radius: 14px;
-        margin-bottom: 18px;
-        overflow: hidden;
-    }
-
-    details.settings summary {
-        padding: 14px 18px;
-        cursor: pointer;
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.85rem;
-        letter-spacing: 1.5px;
-        color: var(--neon-cyan);
-        list-style: none;
-    }
-
-    details.settings summary::-webkit-details-marker { display: none; }
-
-    .settings-body {
-        padding: 0 18px 18px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-    }
-
-    .settings-body .full { grid-column: 1 / -1; }
-
-    .toggle-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: rgba(0, 30, 50, 0.5);
-        padding: 10px 14px;
-        border-radius: 10px;
-        font-size: 0.9rem;
-    }
-
-    button.apply-btn {
-        grid-column: 1 / -1;
-        background: linear-gradient(135deg, #00c4cc, #0088ff);
-        border: none;
-        border-radius: 10px;
-        padding: 14px;
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 700;
-        letter-spacing: 2px;
-        color: #000;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
-    }
-
-    button.apply-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 40px rgba(0, 243, 255, 0.6);
-    }
-
-    .chart-box {
-        width: 100%;
-        height: 200px;
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1px solid var(--glass-border);
-        margin-bottom: 16px;
-        background: rgba(0, 10, 20, 0.6);
-        position: relative;
-        box-shadow: inset 0 0 40px rgba(0, 243, 255, 0.05);
-    }
-
-    .chart-box canvas { display: block; width: 100%; height: 100%; }
-
-    .chart-range-label {
-        position: absolute;
-        right: 10px;
-        font-size: 0.7rem;
-        color: var(--neon-cyan);
-        background: rgba(0, 0, 0, 0.6);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-family: 'Orbitron', sans-serif;
-    }
-
-    .chart-range-max { top: 10px; }
-    .chart-range-min { bottom: 10px; }
-
-    .chart-empty-msg {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-dim);
-        font-size: 0.9rem;
-        letter-spacing: 1px;
-    }
-
-    .price-card {
-        background: var(--glass);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
-        padding: 20px;
-        text-align: center;
-        margin-bottom: 16px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .price-card::before {
-        content: '';
-        position: absolute;
-        top: -50%; left: -50%;
-        width: 200%; height: 200%;
-        background: conic-gradient(from 0deg, transparent, rgba(0, 243, 255, 0.1), transparent 30%);
-        animation: rotate 8s linear infinite;
-        pointer-events: none;
-    }
-
-    @keyframes rotate {
-        to { transform: rotate(360deg); }
-    }
-
-    .price-value {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 2.4rem;
-        font-weight: 800;
-        color: var(--neon-cyan);
-        text-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
-        margin: 8px 0;
-        position: relative;
-    }
-
-    #lastDigitDisplay {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.1rem;
-        color: #ffeb3b;
-        margin-top: 8px;
-        letter-spacing: 2px;
-    }
-
-    .signal-box {
-        padding: 24px;
-        border-radius: 18px;
-        text-align: center;
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.3rem;
-        font-weight: 700;
-        letter-spacing: 2px;
-        margin: 16px 0 8px 0;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .signal-neutral {
-        background: rgba(30, 40, 60, 0.6);
-        color: var(--text-dim);
-        border: 1px solid rgba(100, 120, 150, 0.3);
-    }
-
-    .signal-over {
-        background: linear-gradient(135deg, rgba(0, 80, 40, 0.7), rgba(0, 40, 20, 0.8));
-        color: var(--neon-green);
-        border: 2px solid var(--neon-green);
-        box-shadow: 0 0 40px rgba(0, 255, 157, 0.4), inset 0 0 30px rgba(0, 255, 157, 0.1);
-        animation: pulseGreen 1.8s ease-in-out infinite;
-    }
-
-    .signal-under {
-        background: linear-gradient(135deg, rgba(80, 10, 30, 0.7), rgba(40, 5, 15, 0.8));
-        color: var(--neon-red);
-        border: 2px solid var(--neon-red);
-        box-shadow: 0 0 40px rgba(255, 42, 109, 0.4), inset 0 0 30px rgba(255, 42, 109, 0.1);
-        animation: pulseRed 1.8s ease-in-out infinite;
-    }
-
-    @keyframes pulseGreen {
-        0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 157, 0.3); }
-        50% { box-shadow: 0 0 60px rgba(0, 255, 157, 0.6); }
-    }
-
-    @keyframes pulseRed {
-        0%, 100% { box-shadow: 0 0 30px rgba(255, 42, 109, 0.3); }
-        50% { box-shadow: 0 0 60px rgba(255, 42, 109, 0.6); }
-    }
-
-    .strength-container {
-        margin-bottom: 18px;
-        background: rgba(0, 15, 30, 0.6);
-        border: 1px solid var(--glass-border);
-        border-radius: 12px;
-        padding: 12px 16px;
-    }
-
-    .strength-label {
-        display: flex;
-        justify-content: space-between;
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.75rem;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-        color: var(--text-dim);
-    }
-
-    .strength-bar-bg {
-        height: 12px;
-        background: rgba(255,255,255,0.08);
-        border-radius: 6px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .strength-bar-fill {
-        height: 100%;
-        width: 0%;
-        border-radius: 6px;
-        transition: width 0.4s ease, background 0.4s ease;
-        background: linear-gradient(90deg, #64748b, #94a3b8);
-    }
-
-    .strength-bar-fill.weak { background: linear-gradient(90deg, #64748b, #94a3b8); }
-    .strength-bar-fill.medium { background: linear-gradient(90deg, #eab308, #facc15); }
-    .strength-bar-fill.strong { background: linear-gradient(90deg, #00ff9d, #00f3ff); box-shadow: 0 0 12px rgba(0,255,157,0.5); }
-
-    .info-row {
-        display: grid;
-        grid-template-columns: 1fr 1.3fr 1fr;
-        gap: 10px;
-        margin-bottom: 16px;
-    }
-
-    .info-box {
-        background: var(--glass);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        border-radius: 12px;
-        padding: 12px 8px;
-        text-align: center;
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-    }
-
-    .info-box.best-digit {
-        background: rgba(255, 235, 59, 0.08);
-        border-color: #ffeb3b;
-        color: #ffeb3b;
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 700;
-        box-shadow: 0 0 20px rgba(255, 235, 59, 0.2);
-    }
-
-    .digit-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 10px;
-        margin: 18px 0;
-    }
-
-    .digit-cell {
-        background: rgba(0, 20, 40, 0.6);
-        border: 1px solid rgba(0, 243, 255, 0.15);
-        border-radius: 12px;
-        padding: 12px 4px;
-        text-align: center;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .digit-cell .digit-label {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.7rem;
-        color: var(--text-dim);
-        letter-spacing: 1px;
-    }
-
-    .digit-cell .digit-value {
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 700;
-        font-size: 1.05rem;
-        margin-top: 4px;
-    }
-
-    .digit-cell.hot {
-        border-color: var(--neon-red);
-        background: rgba(255, 42, 109, 0.12);
-        box-shadow: 0 0 15px rgba(255, 42, 109, 0.25);
-    }
-
-    .digit-cell.cold {
-        border-color: var(--neon-green);
-        background: rgba(0, 255, 157, 0.1);
-        box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
-    }
-
-    .digit-cell.best {
-        border-color: #ffeb3b;
-        background: rgba(255, 235, 59, 0.15);
-        box-shadow: 0 0 25px rgba(255, 235, 59, 0.45);
-        transform: scale(1.05);
-        z-index: 2;
-    }
-
-    .digit-cell.best::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: 12px;
-        background: linear-gradient(45deg, transparent, rgba(255, 235, 59, 0.2), transparent);
-        animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
-    }
-
-    .history-section {
-        margin-top: 24px;
-        background: var(--glass);
-        backdrop-filter: blur(16px);
-        border: 1px solid var(--glass-border);
-        border-radius: 16px;
         padding: 16px;
     }
-
-    .history-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
+    .container { max-width: 680px; margin: 0 auto; }
+    .header {
+        display: flex; justify-content: space-between; align-items: center;
+        background: var(--glass); border: 1px solid var(--border);
+        border-radius: 14px; padding: 14px 18px; margin-bottom: 18px;
     }
-
-    .history-header h3 {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.9rem;
-        letter-spacing: 1.5px;
-        color: var(--neon-cyan);
+    .header h2 {
+        font-family: 'Orbitron', sans-serif; font-size: 1.1rem; letter-spacing: 2px;
+        background: linear-gradient(90deg, var(--cyan), #ff00aa);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-
-    button.clear-btn {
-        background: transparent;
-        border: 1px solid rgba(255, 42, 109, 0.4);
-        color: var(--neon-red);
-        border-radius: 8px;
-        padding: 4px 12px;
-        font-size: 0.75rem;
-        cursor: pointer;
-        font-family: 'Orbitron', sans-serif;
-        letter-spacing: 1px;
-        transition: all 0.3s;
+    .badge {
+        font-family: 'Orbitron', sans-serif; font-size: 0.7rem; padding: 5px 12px;
+        border-radius: 20px; font-weight: 600;
     }
+    .badge.on { background: rgba(0,255,157,0.15); color: var(--green); border: 1px solid var(--green); }
+    .badge.off { background: rgba(255,42,109,0.15); color: var(--red); border: 1px solid var(--red); }
 
-    button.clear-btn:hover {
-        background: rgba(255, 42, 109, 0.15);
-        box-shadow: 0 0 15px rgba(255, 42, 109, 0.3);
+    label { font-size: 0.75rem; color: var(--dim); letter-spacing: 1px; display: block; margin-bottom: 5px; text-transform: uppercase; }
+    select, input {
+        width: 100%; background: rgba(0,20,40,0.8); border: 1px solid var(--border);
+        border-radius: 10px; padding: 11px 13px; color: var(--text); font-size: 1rem;
+        font-family: 'Rajdhani', sans-serif; outline: none;
     }
+    select:focus, input:focus { border-color: var(--cyan); }
 
-    table.history-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.8rem;
+    .card {
+        background: var(--glass); border: 1px solid var(--border);
+        border-radius: 14px; padding: 16px; margin-bottom: 14px;
     }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .full { grid-column: 1 / -1; }
 
-    table.history-table th {
-        color: var(--text-dim);
-        font-weight: 500;
-        padding: 8px 6px;
-        border-bottom: 1px solid rgba(0, 243, 255, 0.15);
-        letter-spacing: 1px;
+    button {
+        width: 100%; background: linear-gradient(135deg, #00c4cc, #0088ff);
+        border: none; border-radius: 10px; padding: 13px;
+        font-family: 'Orbitron', sans-serif; font-weight: 700; letter-spacing: 1.5px;
+        color: #000; cursor: pointer; margin-top: 8px;
     }
+    button:hover { filter: brightness(1.1); }
 
-    table.history-table td {
-        padding: 8px 6px;
-        text-align: center;
-        border-bottom: 1px solid rgba(0, 243, 255, 0.08);
+    .price {
+        font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 700;
+        color: var(--cyan); text-align: center; margin: 8px 0;
+        text-shadow: 0 0 20px rgba(0,243,255,0.5);
     }
-
-    .dir-over { color: var(--neon-green); font-weight: 700; }
-    .dir-under { color: var(--neon-red); font-weight: 700; }
-
-    .empty-history {
-        color: var(--text-dim);
-        text-align: center;
-        padding: 20px;
-        font-size: 0.85rem;
-        letter-spacing: 1px;
+    .digit {
+        font-family: 'Orbitron', sans-serif; font-size: 1.1rem;
+        color: #ffeb3b; text-align: center; letter-spacing: 2px;
     }
-
-    #logConsole {
-        margin-top: 14px;
-        font-size: 0.8rem;
-        color: var(--neon-red);
-        text-align: center;
-        min-height: 1.2em;
-        font-family: 'Orbitron', sans-serif;
-        letter-spacing: 1px;
+    .signal {
+        text-align: center; padding: 20px; border-radius: 14px;
+        font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 700;
+        letter-spacing: 2px; margin: 14px 0;
     }
+    .neutral { background: rgba(30,40,60,0.6); color: var(--dim); border: 1px solid rgba(100,120,150,0.3); }
+    .over { background: rgba(0,80,40,0.6); color: var(--green); border: 2px solid var(--green); box-shadow: 0 0 30px rgba(0,255,157,0.3); }
+    .under { background: rgba(80,10,30,0.6); color: var(--red); border: 2px solid var(--red); box-shadow: 0 0 30px rgba(255,42,109,0.3); }
 
-    .disclaimer {
-        margin-top: 20px;
-        font-size: 0.7rem;
-        color: var(--text-dim);
-        text-align: center;
-        line-height: 1.5;
-        letter-spacing: 0.5px;
-        opacity: 0.7;
+    .grid {
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 14px 0;
     }
+    .cell {
+        background: rgba(0,20,40,0.6); border: 1px solid rgba(0,243,255,0.15);
+        border-radius: 10px; padding: 10px 4px; text-align: center;
+    }
+    .cell .n { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--dim); }
+    .cell .v { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1rem; margin-top: 3px; }
+    .cell.best { border-color: #ffeb3b; background: rgba(255,235,59,0.12); box-shadow: 0 0 15px rgba(255,235,59,0.3); }
+    .cell.cold { border-color: var(--green); background: rgba(0,255,157,0.08); }
+    .cell.hot { border-color: var(--red); background: rgba(255,42,109,0.1); }
 
-    @media (max-width: 520px) {
-        .settings-body { grid-template-columns: 1fr; }
-        .info-row { grid-template-columns: 1fr; }
-        .price-value { font-size: 2rem; }
+    .info { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .ibox {
+        background: var(--glass); border: 1px solid var(--border);
+        border-radius: 10px; padding: 10px 6px; text-align: center; font-size: 0.85rem;
+    }
+    .ibox.best { border-color: #ffeb3b; color: #ffeb3b; font-family: 'Orbitron', sans-serif; font-weight: 700; }
+
+    #log {
+        margin-top: 12px; font-size: 0.8rem; color: var(--red);
+        text-align: center; min-height: 1.2em; font-family: 'Orbitron', sans-serif;
+    }
+    .note {
+        margin-top: 16px; font-size: 0.7rem; color: var(--dim);
+        text-align: center; line-height: 1.5; opacity: 0.8;
+    }
+    @media (max-width: 500px) {
+        .row, .info { grid-template-columns: 1fr; }
+        .price { font-size: 1.8rem; }
     }
 </style>
 </head>
 <body>
-
 <div class="container">
     <div class="header">
-        <h2 id="dashTitle">NEURAL DIGIT CORE</h2>
-        <span id="connectionStatus" class="status-badge disconnected">LINKING...</span>
+        <h2 id="title">NEURAL DIGIT CORE</h2>
+        <span id="status" class="badge off">CONNECTING...</span>
     </div>
 
-    <div class="controls-row">
-        <div class="symbol-picker">
-            <label for="symbolSelect">QUANTUM SYMBOL</label>
-            <select id="symbolSelect">
-                <option value="R_10">Volatility 10 Index</option>
-                <option value="R_25">Volatility 25 Index</option>
-                <option value="R_50">Volatility 50 Index</option>
-                <option value="R_75" selected>Volatility 75 Index</option>
-                <option value="R_100">Volatility 100 Index</option>
-                <option value="1HZ10V">Volatility 10 (1s)</option>
-                <option value="1HZ25V">Volatility 25 (1s)</option>
-                <option value="1HZ50V">Volatility 50 (1s)</option>
-                <option value="1HZ75V">Volatility 75 (1s)</option>
-                <option value="1HZ100V">Volatility 100 (1s)</option>
-            </select>
-        </div>
-    </div>
+    <div class="card">
+        <label>Symbol</label>
+        <select id="symbol">
+            <option value="R_10">Volatility 10</option>
+            <option value="R_25">Volatility 25</option>
+            <option value="R_50">Volatility 50</option>
+            <option value="R_75" selected>Volatility 75</option>
+            <option value="R_100">Volatility 100</option>
+            <option value="1HZ10V">Vol 10 (1s)</option>
+            <option value="1HZ25V">Vol 25 (1s)</option>
+            <option value="1HZ50V">Vol 50 (1s)</option>
+            <option value="1HZ75V">Vol 75 (1s)</option>
+            <option value="1HZ100V">Vol 100 (1s)</option>
+        </select>
 
-    <details class="settings">
-        <summary>⚙ NEURAL PARAMETERS</summary>
-        <div class="settings-body">
+        <div class="row" style="margin-top:12px">
             <div>
-                <label for="windowSize">Rolling Window (ticks)</label>
-                <input type="number" id="windowSize" min="40" max="400" value="120">
+                <label>Window (ticks)</label>
+                <input type="number" id="window" value="100" min="30" max="300">
             </div>
             <div>
-                <label for="threshold">Cold Threshold %</label>
-                <input type="number" id="threshold" min="3" max="12" step="0.5" value="7.0">
+                <label>Confirm ticks</label>
+                <input type="number" id="confirm" value="3" min="2" max="6">
+            </div>
+        </div>
+        <div class="row">
+            <div>
+                <label>Cold threshold %</label>
+                <input type="number" id="threshold" value="7.5" min="4" max="12" step="0.5">
             </div>
             <div>
-                <label for="confirmTicks">Confirm Ticks</label>
-                <input type="number" id="confirmTicks" min="2" max="6" value="3">
+                <label>Min group gap %</label>
+                <input type="number" id="gap" value="6" min="3" max="15" step="0.5">
             </div>
-            <div>
-                <label for="minDiff">Min Group Gap %</label>
-                <input type="number" id="minDiff" min="3" max="12" step="0.5" value="6.0">
-            </div>
-            <div class="full toggle-row">
-                <span>🔊 Neural Audio Pulse</span>
-                <input type="checkbox" id="soundToggle" checked>
-            </div>
-            <div class="full toggle-row">
-                <span>🔔 Holo Notification</span>
-                <input type="checkbox" id="notifyToggle" checked>
-            </div>
-            <button class="apply-btn" id="applyBtn">APPLY & REBOOT FEED</button>
         </div>
-    </details>
-
-    <div class="chart-box">
-        <canvas id="priceChart"></canvas>
-        <div class="chart-range-label chart-range-max" id="chartMaxLabel"></div>
-        <div class="chart-range-label chart-range-min" id="chartMinLabel"></div>
-        <div class="chart-empty-msg" id="chartEmptyMsg">AWAITING QUANTUM TICKS...</div>
+        <button id="apply">APPLY & CONNECT</button>
     </div>
 
-    <div class="price-card">
-        <div id="priceLabel" style="font-size:0.8rem;color:var(--text-dim);letter-spacing:2px;">REAL-TIME TICK PRICE</div>
-        <div id="livePrice" class="price-value">0.00</div>
-        <div id="lastUpdate" style="font-size:0.8rem;color:var(--text-dim);">Establishing link...</div>
-        <div id="lastDigitDisplay">LAST DIGIT: —</div>
+    <div class="card" style="text-align:center">
+        <div style="font-size:0.8rem;color:var(--dim);letter-spacing:1px">LIVE PRICE</div>
+        <div class="price" id="price">—</div>
+        <div style="font-size:0.8rem;color:var(--dim)" id="time">Waiting for ticks...</div>
+        <div class="digit" id="lastDigit">LAST DIGIT: —</div>
     </div>
 
-    <div id="signalContainer" class="signal-box signal-neutral">
-        INITIALIZING DIGIT MATRIX...
+    <div id="signal" class="signal neutral">WAITING FOR DATA...</div>
+
+    <div class="info">
+        <div class="ibox" id="low">LOW 0-4: —</div>
+        <div class="ibox best" id="best">BEST: —</div>
+        <div class="ibox" id="high">HIGH 5-9: —</div>
     </div>
 
-    <div class="strength-container">
-        <div class="strength-label">
-            <span>SIGNAL STRENGTH</span>
-            <span id="strengthValue">0%</span>
-        </div>
-        <div class="strength-bar-bg">
-            <div class="strength-bar-fill" id="strengthBar"></div>
-        </div>
-    </div>
+    <div class="grid" id="grid"></div>
 
-    <div class="info-row">
-        <div class="info-box" id="lowInfo">LOW 0-4: —</div>
-        <div class="info-box best-digit" id="bestDigitBox">BEST DIGIT: —</div>
-        <div class="info-box" id="highInfo">HIGH 5-9: —</div>
-    </div>
-
-    <div class="digit-grid" id="digitGrid"></div>
-
-    <div class="history-section">
-        <div class="history-header">
-            <h3>SIGNAL ARCHIVE</h3>
-            <button class="clear-btn" id="clearHistoryBtn">PURGE</button>
-        </div>
-        <table class="history-table">
-            <thead>
-                <tr><th>TIME</th><th>SYMBOL</th><th>SIGNAL</th><th>DETAIL</th></tr>
-            </thead>
-            <tbody id="historyBody"></tbody>
-        </table>
-        <div class="empty-history" id="emptyHistoryMsg">No signals recorded in this session.</div>
-    </div>
-
-    <div id="logConsole"></div>
-    <div class="disclaimer">
-        PUBLIC DERIV API • OVER = next digit 5-9 | UNDER = next digit 0-4<br>
-        BEST DIGIT = coldest digit (for Matches contracts)<br>
-        EXPERIMENTAL TOOL — NOT FINANCIAL ADVICE • 2050 PROTOCOL
+    <div id="log"></div>
+    <div class="note">
+        OVER = next digit 5-9 &nbsp;|&nbsp; UNDER = next digit 0-4<br>
+        BEST DIGIT = coldest digit (for Matches)<br>
+        Experimental tool — not financial advice
     </div>
 </div>
 
 <script>
-    const PUBLIC_WS = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
+const APP_ID = 1089;
+const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
 
-    const SYMBOL_NAMES = {
-        R_10: 'Vol 10', R_25: 'Vol 25', R_50: 'Vol 50',
-        R_75: 'Vol 75', R_100: 'Vol 100',
-        '1HZ10V': 'Vol 10 (1s)', '1HZ25V': 'Vol 25 (1s)',
-        '1HZ50V': 'Vol 50 (1s)', '1HZ75V': 'Vol 75 (1s)', '1HZ100V': 'Vol 100 (1s)'
-    };
+let settings = {
+    symbol: 'R_75',
+    window: 100,
+    confirm: 3,
+    threshold: 7.5,
+    gap: 6
+};
 
-    const STORAGE_KEY = 'derivDigitCore_v3';
-    const HISTORY_KEY = 'derivDigitCoreHistory_v3';
-    const CHART_MAX = 180;
-    const PING_MS = 30000;
+let ws = null;
+let pingTimer = null;
+let counts = new Array(10).fill(0);
+let buffer = [];
+let bufCount = 0;
+let head = 0;
+let pending = null, pendingN = 0;
+let current = null;
+let lastBest = null;
 
-    let settings = {
-        symbol: 'R_75',
-        windowSize: 120,
-        threshold: 7.0,
-        confirmTicks: 3,
-        minDiff: 6.0,
-        sound: true,
-        notify: true
-    };
+function log(msg) {
+    document.getElementById('log').textContent = msg || '';
+}
 
-    let ws = null, pingTimer = null;
-    let digitBuffer = [];
-    let digitCounts = new Array(10).fill(0);
-    let digitBufCount = 0, digitBufHead = 0;
-    let currentSignal = null;
-    let pendingSignal = null, pendingCount = 0;
-    let tradeHistory = [];
-    let audioCtx = null;
-    let chartPoints = [];
-    let lastSignaledDigit = null;
-    let isHistoryLoading = false;
+function getDigit(quote) {
+    const s = String(quote).replace(/[^0-9]/g, '');
+    if (!s) return null;
+    return parseInt(s[s.length - 1], 10);
+}
 
-    function getLastDigit(quote) {
-        // Robust last digit extraction for Deriv quotes
-        const str = String(quote).replace(/[^0-9]/g, '');
-        if (!str) return null;
-        const d = parseInt(str.charAt(str.length - 1), 10);
-        return Number.isFinite(d) ? d : null;
-    }
+function push(d) {
+    if (d === null || d < 0 || d > 9) return;
+    if (bufCount === settings.window) {
+        const old = buffer[head];
+        if (old >= 0) counts[old]--;
+    } else bufCount++;
+    buffer[head] = d;
+    counts[d]++;
+    head = (head + 1) % settings.window;
+}
 
-    function pushDigit(d) {
-        if (d === null || d < 0 || d > 9) return;
-        if (digitBufCount === settings.windowSize) {
-            const old = digitBuffer[digitBufHead];
-            if (old >= 0) digitCounts[old]--;
-        } else {
-            digitBufCount++;
+function renderGrid(pct, best) {
+    const g = document.getElementById('grid');
+    g.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+        const cell = document.createElement('div');
+        let cls = 'cell';
+        let val = pct ? (pct[i].toFixed(1) + '%') : '—';
+        if (pct) {
+            if (i === best) cls += ' best';
+            else if (pct[i] <= settings.threshold) cls += ' cold';
+            else if (pct[i] >= 13) cls += ' hot';
         }
-        digitBuffer[digitBufHead] = d;
-        digitCounts[d]++;
-        digitBufHead = (digitBufHead + 1) % settings.windowSize;
+        cell.className = cls;
+        cell.innerHTML = `<div class="n">${i}</div><div class="v">${val}</div>`;
+        g.appendChild(cell);
+    }
+}
+
+function evaluate(raw, price) {
+    const d = getDigit(raw);
+    if (d === null) return;
+    push(d);
+
+    document.getElementById('lastDigit').textContent = 'LAST DIGIT: ' + d;
+    document.getElementById('price').textContent = Number(price).toFixed(2);
+    document.getElementById('time').textContent = 'Last tick: ' + new Date().toLocaleTimeString();
+
+    const box = document.getElementById('signal');
+    const need = Math.max(30, Math.floor(settings.window * 0.4));
+
+    if (bufCount < need) {
+        box.className = 'signal neutral';
+        box.textContent = `COLLECTING (${bufCount}/${need})...`;
+        renderGrid(null, -1);
+        document.getElementById('best').textContent = 'BEST: —';
+        document.getElementById('low').textContent = 'LOW 0-4: —';
+        document.getElementById('high').textContent = 'HIGH 5-9: —';
+        return;
     }
 
-    function resetChart() {
-        chartPoints = [];
-        const c = document.getElementById('priceChart');
-        if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
-        document.getElementById('chartEmptyMsg').style.display = 'flex';
-        document.getElementById('chartMaxLabel').innerText = '';
-        document.getElementById('chartMinLabel').innerText = '';
+    const pct = counts.map(c => (c / bufCount) * 100);
+
+    // Best (coldest) digit
+    let best = 0, bestPct = pct[0];
+    for (let i = 1; i <= 9; i++) {
+        if (pct[i] < bestPct) { bestPct = pct[i]; best = i; }
+    }
+    document.getElementById('best').innerHTML = `BEST: ${best} (${bestPct.toFixed(1)}%)`;
+    renderGrid(pct, best);
+
+    const low = pct[0]+pct[1]+pct[2]+pct[3]+pct[4];
+    const high = pct[5]+pct[6]+pct[7]+pct[8]+pct[9];
+    document.getElementById('low').textContent = `LOW 0-4: ${low.toFixed(1)}%`;
+    document.getElementById('high').textContent = `HIGH 5-9: ${high.toFixed(1)}%`;
+
+    // Signal logic
+    let dir = null;
+    const diff = Math.abs(high - low);
+
+    if (diff >= settings.gap) {
+        if (low < high) dir = 'over';      // low underrepresented → expect high next
+        else dir = 'under';
     }
 
-    function pushChartPoint(t, p) {
-        chartPoints.push({ time: t, price: p });
-        if (chartPoints.length > CHART_MAX) chartPoints.shift();
-        drawChart();
+    // Confirmation
+    if (dir) {
+        if (pending === dir) pendingN++;
+        else { pending = dir; pendingN = 1; }
+    } else {
+        pending = null; pendingN = 0;
     }
 
-    function drawChart() {
-        const canvas = document.getElementById('priceChart');
-        if (!canvas || chartPoints.length < 2) return;
-        document.getElementById('chartEmptyMsg').style.display = 'none';
+    let final = (pendingN >= settings.confirm) ? pending : null;
 
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        const ctx = canvas.getContext('2d');
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const W = rect.width, H = rect.height;
-        ctx.clearRect(0, 0, W, H);
-
-        const prices = chartPoints.map(p => p.price);
-        let min = Math.min(...prices), max = Math.max(...prices);
-        if (min === max) { min -= 1; max += 1; }
-        const pad = (max - min) * 0.1 || 0.5;
-        min -= pad; max += pad;
-
-        const stepX = W / (chartPoints.length - 1);
-        const sy = v => H - ((v - min) / (max - min)) * H;
-
-        ctx.beginPath();
-        ctx.moveTo(0, sy(prices[0]));
-        prices.forEach((p, i) => ctx.lineTo(i * stepX, sy(p)));
-        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-        const g = ctx.createLinearGradient(0, 0, 0, H);
-        g.addColorStop(0, 'rgba(0,243,255,0.25)');
-        g.addColorStop(1, 'rgba(0,243,255,0)');
-        ctx.fillStyle = g; ctx.fill();
-
-        ctx.beginPath();
-        prices.forEach((p, i) => {
-            const x = i * stepX, y = sy(p);
-            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        });
-        ctx.strokeStyle = '#00f3ff';
-        ctx.lineWidth = 2;
-        ctx.shadowColor = '#00f3ff';
-        ctx.shadowBlur = 12;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        ctx.beginPath();
-        ctx.arc((prices.length-1)*stepX, sy(prices[prices.length-1]), 4, 0, Math.PI*2);
-        ctx.fillStyle = '#00e5ff';
-        ctx.shadowColor = '#00f3ff';
-        ctx.shadowBlur = 15;
-        ctx.fill();
-
-        document.getElementById('chartMaxLabel').innerText = max.toFixed(2);
-        document.getElementById('chartMinLabel').innerText = min.toFixed(2);
+    if (final === 'over') {
+        box.className = 'signal over';
+        box.innerHTML = `OVER<br><span style="font-size:0.7em;opacity:0.85">Best digit ${best}</span>`;
+        if (final !== current) lastBest = best;
+    } else if (final === 'under') {
+        box.className = 'signal under';
+        box.innerHTML = `UNDER<br><span style="font-size:0.7em;opacity:0.85">Best digit ${best}</span>`;
+        if (final !== current) lastBest = best;
+    } else {
+        box.className = 'signal neutral';
+        box.textContent = pending
+            ? `BUILDING ${pending.toUpperCase()} (${pendingN}/${settings.confirm})`
+            : 'NO CLEAR EDGE';
     }
+    current = final;
+}
 
-    function updateStrengthBar(score) {
-        const bar = document.getElementById('strengthBar');
-        const value = document.getElementById('strengthValue');
-        score = Math.max(0, Math.min(100, Math.round(score)));
-        bar.style.width = score + '%';
-        value.innerText = score + '%';
-
-        bar.classList.remove('weak', 'medium', 'strong');
-        if (score >= 70) bar.classList.add('strong');
-        else if (score >= 40) bar.classList.add('medium');
-        else bar.classList.add('weak');
+function connect() {
+    if (ws) {
+        try { ws.onclose = null; ws.close(); } catch(e){}
     }
+    if (pingTimer) clearInterval(pingTimer);
 
-    function evaluateOverUnder(rawQuote, price) {
-        const d = getLastDigit(rawQuote);
-        if (d === null) return;
+    // reset state
+    counts = new Array(10).fill(0);
+    buffer = new Array(settings.window).fill(-1);
+    bufCount = 0; head = 0;
+    pending = null; pendingN = 0; current = null;
 
-        pushDigit(d);
-        document.getElementById('lastDigitDisplay').innerText = 'LAST DIGIT: ' + d;
+    document.getElementById('status').className = 'badge off';
+    document.getElementById('status').textContent = 'CONNECTING...';
+    document.getElementById('signal').className = 'signal neutral';
+    document.getElementById('signal').textContent = 'CONNECTING...';
+    document.getElementById('price').textContent = '—';
+    log('');
 
-        const box = document.getElementById('signalContainer');
-        const minSamples = Math.max(40, Math.floor(settings.windowSize * 0.45));
+    ws = new WebSocket(WS_URL);
 
-        if (digitBufCount < minSamples) {
-            box.className = 'signal-box signal-neutral';
-            box.innerText = `COLLECTING MATRIX (${digitBufCount}/${minSamples})...`;
-            renderDigitGrid(null, -1);
-            document.getElementById('bestDigitBox').innerText = 'BEST DIGIT: —';
-            document.getElementById('lowInfo').innerText = 'LOW 0-4: —';
-            document.getElementById('highInfo').innerText = 'HIGH 5-9: —';
-            updateStrengthBar(0);
+    ws.onopen = () => {
+        document.getElementById('status').className = 'badge on';
+        document.getElementById('status').textContent = 'LINKED';
+        log('');
+
+        // Keep alive
+        pingTimer = setInterval(() => {
+            if (ws && ws.readyState === 1) {
+                ws.send(JSON.stringify({ ping: 1 }));
+            }
+        }, 30000);
+
+        // Get recent history + subscribe to live ticks
+        ws.send(JSON.stringify({
+            ticks_history: settings.symbol,
+            adjust_start_time: 1,
+            count: settings.window + 20,
+            end: 'latest',
+            style: 'ticks',
+            subscribe: 1
+        }));
+    };
+
+    ws.onmessage = (ev) => {
+        let data;
+        try { data = JSON.parse(ev.data); } catch(e) { return; }
+
+        if (data.error) {
+            log('Error: ' + (data.error.message || JSON.stringify(data.error)));
             return;
         }
 
-        const pct = digitCounts.map(c => (c / digitBufCount) * 100);
-
-        // ===== BEST DIGIT (coldest 0-9) =====
-        let bestDigit = 0;
-        let bestPct = pct[0];
-        for (let i = 1; i <= 9; i++) {
-            if (pct[i] < bestPct) {
-                bestPct = pct[i];
-                bestDigit = i;
+        // History response
+        if (data.msg_type === 'history' && data.history) {
+            const prices = data.history.prices || [];
+            const times = data.history.times || [];
+            for (let i = 0; i < prices.length; i++) {
+                const p = parseFloat(prices[i]);
+                if (!Number.isFinite(p)) continue;
+                const d = getDigit(String(prices[i]));
+                if (d !== null) push(d);
             }
-        }
-
-        document.getElementById('bestDigitBox').innerHTML =
-            `BEST DIGIT: <span style="font-size:1.35em">${bestDigit}</span> <span style="opacity:0.85">(${bestPct.toFixed(1)}%)</span>`;
-
-        renderDigitGrid(pct, bestDigit);
-
-        // ===== GROUP FREQUENCIES =====
-        const lowPct  = pct[0] + pct[1] + pct[2] + pct[3] + pct[4];
-        const highPct = pct[5] + pct[6] + pct[7] + pct[8] + pct[9];
-
-        document.getElementById('lowInfo').innerText  = `LOW 0-4: ${lowPct.toFixed(1)}%`;
-        document.getElementById('highInfo').innerText = `HIGH 5-9: ${highPct.toFixed(1)}%`;
-
-        // ===== SIGNAL LOGIC (much stricter) =====
-        let raw = null;
-        let detail = '';
-        let strength = 0;
-
-        const gap = Math.abs(highPct - lowPct);
-
-        // Only signal when there is a clear group imbalance
-        if (gap >= settings.minDiff) {
-            if (lowPct < highPct) {
-                // Low digits are underrepresented → expect more high digits next → OVER
-                raw = 'over';
-                detail = `Low (0-4) only ${lowPct.toFixed(1)}% vs High ${highPct.toFixed(1)}% → OVER`;
-                strength = Math.min(100, 30 + (gap - settings.minDiff) * 6 + (50 - lowPct) * 1.2);
-            } else {
-                // High digits are underrepresented → expect more low digits → UNDER
-                raw = 'under';
-                detail = `High (5-9) only ${highPct.toFixed(1)}% vs Low ${lowPct.toFixed(1)}% → UNDER`;
-                strength = Math.min(100, 30 + (gap - settings.minDiff) * 6 + (50 - highPct) * 1.2);
+            if (prices.length) {
+                const last = prices[prices.length - 1];
+                evaluate(String(last), parseFloat(last));
             }
-        }
-
-        // Extra boost if the best digit is also very cold
-        if (raw && bestPct <= settings.threshold) {
-            strength += Math.max(0, (settings.threshold - bestPct) * 4);
-            detail += ` | Coldest: ${bestDigit} (${bestPct.toFixed(1)}%)`;
-        }
-
-        // Penalty if we just signaled the same digit recently
-        if (bestDigit === lastSignaledDigit) strength *= 0.6;
-
-        strength = Math.max(0, Math.min(100, strength));
-        updateStrengthBar(strength);
-
-        // Only accept signals above a minimum strength
-        if (strength < 38) {
-            raw = null;
-        }
-
-        // Confirmation logic
-        if (raw) {
-            if (pendingSignal === raw) pendingCount++;
-            else { pendingSignal = raw; pendingCount = 1; }
-        } else {
-            pendingSignal = null;
-            pendingCount = 0;
-        }
-
-        let final = null;
-        if (pendingCount >= settings.confirmTicks) final = pendingSignal;
-
-        if (final === 'over') {
-            box.className = 'signal-box signal-over';
-            box.innerHTML = `OVER  •  CONFIRMED<br><span style="font-size:0.72em;opacity:0.9">Best digit: ${bestDigit}</span>`;
-            if (final !== currentSignal) {
-                recordSignal('over', price, detail);
-                lastSignaledDigit = bestDigit;
-            }
-        } else if (final === 'under') {
-            box.className = 'signal-box signal-under';
-            box.innerHTML = `UNDER  •  CONFIRMED<br><span style="font-size:0.72em;opacity:0.9">Best digit: ${bestDigit}</span>`;
-            if (final !== currentSignal) {
-                recordSignal('under', price, detail);
-                lastSignaledDigit = bestDigit;
-            }
-        } else {
-            box.className = 'signal-box signal-neutral';
-            if (pendingSignal) {
-                box.innerText = `BUILDING ${pendingSignal.toUpperCase()} (${pendingCount}/${settings.confirmTicks})`;
-            } else {
-                box.innerText = 'NO CLEAR EDGE • SCANNING';
-            }
-        }
-        currentSignal = final;
-    }
-
-    function renderDigitGrid(pct, bestDigit) {
-        const grid = document.getElementById('digitGrid');
-        grid.innerHTML = '';
-        for (let i = 0; i < 10; i++) {
-            const cell = document.createElement('div');
-            let val = '--';
-            if (pct) {
-                val = (pct[i] === 0 ? '0.0' : pct[i].toFixed(1)) + '%';
-            }
-            let cls = 'digit-cell';
-            if (pct) {
-                if (i === bestDigit) cls += ' best';
-                else if (pct[i] <= settings.threshold) cls += ' cold';
-                else if (pct[i] >= 13) cls += ' hot';
-            }
-            cell.className = cls;
-            cell.innerHTML = `
-                <div class="digit-label">${i}</div>
-                <div class="digit-value">${val}</div>
-            `;
-            grid.appendChild(cell);
-        }
-    }
-
-    function ensureNotifyPermission() {
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-    }
-
-    function sendNotification(dir, detail) {
-        if (!settings.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
-        const title = dir === 'over' ? '🟢 OVER SIGNAL' : '🔴 UNDER SIGNAL';
-        try {
-            new Notification(title + ' — ' + settings.symbol, { body: detail });
-        } catch (e) {}
-    }
-
-    function playBeep(dir) {
-        if (!settings.sound) return;
-        try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            o.connect(g); g.connect(audioCtx.destination);
-            o.frequency.value = dir === 'over' ? 880 : 440;
-            o.type = 'sine';
-            g.gain.setValueAtTime(0.12, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.28);
-            o.start(); o.stop(audioCtx.currentTime + 0.28);
-        } catch (e) {}
-    }
-
-    function recordSignal(dir, price, detail) {
-        const entry = {
-            time: new Date().toLocaleTimeString(),
-            symbol: settings.symbol,
-            direction: dir,
-            detail: detail
-        };
-        tradeHistory.unshift(entry);
-        if (tradeHistory.length > 30) tradeHistory.pop();
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(tradeHistory));
-        renderHistory();
-        playBeep(dir);
-        sendNotification(dir, detail);
-    }
-
-    function renderHistory() {
-        const body = document.getElementById('historyBody');
-        const empty = document.getElementById('emptyHistoryMsg');
-        body.innerHTML = '';
-        if (!tradeHistory.length) {
-            empty.style.display = 'block';
             return;
         }
-        empty.style.display = 'none';
-        tradeHistory.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${item.time}</td>
-                <td>${item.symbol}</td>
-                <td class="dir-${item.direction}">${item.direction.toUpperCase()}</td>
-                <td>${item.detail}</td>`;
-            body.appendChild(tr);
-        });
-    }
 
-    function clearPing() {
-        if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
-    }
-
-    function initWebSocket() {
-        if (ws) { try { ws.onclose = null; ws.close(); } catch(e){} }
-        clearPing();
-
-        digitBuffer = new Array(settings.windowSize).fill(-1);
-        digitCounts = new Array(10).fill(0);
-        digitBufCount = 0; digitBufHead = 0;
-        currentSignal = null; pendingSignal = null; pendingCount = 0;
-        lastSignaledDigit = null;
-        isHistoryLoading = true;
-        resetChart();
-
-        document.getElementById('signalContainer').className = 'signal-box signal-neutral';
-        document.getElementById('signalContainer').innerText = 'INITIALIZING DIGIT MATRIX...';
-        document.getElementById('lastDigitDisplay').innerText = 'LAST DIGIT: —';
-        document.getElementById('bestDigitBox').innerText = 'BEST DIGIT: —';
-        updateStrengthBar(0);
-        renderDigitGrid(null, -1);
-
-        ws = new WebSocket(PUBLIC_WS);
-
-        ws.onopen = () => {
-            document.getElementById('connectionStatus').innerText = 'LINKED';
-            document.getElementById('connectionStatus').className = 'status-badge connected';
-            document.getElementById('logConsole').innerText = '';
-            pingTimer = setInterval(() => {
-                if (ws && ws.readyState === 1) ws.send(JSON.stringify({ ping: 1 }));
-            }, PING_MS);
-
-            // Request recent ticks + subscribe
-            ws.send(JSON.stringify({
-                ticks_history: settings.symbol,
-                adjust_start_time: 1,
-                count: Math.min(CHART_MAX, settings.windowSize + 20),
-                end: 'latest',
-                style: 'ticks',
-                subscribe: 1
-            }));
-        };
-
-        ws.onmessage = (ev) => {
-            let data;
-            try { data = JSON.parse(ev.data); } catch(e){ return; }
-
-            if (data.error) {
-                document.getElementById('logConsole').innerText = 'API: ' + (data.error.message || JSON.stringify(data.error));
-                return;
-            }
-            if (data.msg_type === 'ping') return;
-
-            // Historical ticks (warm-up)
-            if (data.msg_type === 'history' && data.history) {
-                const prices = data.history.prices || [];
-                const times  = data.history.times  || [];
-                for (let i = 0; i < prices.length; i++) {
-                    const p = parseFloat(prices[i]);
-                    if (!Number.isFinite(p)) continue;
-                    pushChartPoint(Number(times[i]) * 1000, p);
-                    const d = getLastDigit(String(prices[i]));
-                    if (d !== null) pushDigit(d);
-                }
-                if (prices.length) {
-                    const lp = parseFloat(prices[prices.length - 1]);
-                    document.getElementById('livePrice').innerText = lp.toFixed(2);
-                    document.getElementById('lastUpdate').innerText = 'Last tick: ' + new Date(Number(times[times.length-1])*1000).toLocaleTimeString();
-                    // Evaluate once after history is loaded
-                    evaluateOverUnder(String(prices[prices.length-1]), lp);
-                }
-                isHistoryLoading = false;
-                return;
-            }
-
-            // Live ticks
-            if (data.msg_type === 'tick' && data.tick) {
-                const raw = String(data.tick.quote);
-                const p = parseFloat(raw);
-                if (!Number.isFinite(p)) return;
-                const t = (data.tick.epoch || 0) * 1000;
-                document.getElementById('livePrice').innerText = p.toFixed(2);
-                document.getElementById('lastUpdate').innerText = 'Last tick: ' + new Date(t).toLocaleTimeString();
-                pushChartPoint(t, p);
-                evaluateOverUnder(raw, p);
-            }
-        };
-
-        ws.onclose = () => {
-            clearPing();
-            document.getElementById('connectionStatus').innerText = 'DISCONNECTED';
-            document.getElementById('connectionStatus').className = 'status-badge disconnected';
-            document.getElementById('logConsole').innerText = 'Reconnecting in 3s...';
-            setTimeout(initWebSocket, 3000);
-        };
-        ws.onerror = () => {
-            document.getElementById('logConsole').innerText = 'WebSocket error';
-        };
-    }
-
-    function loadSettings() {
-        try {
-            const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            if (s) settings = Object.assign(settings, s);
-        } catch(e){}
-        try {
-            const h = JSON.parse(localStorage.getItem(HISTORY_KEY));
-            if (Array.isArray(h)) tradeHistory = h;
-        } catch(e){}
-    }
-
-    function applySettingsToForm() {
-        document.getElementById('symbolSelect').value = settings.symbol;
-        document.getElementById('windowSize').value = settings.windowSize;
-        document.getElementById('threshold').value = settings.threshold;
-        document.getElementById('confirmTicks').value = settings.confirmTicks;
-        document.getElementById('minDiff').value = settings.minDiff;
-        document.getElementById('soundToggle').checked = settings.sound;
-        document.getElementById('notifyToggle').checked = settings.notify;
-        document.getElementById('dashTitle').innerText = (SYMBOL_NAMES[settings.symbol] || settings.symbol) + ' // CORE';
-        document.getElementById('priceLabel').innerText = 'REAL-TIME TICK PRICE (' + settings.symbol + ')';
-    }
-
-    document.getElementById('applyBtn').addEventListener('click', () => {
-        settings.symbol = document.getElementById('symbolSelect').value;
-        settings.windowSize = Math.max(40, parseInt(document.getElementById('windowSize').value, 10) || 120);
-        settings.threshold = parseFloat(document.getElementById('threshold').value) || 7.0;
-        settings.confirmTicks = Math.max(2, parseInt(document.getElementById('confirmTicks').value, 10) || 3);
-        settings.minDiff = parseFloat(document.getElementById('minDiff').value) || 6.0;
-        settings.sound = document.getElementById('soundToggle').checked;
-        settings.notify = document.getElementById('notifyToggle').checked;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-        applySettingsToForm();
-        if (settings.notify) ensureNotifyPermission();
-        initWebSocket();
-    });
-
-    document.getElementById('notifyToggle').addEventListener('change', e => {
-        if (e.target.checked) ensureNotifyPermission();
-    });
-
-    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-        tradeHistory = [];
-        localStorage.setItem(HISTORY_KEY, JSON.stringify([]));
-        renderHistory();
-    });
-
-    window.onload = () => {
-        loadSettings();
-        applySettingsToForm();
-        renderHistory();
-        if (settings.notify) ensureNotifyPermission();
-        initWebSocket();
+        // Live tick
+        if (data.msg_type === 'tick' && data.tick) {
+            const raw = String(data.tick.quote);
+            const p = parseFloat(raw);
+            if (Number.isFinite(p)) evaluate(raw, p);
+        }
     };
+
+    ws.onclose = () => {
+        document.getElementById('status').className = 'badge off';
+        document.getElementById('status').textContent = 'DISCONNECTED';
+        log('Reconnecting in 4 seconds...');
+        setTimeout(connect, 4000);
+    };
+
+    ws.onerror = () => {
+        log('WebSocket error – check connection');
+    };
+}
+
+document.getElementById('apply').onclick = () => {
+    settings.symbol = document.getElementById('symbol').value;
+    settings.window = Math.max(30, parseInt(document.getElementById('window').value) || 100);
+    settings.confirm = Math.max(2, parseInt(document.getElementById('confirm').value) || 3);
+    settings.threshold = parseFloat(document.getElementById('threshold').value) || 7.5;
+    settings.gap = parseFloat(document.getElementById('gap').value) || 6;
+
+    document.getElementById('title').textContent = settings.symbol + ' // CORE';
+    connect();
+};
+
+// Auto start
+window.onload = () => {
+    document.getElementById('title').textContent = settings.symbol + ' // CORE';
+    connect();
+};
 </script>
 </body>
 </html>
