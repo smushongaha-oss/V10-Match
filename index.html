@@ -339,7 +339,6 @@
         50% { box-shadow: 0 0 60px rgba(255, 42, 109, 0.6); }
     }
 
-    /* ===== STRENGTH BAR ===== */
     .strength-container {
         margin-bottom: 18px;
         background: rgba(0, 15, 30, 0.6);
@@ -601,19 +600,19 @@
         <div class="settings-body">
             <div>
                 <label for="windowSize">Rolling Window (ticks)</label>
-                <input type="number" id="windowSize" min="20" max="500" value="100">
+                <input type="number" id="windowSize" min="40" max="400" value="120">
             </div>
             <div>
                 <label for="threshold">Cold Threshold %</label>
-                <input type="number" id="threshold" min="1" max="15" step="0.5" value="8.5">
+                <input type="number" id="threshold" min="3" max="12" step="0.5" value="7.0">
             </div>
             <div>
                 <label for="confirmTicks">Confirm Ticks</label>
-                <input type="number" id="confirmTicks" min="1" max="5" value="2">
+                <input type="number" id="confirmTicks" min="2" max="6" value="3">
             </div>
             <div>
-                <label for="minDiff">Min Gap vs Average %</label>
-                <input type="number" id="minDiff" min="0" max="5" step="0.1" value="1.5">
+                <label for="minDiff">Min Group Gap %</label>
+                <input type="number" id="minDiff" min="3" max="12" step="0.5" value="6.0">
             </div>
             <div class="full toggle-row">
                 <span>🔊 Neural Audio Pulse</span>
@@ -645,7 +644,6 @@
         INITIALIZING DIGIT MATRIX...
     </div>
 
-    <!-- STRENGTH BAR -->
     <div class="strength-container">
         <div class="strength-label">
             <span>SIGNAL STRENGTH</span>
@@ -657,7 +655,7 @@
     </div>
 
     <div class="info-row">
-        <div class="info-box" id="lowInfo">LOW 1-4: —</div>
+        <div class="info-box" id="lowInfo">LOW 0-4: —</div>
         <div class="info-box best-digit" id="bestDigitBox">BEST DIGIT: —</div>
         <div class="info-box" id="highInfo">HIGH 5-9: —</div>
     </div>
@@ -680,13 +678,14 @@
 
     <div id="logConsole"></div>
     <div class="disclaimer">
-        PUBLIC DERIV QUANTUM API • OVER/UNDER + BEST SINGLE DIGIT (1-9 ONLY) FOR 1-TICK CONTRACTS<br>
-        EXPERIMENTAL NEURAL TOOL — NOT FINANCIAL ADVICE • 2050 PROTOCOL
+        PUBLIC DERIV API • OVER = next digit 5-9 | UNDER = next digit 0-4<br>
+        BEST DIGIT = coldest digit (for Matches contracts)<br>
+        EXPERIMENTAL TOOL — NOT FINANCIAL ADVICE • 2050 PROTOCOL
     </div>
 </div>
 
 <script>
-    const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
+    const PUBLIC_WS = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
 
     const SYMBOL_NAMES = {
         R_10: 'Vol 10', R_25: 'Vol 25', R_50: 'Vol 50',
@@ -695,17 +694,17 @@
         '1HZ50V': 'Vol 50 (1s)', '1HZ75V': 'Vol 75 (1s)', '1HZ100V': 'Vol 100 (1s)'
     };
 
-    const STORAGE_KEY = 'derivOverUnderBest_v2';
-    const HISTORY_KEY = 'derivOverUnderBestHistory_v2';
+    const STORAGE_KEY = 'derivDigitCore_v3';
+    const HISTORY_KEY = 'derivDigitCoreHistory_v3';
     const CHART_MAX = 180;
-    const PING_MS = 25000;
+    const PING_MS = 30000;
 
     let settings = {
         symbol: 'R_75',
-        windowSize: 100,
-        threshold: 8.5,
-        confirmTicks: 2,
-        minDiff: 1.5,
+        windowSize: 120,
+        threshold: 7.0,
+        confirmTicks: 3,
+        minDiff: 6.0,
         sound: true,
         notify: true
     };
@@ -720,14 +719,18 @@
     let audioCtx = null;
     let chartPoints = [];
     let lastSignaledDigit = null;
+    let isHistoryLoading = false;
 
     function getLastDigit(quote) {
-        const cleaned = String(quote).replace('.', '');
-        const d = parseInt(cleaned.charAt(cleaned.length - 1), 10);
+        // Robust last digit extraction for Deriv quotes
+        const str = String(quote).replace(/[^0-9]/g, '');
+        if (!str) return null;
+        const d = parseInt(str.charAt(str.length - 1), 10);
         return Number.isFinite(d) ? d : null;
     }
 
     function pushDigit(d) {
+        if (d === null || d < 0 || d > 9) return;
         if (digitBufCount === settings.windowSize) {
             const old = digitBuffer[digitBufHead];
             if (old >= 0) digitCounts[old]--;
@@ -771,7 +774,7 @@
         const prices = chartPoints.map(p => p.price);
         let min = Math.min(...prices), max = Math.max(...prices);
         if (min === max) { min -= 1; max += 1; }
-        const pad = (max - min) * 0.1;
+        const pad = (max - min) * 0.1 || 0.5;
         min -= pad; max += pad;
 
         const stepX = W / (chartPoints.length - 1);
@@ -817,8 +820,8 @@
         value.innerText = score + '%';
 
         bar.classList.remove('weak', 'medium', 'strong');
-        if (score >= 71) bar.classList.add('strong');
-        else if (score >= 41) bar.classList.add('medium');
+        if (score >= 70) bar.classList.add('strong');
+        else if (score >= 40) bar.classList.add('medium');
         else bar.classList.add('weak');
     }
 
@@ -830,20 +833,25 @@
         document.getElementById('lastDigitDisplay').innerText = 'LAST DIGIT: ' + d;
 
         const box = document.getElementById('signalContainer');
-        if (digitBufCount < Math.min(30, settings.windowSize * 0.35)) {
+        const minSamples = Math.max(40, Math.floor(settings.windowSize * 0.45));
+
+        if (digitBufCount < minSamples) {
             box.className = 'signal-box signal-neutral';
-            box.innerText = `COLLECTING MATRIX (${digitBufCount}/${settings.windowSize})...`;
+            box.innerText = `COLLECTING MATRIX (${digitBufCount}/${minSamples})...`;
             renderDigitGrid(null, -1);
             document.getElementById('bestDigitBox').innerText = 'BEST DIGIT: —';
+            document.getElementById('lowInfo').innerText = 'LOW 0-4: —';
+            document.getElementById('highInfo').innerText = 'HIGH 5-9: —';
             updateStrengthBar(0);
             return;
         }
 
         const pct = digitCounts.map(c => (c / digitBufCount) * 100);
 
-        // ===== EXCLUDE 0 COMPLETELY – start from 1-9 =====
-        let bestDigit = 1, bestPct = pct[1];
-        for (let i = 2; i <= 9; i++) {
+        // ===== BEST DIGIT (coldest 0-9) =====
+        let bestDigit = 0;
+        let bestPct = pct[0];
+        for (let i = 1; i <= 9; i++) {
             if (pct[i] < bestPct) {
                 bestPct = pct[i];
                 bestDigit = i;
@@ -851,58 +859,57 @@
         }
 
         document.getElementById('bestDigitBox').innerHTML =
-            `BEST DIGIT: <span style="font-size:1.4em">${bestDigit}</span> <span style="opacity:0.9">(${bestPct.toFixed(1)}%)</span>`;
+            `BEST DIGIT: <span style="font-size:1.35em">${bestDigit}</span> <span style="opacity:0.85">(${bestPct.toFixed(1)}%)</span>`;
 
         renderDigitGrid(pct, bestDigit);
 
-        const lowPct  = pct[1] + pct[2] + pct[3] + pct[4];
+        // ===== GROUP FREQUENCIES =====
+        const lowPct  = pct[0] + pct[1] + pct[2] + pct[3] + pct[4];
         const highPct = pct[5] + pct[6] + pct[7] + pct[8] + pct[9];
-        document.getElementById('lowInfo').innerText  = `LOW 1-4: ${lowPct.toFixed(1)}%`;
+
+        document.getElementById('lowInfo').innerText  = `LOW 0-4: ${lowPct.toFixed(1)}%`;
         document.getElementById('highInfo').innerText = `HIGH 5-9: ${highPct.toFixed(1)}%`;
 
-        const avg = 10;
-        const isBestCold = bestPct <= settings.threshold && (avg - bestPct) >= settings.minDiff;
-
+        // ===== SIGNAL LOGIC (much stricter) =====
         let raw = null;
         let detail = '';
+        let strength = 0;
 
-        // PRIORITY RULE: Digits 1, 2, 3 all under 10% → OVER
-        if (pct[1] < 10 && pct[2] < 10 && pct[3] < 10) {
-            raw = 'over';
-            detail = `1,2,3 all <10% (${pct[1].toFixed(1)}%, ${pct[2].toFixed(1)}%, ${pct[3].toFixed(1)}%) → OVER`;
-        }
-        else if (lowPct <= (50 - settings.minDiff * 2) && lowPct < highPct) {
-            raw = 'over';
-            detail = `Low group (1-4) cold (${lowPct.toFixed(1)}%) → OVER  |  Best digit ${bestDigit}`;
-        } else if (highPct <= (50 - settings.minDiff * 2) && highPct < lowPct) {
-            raw = 'under';
-            detail = `High group cold (${highPct.toFixed(1)}%) → UNDER  |  Best digit ${bestDigit}`;
-        }
-        else if (isBestCold) {
-            if (bestDigit <= 4) {
+        const gap = Math.abs(highPct - lowPct);
+
+        // Only signal when there is a clear group imbalance
+        if (gap >= settings.minDiff) {
+            if (lowPct < highPct) {
+                // Low digits are underrepresented → expect more high digits next → OVER
                 raw = 'over';
-                detail = `Best digit ${bestDigit} only ${bestPct.toFixed(1)}% → OVER ${bestDigit}`;
+                detail = `Low (0-4) only ${lowPct.toFixed(1)}% vs High ${highPct.toFixed(1)}% → OVER`;
+                strength = Math.min(100, 30 + (gap - settings.minDiff) * 6 + (50 - lowPct) * 1.2);
             } else {
+                // High digits are underrepresented → expect more low digits → UNDER
                 raw = 'under';
-                detail = `Best digit ${bestDigit} only ${bestPct.toFixed(1)}% → UNDER ${bestDigit}`;
+                detail = `High (5-9) only ${highPct.toFixed(1)}% vs Low ${lowPct.toFixed(1)}% → UNDER`;
+                strength = Math.min(100, 30 + (gap - settings.minDiff) * 6 + (50 - highPct) * 1.2);
             }
         }
 
-        // ===== STRENGTH CALCULATION =====
-        let strength = 0;
-        if (raw) {
-            // Base from how cold the digit is
-            strength += Math.max(0, (settings.threshold - bestPct) * 8);
-            // Gap bonus
-            strength += Math.max(0, (avg - bestPct - settings.minDiff) * 6);
-            // Confirmation progress
-            strength += (pendingCount / settings.confirmTicks) * 25;
-            // Penalty if same digit was just signaled
-            if (bestDigit === lastSignaledDigit) strength *= 0.55;
-            strength = Math.min(100, strength);
+        // Extra boost if the best digit is also very cold
+        if (raw && bestPct <= settings.threshold) {
+            strength += Math.max(0, (settings.threshold - bestPct) * 4);
+            detail += ` | Coldest: ${bestDigit} (${bestPct.toFixed(1)}%)`;
         }
+
+        // Penalty if we just signaled the same digit recently
+        if (bestDigit === lastSignaledDigit) strength *= 0.6;
+
+        strength = Math.max(0, Math.min(100, strength));
         updateStrengthBar(strength);
 
+        // Only accept signals above a minimum strength
+        if (strength < 38) {
+            raw = null;
+        }
+
+        // Confirmation logic
         if (raw) {
             if (pendingSignal === raw) pendingCount++;
             else { pendingSignal = raw; pendingCount = 1; }
@@ -916,14 +923,14 @@
 
         if (final === 'over') {
             box.className = 'signal-box signal-over';
-            box.innerHTML = `OVER  •  CONFIRMED<br><span style="font-size:0.75em;opacity:0.9">Best digit: ${bestDigit}</span>`;
+            box.innerHTML = `OVER  •  CONFIRMED<br><span style="font-size:0.72em;opacity:0.9">Best digit: ${bestDigit}</span>`;
             if (final !== currentSignal) {
                 recordSignal('over', price, detail);
                 lastSignaledDigit = bestDigit;
             }
         } else if (final === 'under') {
             box.className = 'signal-box signal-under';
-            box.innerHTML = `UNDER  •  CONFIRMED<br><span style="font-size:0.75em;opacity:0.9">Best digit: ${bestDigit}</span>`;
+            box.innerHTML = `UNDER  •  CONFIRMED<br><span style="font-size:0.72em;opacity:0.9">Best digit: ${bestDigit}</span>`;
             if (final !== currentSignal) {
                 recordSignal('under', price, detail);
                 lastSignaledDigit = bestDigit;
@@ -952,7 +959,7 @@
             if (pct) {
                 if (i === bestDigit) cls += ' best';
                 else if (pct[i] <= settings.threshold) cls += ' cold';
-                else if (pct[i] >= 12) cls += ' hot';
+                else if (pct[i] >= 13) cls += ' hot';
             }
             cell.className = cls;
             cell.innerHTML = `
@@ -987,8 +994,8 @@
             o.frequency.value = dir === 'over' ? 880 : 440;
             o.type = 'sine';
             g.gain.setValueAtTime(0.12, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-            o.start(); o.stop(audioCtx.currentTime + 0.3);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.28);
+            o.start(); o.stop(audioCtx.currentTime + 0.28);
         } catch (e) {}
     }
 
@@ -1000,7 +1007,7 @@
             detail: detail
         };
         tradeHistory.unshift(entry);
-        if (tradeHistory.length > 25) tradeHistory.pop();
+        if (tradeHistory.length > 30) tradeHistory.pop();
         localStorage.setItem(HISTORY_KEY, JSON.stringify(tradeHistory));
         renderHistory();
         playBeep(dir);
@@ -1040,7 +1047,9 @@
         digitBufCount = 0; digitBufHead = 0;
         currentSignal = null; pendingSignal = null; pendingCount = 0;
         lastSignaledDigit = null;
+        isHistoryLoading = true;
         resetChart();
+
         document.getElementById('signalContainer').className = 'signal-box signal-neutral';
         document.getElementById('signalContainer').innerText = 'INITIALIZING DIGIT MATRIX...';
         document.getElementById('lastDigitDisplay').innerText = 'LAST DIGIT: —';
@@ -1058,10 +1067,11 @@
                 if (ws && ws.readyState === 1) ws.send(JSON.stringify({ ping: 1 }));
             }, PING_MS);
 
+            // Request recent ticks + subscribe
             ws.send(JSON.stringify({
                 ticks_history: settings.symbol,
                 adjust_start_time: 1,
-                count: CHART_MAX,
+                count: Math.min(CHART_MAX, settings.windowSize + 20),
                 end: 'latest',
                 style: 'ticks',
                 subscribe: 1
@@ -1071,31 +1081,36 @@
         ws.onmessage = (ev) => {
             let data;
             try { data = JSON.parse(ev.data); } catch(e){ return; }
+
             if (data.error) {
-                document.getElementById('logConsole').innerText = 'API: ' + (data.error.message || '');
+                document.getElementById('logConsole').innerText = 'API: ' + (data.error.message || JSON.stringify(data.error));
                 return;
             }
             if (data.msg_type === 'ping') return;
 
+            // Historical ticks (warm-up)
             if (data.msg_type === 'history' && data.history) {
                 const prices = data.history.prices || [];
-                const times = data.history.times || [];
+                const times  = data.history.times  || [];
                 for (let i = 0; i < prices.length; i++) {
                     const p = parseFloat(prices[i]);
                     if (!Number.isFinite(p)) continue;
-                    pushChartPoint(Number(times[i])*1000, p);
+                    pushChartPoint(Number(times[i]) * 1000, p);
                     const d = getLastDigit(String(prices[i]));
                     if (d !== null) pushDigit(d);
                 }
                 if (prices.length) {
-                    const lp = parseFloat(prices[prices.length-1]);
+                    const lp = parseFloat(prices[prices.length - 1]);
                     document.getElementById('livePrice').innerText = lp.toFixed(2);
                     document.getElementById('lastUpdate').innerText = 'Last tick: ' + new Date(Number(times[times.length-1])*1000).toLocaleTimeString();
+                    // Evaluate once after history is loaded
                     evaluateOverUnder(String(prices[prices.length-1]), lp);
                 }
+                isHistoryLoading = false;
                 return;
             }
 
+            // Live ticks
             if (data.msg_type === 'tick' && data.tick) {
                 const raw = String(data.tick.quote);
                 const p = parseFloat(raw);
@@ -1115,7 +1130,9 @@
             document.getElementById('logConsole').innerText = 'Reconnecting in 3s...';
             setTimeout(initWebSocket, 3000);
         };
-        ws.onerror = () => document.getElementById('logConsole').innerText = 'WebSocket error';
+        ws.onerror = () => {
+            document.getElementById('logConsole').innerText = 'WebSocket error';
+        };
     }
 
     function loadSettings() {
@@ -1143,10 +1160,10 @@
 
     document.getElementById('applyBtn').addEventListener('click', () => {
         settings.symbol = document.getElementById('symbolSelect').value;
-        settings.windowSize = parseInt(document.getElementById('windowSize').value, 10) || 100;
-        settings.threshold = parseFloat(document.getElementById('threshold').value) || 8.5;
-        settings.confirmTicks = parseInt(document.getElementById('confirmTicks').value, 10) || 2;
-        settings.minDiff = parseFloat(document.getElementById('minDiff').value) || 1.5;
+        settings.windowSize = Math.max(40, parseInt(document.getElementById('windowSize').value, 10) || 120);
+        settings.threshold = parseFloat(document.getElementById('threshold').value) || 7.0;
+        settings.confirmTicks = Math.max(2, parseInt(document.getElementById('confirmTicks').value, 10) || 3);
+        settings.minDiff = parseFloat(document.getElementById('minDiff').value) || 6.0;
         settings.sound = document.getElementById('soundToggle').checked;
         settings.notify = document.getElementById('notifyToggle').checked;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
