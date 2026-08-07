@@ -3,211 +3,180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEURAL DIGIT CORE // Working</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+<title>Digit Core — WebSocket</title>
 <style>
-    :root {
-        --cyan: #00f3ff;
-        --green: #00ff9d;
-        --red: #ff2a6d;
-        --bg: #02040a;
-        --glass: rgba(8,16,32,0.7);
-        --border: rgba(0,243,255,0.25);
-        --text: #e0f7ff;
-        --dim: #6b8a9e;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-        font-family: 'Rajdhani', sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        min-height: 100vh;
+        font-family: system-ui, sans-serif;
+        background: #0a0e14;
+        color: #e0f7ff;
+        max-width: 600px;
+        margin: 20px auto;
         padding: 16px;
     }
-    .container { max-width: 680px; margin: 0 auto; }
-    .header {
-        display: flex; justify-content: space-between; align-items: center;
-        background: var(--glass); border: 1px solid var(--border);
-        border-radius: 14px; padding: 14px 18px; margin-bottom: 18px;
-    }
-    .header h2 {
-        font-family: 'Orbitron', sans-serif; font-size: 1.1rem; letter-spacing: 2px;
-        background: linear-gradient(90deg, var(--cyan), #ff00aa);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .badge {
-        font-family: 'Orbitron', sans-serif; font-size: 0.7rem; padding: 5px 12px;
-        border-radius: 20px; font-weight: 600;
-    }
-    .badge.on { background: rgba(0,255,157,0.15); color: var(--green); border: 1px solid var(--green); }
-    .badge.off { background: rgba(255,42,109,0.15); color: var(--red); border: 1px solid var(--red); }
-
-    label { font-size: 0.75rem; color: var(--dim); letter-spacing: 1px; display: block; margin-bottom: 5px; text-transform: uppercase; }
-    select, input {
-        width: 100%; background: rgba(0,20,40,0.8); border: 1px solid var(--border);
-        border-radius: 10px; padding: 11px 13px; color: var(--text); font-size: 1rem;
-        font-family: 'Rajdhani', sans-serif; outline: none;
-    }
-    select:focus, input:focus { border-color: var(--cyan); }
-
     .card {
-        background: var(--glass); border: 1px solid var(--border);
-        border-radius: 14px; padding: 16px; margin-bottom: 14px;
+        background: #121820;
+        border: 1px solid #1e2a3a;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 14px;
     }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .full { grid-column: 1 / -1; }
-
+    select, input, button {
+        width: 100%;
+        padding: 10px;
+        margin: 6px 0;
+        border-radius: 8px;
+        border: 1px solid #1e2a3a;
+        background: #0a0e14;
+        color: #e0f7ff;
+        font-size: 15px;
+    }
     button {
-        width: 100%; background: linear-gradient(135deg, #00c4cc, #0088ff);
-        border: none; border-radius: 10px; padding: 13px;
-        font-family: 'Orbitron', sans-serif; font-weight: 700; letter-spacing: 1.5px;
-        color: #000; cursor: pointer; margin-top: 8px;
+        background: #00c4cc;
+        color: #000;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
     }
     button:hover { filter: brightness(1.1); }
-
     .price {
-        font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 700;
-        color: var(--cyan); text-align: center; margin: 8px 0;
-        text-shadow: 0 0 20px rgba(0,243,255,0.5);
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #00f3ff;
+        text-align: center;
+        margin: 12px 0;
     }
     .digit {
-        font-family: 'Orbitron', sans-serif; font-size: 1.1rem;
-        color: #ffeb3b; text-align: center; letter-spacing: 2px;
+        text-align: center;
+        font-size: 1.2rem;
+        color: #ffeb3b;
+        margin-bottom: 10px;
     }
     .signal {
-        text-align: center; padding: 20px; border-radius: 14px;
-        font-family: 'Orbitron', sans-serif; font-size: 1.25rem; font-weight: 700;
-        letter-spacing: 2px; margin: 14px 0;
+        text-align: center;
+        padding: 18px;
+        border-radius: 12px;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 12px 0;
     }
-    .neutral { background: rgba(30,40,60,0.6); color: var(--dim); border: 1px solid rgba(100,120,150,0.3); }
-    .over { background: rgba(0,80,40,0.6); color: var(--green); border: 2px solid var(--green); box-shadow: 0 0 30px rgba(0,255,157,0.3); }
-    .under { background: rgba(80,10,30,0.6); color: var(--red); border: 2px solid var(--red); box-shadow: 0 0 30px rgba(255,42,109,0.3); }
-
+    .neutral { background: #1e2a3a; color: #8b9cb3; }
+    .over { background: #003d2a; color: #00ff9d; border: 2px solid #00ff9d; }
+    .under { background: #3d001a; color: #ff2a6d; border: 2px solid #ff2a6d; }
+    .status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .on { background: #003d2a; color: #00ff9d; }
+    .off { background: #3d001a; color: #ff2a6d; }
     .grid {
-        display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 14px 0;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-top: 12px;
     }
     .cell {
-        background: rgba(0,20,40,0.6); border: 1px solid rgba(0,243,255,0.15);
-        border-radius: 10px; padding: 10px 4px; text-align: center;
+        background: #0a0e14;
+        border: 1px solid #1e2a3a;
+        border-radius: 8px;
+        padding: 10px 4px;
+        text-align: center;
     }
-    .cell .n { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--dim); }
-    .cell .v { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1rem; margin-top: 3px; }
-    .cell.best { border-color: #ffeb3b; background: rgba(255,235,59,0.12); box-shadow: 0 0 15px rgba(255,235,59,0.3); }
-    .cell.cold { border-color: var(--green); background: rgba(0,255,157,0.08); }
-    .cell.hot { border-color: var(--red); background: rgba(255,42,109,0.1); }
-
-    .info { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 8px; margin-bottom: 12px; }
-    .ibox {
-        background: var(--glass); border: 1px solid var(--border);
-        border-radius: 10px; padding: 10px 6px; text-align: center; font-size: 0.85rem;
-    }
-    .ibox.best { border-color: #ffeb3b; color: #ffeb3b; font-family: 'Orbitron', sans-serif; font-weight: 700; }
-
+    .cell.best { border-color: #ffeb3b; background: #2a2200; }
+    .cell.cold { border-color: #00ff9d; }
+    .cell.hot { border-color: #ff2a6d; }
     #log {
-        margin-top: 12px; font-size: 0.8rem; color: var(--red);
-        text-align: center; min-height: 1.2em; font-family: 'Orbitron', sans-serif;
+        color: #ff5c7a;
+        font-size: 13px;
+        text-align: center;
+        min-height: 20px;
+        margin-top: 10px;
     }
-    .note {
-        margin-top: 16px; font-size: 0.7rem; color: var(--dim);
-        text-align: center; line-height: 1.5; opacity: 0.8;
+    .info {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 10px 0;
+        font-size: 14px;
     }
-    @media (max-width: 500px) {
-        .row, .info { grid-template-columns: 1fr; }
-        .price { font-size: 1.8rem; }
+    .info div {
+        flex: 1;
+        background: #0a0e14;
+        padding: 8px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #1e2a3a;
     }
 </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h2 id="title">NEURAL DIGIT CORE</h2>
-        <span id="status" class="badge off">CONNECTING...</span>
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong>NEURAL DIGIT CORE</strong>
+        <span id="status" class="status off">CONNECTING</span>
     </div>
 
-    <div class="card">
-        <label>Symbol</label>
-        <select id="symbol">
-            <option value="R_10">Volatility 10</option>
-            <option value="R_25">Volatility 25</option>
-            <option value="R_50">Volatility 50</option>
-            <option value="R_75" selected>Volatility 75</option>
-            <option value="R_100">Volatility 100</option>
-            <option value="1HZ10V">Vol 10 (1s)</option>
-            <option value="1HZ25V">Vol 25 (1s)</option>
-            <option value="1HZ50V">Vol 50 (1s)</option>
-            <option value="1HZ75V">Vol 75 (1s)</option>
-            <option value="1HZ100V">Vol 100 (1s)</option>
-        </select>
+    <label>Symbol</label>
+    <select id="symbol">
+        <option value="R_75" selected>Volatility 75</option>
+        <option value="R_100">Volatility 100</option>
+        <option value="R_50">Volatility 50</option>
+        <option value="R_25">Volatility 25</option>
+        <option value="R_10">Volatility 10</option>
+        <option value="1HZ75V">Vol 75 (1s)</option>
+        <option value="1HZ100V">Vol 100 (1s)</option>
+        <option value="1HZ50V">Vol 50 (1s)</option>
+    </select>
 
-        <div class="row" style="margin-top:12px">
-            <div>
-                <label>Window (ticks)</label>
-                <input type="number" id="window" value="100" min="30" max="300">
-            </div>
-            <div>
-                <label>Confirm ticks</label>
-                <input type="number" id="confirm" value="3" min="2" max="6">
-            </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+        <div>
+            <label>Window</label>
+            <input type="number" id="window" value="100" min="40" max="300">
         </div>
-        <div class="row">
-            <div>
-                <label>Cold threshold %</label>
-                <input type="number" id="threshold" value="7.5" min="4" max="12" step="0.5">
-            </div>
-            <div>
-                <label>Min group gap %</label>
-                <input type="number" id="gap" value="6" min="3" max="15" step="0.5">
-            </div>
+        <div>
+            <label>Confirm</label>
+            <input type="number" id="confirm" value="3" min="2" max="6">
         </div>
-        <button id="apply">APPLY & CONNECT</button>
     </div>
 
-    <div class="card" style="text-align:center">
-        <div style="font-size:0.8rem;color:var(--dim);letter-spacing:1px">LIVE PRICE</div>
-        <div class="price" id="price">—</div>
-        <div style="font-size:0.8rem;color:var(--dim)" id="time">Waiting for ticks...</div>
-        <div class="digit" id="lastDigit">LAST DIGIT: —</div>
-    </div>
-
-    <div id="signal" class="signal neutral">WAITING FOR DATA...</div>
-
-    <div class="info">
-        <div class="ibox" id="low">LOW 0-4: —</div>
-        <div class="ibox best" id="best">BEST: —</div>
-        <div class="ibox" id="high">HIGH 5-9: —</div>
-    </div>
-
-    <div class="grid" id="grid"></div>
-
-    <div id="log"></div>
-    <div class="note">
-        OVER = next digit 5-9 &nbsp;|&nbsp; UNDER = next digit 0-4<br>
-        BEST DIGIT = coldest digit (for Matches)<br>
-        Experimental tool — not financial advice
-    </div>
+    <button id="btn" style="margin-top:12px">CONNECT / RECONNECT</button>
 </div>
 
-<script>
-const APP_ID = 1089;
-const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
+<div class="card" style="text-align:center">
+    <div style="color:#8b9cb3;font-size:13px">LIVE PRICE</div>
+    <div class="price" id="price">—</div>
+    <div class="digit" id="lastDigit">LAST DIGIT: —</div>
+    <div style="color:#8b9cb3;font-size:13px" id="time">Waiting...</div>
+</div>
 
-let settings = {
-    symbol: 'R_75',
-    window: 100,
-    confirm: 3,
-    threshold: 7.5,
-    gap: 6
-};
+<div id="signal" class="signal neutral">WAITING FOR WEBSOCKET...</div>
+
+<div class="info">
+    <div id="low">LOW 0-4: —</div>
+    <div id="best" style="border-color:#ffeb3b;color:#ffeb3b">BEST: —</div>
+    <div id="high">HIGH 5-9: —</div>
+</div>
+
+<div class="grid" id="grid"></div>
+<div id="log"></div>
+
+<script>
+// ========== WEBSOCKET CONFIG ==========
+const WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
 
 let ws = null;
 let pingTimer = null;
+let settings = { symbol: 'R_75', window: 100, confirm: 3 };
+
 let counts = new Array(10).fill(0);
 let buffer = [];
 let bufCount = 0;
 let head = 0;
 let pending = null, pendingN = 0;
 let current = null;
-let lastBest = null;
 
 function log(msg) {
     document.getElementById('log').textContent = msg || '';
@@ -215,8 +184,7 @@ function log(msg) {
 
 function getDigit(quote) {
     const s = String(quote).replace(/[^0-9]/g, '');
-    if (!s) return null;
-    return parseInt(s[s.length - 1], 10);
+    return s ? parseInt(s[s.length - 1], 10) : null;
 }
 
 function push(d) {
@@ -224,7 +192,9 @@ function push(d) {
     if (bufCount === settings.window) {
         const old = buffer[head];
         if (old >= 0) counts[old]--;
-    } else bufCount++;
+    } else {
+        bufCount++;
+    }
     buffer[head] = d;
     counts[d]++;
     head = (head + 1) % settings.window;
@@ -235,15 +205,14 @@ function renderGrid(pct, best) {
     g.innerHTML = '';
     for (let i = 0; i < 10; i++) {
         const cell = document.createElement('div');
-        let cls = 'cell';
-        let val = pct ? (pct[i].toFixed(1) + '%') : '—';
+        cell.className = 'cell';
         if (pct) {
-            if (i === best) cls += ' best';
-            else if (pct[i] <= settings.threshold) cls += ' cold';
-            else if (pct[i] >= 13) cls += ' hot';
+            if (i === best) cell.classList.add('best');
+            else if (pct[i] <= 7.5) cell.classList.add('cold');
+            else if (pct[i] >= 13) cell.classList.add('hot');
         }
-        cell.className = cls;
-        cell.innerHTML = `<div class="n">${i}</div><div class="v">${val}</div>`;
+        cell.innerHTML = `<div style="font-size:12px;color:#8b9cb3">${i}</div>
+                          <div style="font-weight:700">${pct ? pct[i].toFixed(1) + '%' : '—'}</div>`;
         g.appendChild(cell);
     }
 }
@@ -251,14 +220,15 @@ function renderGrid(pct, best) {
 function evaluate(raw, price) {
     const d = getDigit(raw);
     if (d === null) return;
+
     push(d);
 
-    document.getElementById('lastDigit').textContent = 'LAST DIGIT: ' + d;
     document.getElementById('price').textContent = Number(price).toFixed(2);
+    document.getElementById('lastDigit').textContent = 'LAST DIGIT: ' + d;
     document.getElementById('time').textContent = 'Last tick: ' + new Date().toLocaleTimeString();
 
     const box = document.getElementById('signal');
-    const need = Math.max(30, Math.floor(settings.window * 0.4));
+    const need = Math.max(35, Math.floor(settings.window * 0.4));
 
     if (bufCount < need) {
         box.className = 'signal neutral';
@@ -272,46 +242,46 @@ function evaluate(raw, price) {
 
     const pct = counts.map(c => (c / bufCount) * 100);
 
-    // Best (coldest) digit
+    // Best digit
     let best = 0, bestPct = pct[0];
     for (let i = 1; i <= 9; i++) {
-        if (pct[i] < bestPct) { bestPct = pct[i]; best = i; }
+        if (pct[i] < bestPct) {
+            bestPct = pct[i];
+            best = i;
+        }
     }
-    document.getElementById('best').innerHTML = `BEST: ${best} (${bestPct.toFixed(1)}%)`;
+
+    document.getElementById('best').textContent = `BEST: ${best} (${bestPct.toFixed(1)}%)`;
     renderGrid(pct, best);
 
-    const low = pct[0]+pct[1]+pct[2]+pct[3]+pct[4];
-    const high = pct[5]+pct[6]+pct[7]+pct[8]+pct[9];
+    const low = pct[0] + pct[1] + pct[2] + pct[3] + pct[4];
+    const high = pct[5] + pct[6] + pct[7] + pct[8] + pct[9];
     document.getElementById('low').textContent = `LOW 0-4: ${low.toFixed(1)}%`;
     document.getElementById('high').textContent = `HIGH 5-9: ${high.toFixed(1)}%`;
 
-    // Signal logic
+    // Signal
     let dir = null;
-    const diff = Math.abs(high - low);
-
-    if (diff >= settings.gap) {
-        if (low < high) dir = 'over';      // low underrepresented → expect high next
-        else dir = 'under';
+    const gap = Math.abs(high - low);
+    if (gap >= 6) {
+        dir = low < high ? 'over' : 'under';
     }
 
-    // Confirmation
     if (dir) {
         if (pending === dir) pendingN++;
         else { pending = dir; pendingN = 1; }
     } else {
-        pending = null; pendingN = 0;
+        pending = null;
+        pendingN = 0;
     }
 
-    let final = (pendingN >= settings.confirm) ? pending : null;
+    const final = (pendingN >= settings.confirm) ? pending : null;
 
     if (final === 'over') {
         box.className = 'signal over';
-        box.innerHTML = `OVER<br><span style="font-size:0.7em;opacity:0.85">Best digit ${best}</span>`;
-        if (final !== current) lastBest = best;
+        box.innerHTML = `OVER<br><small style="opacity:0.85">Best digit: ${best}</small>`;
     } else if (final === 'under') {
         box.className = 'signal under';
-        box.innerHTML = `UNDER<br><span style="font-size:0.7em;opacity:0.85">Best digit ${best}</span>`;
-        if (final !== current) lastBest = best;
+        box.innerHTML = `UNDER<br><small style="opacity:0.85">Best digit: ${best}</small>`;
     } else {
         box.className = 'signal neutral';
         box.textContent = pending
@@ -321,66 +291,81 @@ function evaluate(raw, price) {
     current = final;
 }
 
+// ========== WEBSOCKET CONNECTION ==========
 function connect() {
+    // Close previous connection
     if (ws) {
-        try { ws.onclose = null; ws.close(); } catch(e){}
+        try {
+            ws.onclose = null;
+            ws.close();
+        } catch (e) {}
     }
     if (pingTimer) clearInterval(pingTimer);
 
-    // reset state
-    counts = new Array(10).fill(0);
+    // Reset state
+    counts.fill(0);
     buffer = new Array(settings.window).fill(-1);
-    bufCount = 0; head = 0;
-    pending = null; pendingN = 0; current = null;
+    bufCount = 0;
+    head = 0;
+    pending = null;
+    pendingN = 0;
+    current = null;
 
-    document.getElementById('status').className = 'badge off';
-    document.getElementById('status').textContent = 'CONNECTING...';
+    document.getElementById('status').className = 'status off';
+    document.getElementById('status').textContent = 'CONNECTING';
     document.getElementById('signal').className = 'signal neutral';
-    document.getElementById('signal').textContent = 'CONNECTING...';
+    document.getElementById('signal').textContent = 'CONNECTING TO WEBSOCKET...';
     document.getElementById('price').textContent = '—';
     log('');
 
+    console.log('Connecting to:', WS_URL);
     ws = new WebSocket(WS_URL);
 
     ws.onopen = () => {
-        document.getElementById('status').className = 'badge on';
+        console.log('WebSocket OPEN');
+        document.getElementById('status').className = 'status on';
         document.getElementById('status').textContent = 'LINKED';
         log('');
 
-        // Keep alive
+        // Keep connection alive
         pingTimer = setInterval(() => {
-            if (ws && ws.readyState === 1) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ ping: 1 }));
             }
-        }, 30000);
+        }, 25000);
 
-        // Get recent history + subscribe to live ticks
-        ws.send(JSON.stringify({
+        // Request history + live ticks
+        const req = {
             ticks_history: settings.symbol,
             adjust_start_time: 1,
-            count: settings.window + 20,
+            count: settings.window + 30,
             end: 'latest',
             style: 'ticks',
             subscribe: 1
-        }));
+        };
+        console.log('Sending:', req);
+        ws.send(JSON.stringify(req));
     };
 
-    ws.onmessage = (ev) => {
+    ws.onmessage = (event) => {
         let data;
-        try { data = JSON.parse(ev.data); } catch(e) { return; }
-
-        if (data.error) {
-            log('Error: ' + (data.error.message || JSON.stringify(data.error)));
+        try {
+            data = JSON.parse(event.data);
+        } catch (e) {
             return;
         }
 
-        // History response
+        if (data.error) {
+            console.error('API Error:', data.error);
+            log('API Error: ' + (data.error.message || JSON.stringify(data.error)));
+            return;
+        }
+
+        // History
         if (data.msg_type === 'history' && data.history) {
             const prices = data.history.prices || [];
-            const times = data.history.times || [];
+            console.log('History received:', prices.length, 'ticks');
             for (let i = 0; i < prices.length; i++) {
-                const p = parseFloat(prices[i]);
-                if (!Number.isFinite(p)) continue;
                 const d = getDigit(String(prices[i]));
                 if (d !== null) push(d);
             }
@@ -395,38 +380,36 @@ function connect() {
         if (data.msg_type === 'tick' && data.tick) {
             const raw = String(data.tick.quote);
             const p = parseFloat(raw);
-            if (Number.isFinite(p)) evaluate(raw, p);
+            if (Number.isFinite(p)) {
+                evaluate(raw, p);
+            }
         }
     };
 
-    ws.onclose = () => {
-        document.getElementById('status').className = 'badge off';
+    ws.onclose = (e) => {
+        console.log('WebSocket CLOSED', e.code, e.reason);
+        document.getElementById('status').className = 'status off';
         document.getElementById('status').textContent = 'DISCONNECTED';
-        log('Reconnecting in 4 seconds...');
+        log('Disconnected. Reconnecting in 4s...');
         setTimeout(connect, 4000);
     };
 
-    ws.onerror = () => {
-        log('WebSocket error – check connection');
+    ws.onerror = (err) => {
+        console.error('WebSocket ERROR', err);
+        log('WebSocket error – see console (F12)');
     };
 }
 
-document.getElementById('apply').onclick = () => {
+// Button
+document.getElementById('btn').onclick = () => {
     settings.symbol = document.getElementById('symbol').value;
-    settings.window = Math.max(30, parseInt(document.getElementById('window').value) || 100);
+    settings.window = Math.max(40, parseInt(document.getElementById('window').value) || 100);
     settings.confirm = Math.max(2, parseInt(document.getElementById('confirm').value) || 3);
-    settings.threshold = parseFloat(document.getElementById('threshold').value) || 7.5;
-    settings.gap = parseFloat(document.getElementById('gap').value) || 6;
-
-    document.getElementById('title').textContent = settings.symbol + ' // CORE';
     connect();
 };
 
 // Auto start
-window.onload = () => {
-    document.getElementById('title').textContent = settings.symbol + ' // CORE';
-    connect();
-};
+window.onload = connect;
 </script>
 </body>
 </html>
