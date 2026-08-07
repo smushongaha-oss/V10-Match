@@ -3,753 +3,820 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2050 Quad Over/Under Sniper</title>
+<title>Deriv Over/Under + Best Digit Sniper</title>
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
     body {
-        font-family: 'Share Tech Mono', monospace;
-        background: #05070f;
-        color: #e0f7ff;
-        min-height: 100vh;
-        padding: 16px;
-        background-image: 
-            radial-gradient(ellipse at 20% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 80%, rgba(255, 0, 255, 0.04) 0%, transparent 50%),
-            linear-gradient(180deg, #05070f 0%, #0a0e1a 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #12161f;
+        color: #ffffff;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
     }
-
     .container {
-        max-width: 780px;
-        margin: 0 auto;
-        background: rgba(10, 16, 32, 0.85);
-        border: 1px solid rgba(0, 255, 255, 0.25);
-        border-radius: 16px;
-        padding: 22px;
-        box-shadow: 0 0 40px rgba(0, 255, 255, 0.08), inset 0 0 30px rgba(0, 255, 255, 0.03);
-        backdrop-filter: blur(12px);
+        width: 100%;
+        max-width: 640px;
+        background-color: #1a222d;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        border: 1px solid #2a3444;
     }
-
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 18px;
-        padding-bottom: 14px;
-        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        border-bottom: 1px solid #2a3444;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
-    .header h1 {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.35rem;
-        font-weight: 700;
-        background: linear-gradient(90deg, #00f0ff, #ff00aa);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 1px;
-    }
-    .status {
-        padding: 5px 14px;
+    .header h2 { margin: 0; font-size: 1.25em; }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
         border-radius: 20px;
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 1px;
+        font-size: 0.85em;
+        font-weight: bold;
+        background-color: #ff9800;
+        color: #000;
     }
-    .status.connected { background: rgba(0, 255, 150, 0.15); color: #00ff99; border: 1px solid #00ff99; }
-    .status.disconnected { background: rgba(255, 50, 80, 0.15); color: #ff3250; border: 1px solid #ff3250; }
+    .status-badge.connected { background-color: #4caf50; color: #fff; }
+    .status-badge.disconnected { background-color: #f44336; color: #fff; }
 
-    .controls {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-    label { font-size: 0.72rem; color: #7dd3fc; display: block; margin-bottom: 4px; letter-spacing: 0.5px; }
-    select, input {
-        width: 100%;
-        background: rgba(0, 20, 40, 0.8);
-        border: 1px solid rgba(0, 255, 255, 0.3);
-        color: #e0f7ff;
-        padding: 9px 12px;
-        border-radius: 8px;
-        font-family: inherit;
-        font-size: 0.9rem;
-    }
-    select:focus, input:focus { outline: none; border-color: #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
-
-    .settings-row {
+    .controls-row {
         display: flex;
         gap: 10px;
         margin-bottom: 16px;
         flex-wrap: wrap;
     }
-    .settings-row > div { flex: 1; min-width: 110px; }
-
-    button.apply {
+    .controls-row label {
+        font-size: 0.8em;
+        color: #90a4ae;
+        display: block;
+        margin-bottom: 4px;
+    }
+    select, input[type=number] {
+        background-color: #232d3b;
+        color: #fff;
+        border: 1px solid #2a3444;
+        border-radius: 6px;
+        padding: 8px;
+        font-size: 0.95em;
         width: 100%;
-        background: linear-gradient(90deg, #00c4ff, #7b2ff7);
-        border: none;
-        color: white;
-        padding: 12px;
-        border-radius: 8px;
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 700;
-        font-size: 0.9rem;
-        cursor: pointer;
-        letter-spacing: 1px;
-        margin-top: 8px;
-        transition: all 0.2s;
     }
-    button.apply:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(0, 200, 255, 0.4); }
+    .symbol-picker { flex: 2; min-width: 160px; }
 
-    .price-box {
-        text-align: center;
-        background: rgba(0, 30, 50, 0.5);
-        border: 1px solid rgba(0, 255, 255, 0.2);
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 16px;
-    }
-    .price-value {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 2.4rem;
-        font-weight: 700;
-        color: #00f0ff;
-        text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
-    }
-    .last-digit {
-        font-size: 1.1rem;
-        margin-top: 6px;
-        color: #ff00aa;
-    }
-
-    /* Digit Grid */
     .digit-grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 8px;
-        margin-bottom: 18px;
+        margin: 16px 0;
     }
     .digit-cell {
-        background: rgba(0, 20, 40, 0.7);
-        border: 1px solid rgba(0, 255, 255, 0.15);
-        border-radius: 10px;
+        background-color: #232d3b;
         padding: 10px 4px;
+        border-radius: 8px;
         text-align: center;
-        transition: all 0.3s;
+        border: 2px solid transparent;
+        transition: all 0.2s;
     }
-    .digit-cell.hot {
-        border-color: #ff3d71;
-        background: rgba(255, 61, 113, 0.12);
-        box-shadow: 0 0 12px rgba(255, 61, 113, 0.25);
-    }
-    .digit-cell.cold {
-        border-color: #00e5ff;
-        background: rgba(0, 229, 255, 0.1);
-        box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
-    }
-    .digit-num {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.3rem;
-        font-weight: 700;
-    }
-    .digit-pct { font-size: 0.8rem; margin-top: 2px; }
-    .digit-tag {
-        font-size: 0.65rem;
-        margin-top: 4px;
-        letter-spacing: 1px;
-        font-weight: 700;
-    }
-    .tag-hot { color: #ff3d71; }
-    .tag-cold { color: #00e5ff; }
-    .tag-normal { color: #64748b; }
+    .digit-cell .digit-label { font-size: 0.75em; color: #90a4ae; }
+    .digit-cell .digit-value { font-weight: bold; font-size: 1.05em; margin-top: 2px; }
+    .digit-cell.hot { border-color: #f44336; background: #3a1c1c; }
+    .digit-cell.cold { border-color: #4caf50; background: #1b3a1f; }
+    .digit-cell.best { border-color: #ffeb3b; background: #3a3510; box-shadow: 0 0 10px rgba(255,235,59,0.45); }
 
-    /* Quad Signals */
-    .quad-grid {
+    details.settings {
+        background-color: #202836;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        border: 1px solid #2a3444;
+    }
+    details.settings summary {
+        padding: 12px 16px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #90caf9;
+        list-style: none;
+    }
+    details.settings summary::-webkit-details-marker { display: none; }
+    .settings-body {
+        padding: 0 16px 16px 16px;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
-        margin-bottom: 18px;
     }
-    .signal-card {
-        background: rgba(8, 15, 30, 0.9);
-        border-radius: 12px;
-        padding: 14px;
-        border: 1px solid rgba(0, 255, 255, 0.2);
+    .settings-body .full { grid-column: 1 / -1; }
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #232d3b;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9em;
+    }
+    .toggle-row input { width: auto; }
+    button.apply-btn {
+        grid-column: 1 / -1;
+        background-color: #1565c0;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 0.95em;
+    }
+    button.apply-btn:hover { background-color: #1976d2; }
+    button.clear-btn {
+        background: none;
+        border: 1px solid #455a64;
+        color: #90a4ae;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.75em;
+        cursor: pointer;
+    }
+    button.clear-btn:hover { border-color: #f44336; color: #f44336; }
+
+    .chart-box {
+        width: 100%;
+        height: 190px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #2a3444;
+        margin-bottom: 14px;
+        background-color: #131722;
         position: relative;
-        overflow: hidden;
     }
-    .signal-card.strong {
-        border-color: #00ff99;
-        box-shadow: 0 0 18px rgba(0, 255, 153, 0.25);
+    .chart-box canvas { display: block; width: 100%; height: 100%; }
+    .chart-range-label {
+        position: absolute;
+        right: 8px;
+        font-size: 0.72em;
+        color: #607d8b;
+        background-color: rgba(19, 23, 34, 0.7);
+        padding: 2px 6px;
+        border-radius: 4px;
+        pointer-events: none;
     }
-    .signal-card.medium {
-        border-color: #fbbf24;
-        box-shadow: 0 0 12px rgba(251, 191, 36, 0.2);
-    }
-    .signal-card.weak {
-        border-color: #64748b;
-    }
-    .signal-card.avoid {
-        border-color: #ff3250;
-        opacity: 0.7;
-    }
-    .sig-title {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.05rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-    }
-    .sig-over { color: #00f0ff; }
-    .sig-under { color: #ff00aa; }
-    .sig-strength {
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-    }
-    .strength-strong { color: #00ff99; }
-    .strength-medium { color: #fbbf24; }
-    .strength-weak { color: #94a3b8; }
-    .strength-avoid { color: #ff3250; }
-    .sig-reason {
-        font-size: 0.72rem;
-        color: #94a3b8;
-        line-height: 1.35;
-    }
-    .sig-bar {
-        height: 4px;
-        background: rgba(255,255,255,0.08);
-        border-radius: 2px;
-        margin-top: 10px;
-        overflow: hidden;
-    }
-    .sig-bar-fill {
-        height: 100%;
-        border-radius: 2px;
-        transition: width 0.4s ease;
+    .chart-range-max { top: 8px; }
+    .chart-range-min { bottom: 8px; }
+    .chart-empty-msg {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+        font-size: 0.85em;
+        color: #607d8b;
     }
 
-    .ai-panel {
-        background: linear-gradient(135deg, rgba(0, 40, 80, 0.6), rgba(60, 0, 80, 0.5));
-        border: 1px solid rgba(0, 255, 255, 0.25);
-        border-radius: 12px;
+    .price-card {
+        background-color: #232d3b;
         padding: 14px;
-        margin-bottom: 16px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 12px;
     }
-    .ai-title {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.85rem;
-        color: #00f0ff;
-        margin-bottom: 6px;
-        letter-spacing: 1px;
+    .price-value {
+        font-size: 1.9em;
+        font-weight: bold;
+        color: #00bcd4;
+        margin: 4px 0;
     }
-    .ai-text { font-size: 0.85rem; line-height: 1.45; color: #e0f7ff; }
 
-    .history-section { margin-top: 10px; }
+    .signal-box {
+        padding: 18px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin: 10px 0;
+        transition: all 0.25s ease;
+    }
+    .signal-neutral { background-color: #2e3846; color: #b0bec5; }
+    .signal-over { background-color: #1b5e20; color: #81c784; border: 2px solid #4caf50; }
+    .signal-under { background-color: #b71c1c; color: #ef9a9a; border: 2px solid #f44336; }
+
+    .info-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 0.82em;
+        color: #90a4ae;
+        text-align: center;
+    }
+    .info-box {
+        background: #232d3b;
+        padding: 10px 6px;
+        border-radius: 6px;
+    }
+    .info-box.best-digit {
+        background: #3a3510;
+        border: 1px solid #ffeb3b;
+        color: #ffeb3b;
+        font-weight: bold;
+    }
+
+    .history-section { margin-top: 16px; }
     .history-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 8px;
     }
-    .history-header h3 {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.9rem;
-        color: #7dd3fc;
-    }
-    button.clear {
-        background: none;
-        border: 1px solid #475569;
-        color: #94a3b8;
-        padding: 3px 10px;
-        border-radius: 6px;
-        font-size: 0.7rem;
-        cursor: pointer;
-    }
-    table {
+    .history-header h3 { margin: 0; font-size: 1em; color: #90caf9; }
+    table.history-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.75rem;
+        font-size: 0.82em;
     }
-    th, td {
-        padding: 6px 4px;
+    table.history-table th, table.history-table td {
+        padding: 6px 8px;
         text-align: center;
-        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        border-bottom: 1px solid #2a3444;
     }
-    th { color: #7dd3fc; font-weight: 400; }
-    .empty { text-align: center; color: #475569; padding: 12px; font-size: 0.8rem; }
+    table.history-table th { color: #90a4ae; font-weight: normal; }
+    .dir-over { color: #81c784; font-weight: bold; }
+    .dir-under { color: #ef9a9a; font-weight: bold; }
+    .empty-history { color: #607d8b; text-align: center; padding: 12px; font-size: 0.85em; }
 
-    .disclaimer {
-        margin-top: 16px;
+    #logConsole {
+        margin-top: 12px;
+        font-size: 0.8em;
+        color: #ff8a80;
         text-align: center;
-        font-size: 0.68rem;
-        color: #475569;
+        min-height: 1em;
+    }
+    .disclaimer {
+        margin-top: 14px;
+        font-size: 0.72em;
+        color: #607d8b;
+        text-align: center;
         line-height: 1.4;
     }
 </style>
 </head>
 <body>
+
 <div class="container">
     <div class="header">
-        <h1>2050 QUAD OVER/UNDER</h1>
-        <span id="status" class="status disconnected">OFFLINE</span>
+        <h2 id="dashTitle">Over/Under + Best Digit</h2>
+        <span id="connectionStatus" class="status-badge disconnected">Connecting...</span>
     </div>
 
-    <div class="controls">
-        <div>
-            <label>SYMBOL</label>
-            <select id="symbol">
-                <option value="R_10">Volatility 10</option>
-                <option value="R_25">Volatility 25</option>
-                <option value="R_50">Volatility 50</option>
-                <option value="R_75" selected>Volatility 75</option>
-                <option value="R_100">Volatility 100</option>
-                <option value="1HZ10V">Vol 10 (1s)</option>
-                <option value="1HZ25V">Vol 25 (1s)</option>
-                <option value="1HZ50V">Vol 50 (1s)</option>
-                <option value="1HZ75V">Vol 75 (1s)</option>
-                <option value="1HZ100V">Vol 100 (1s)</option>
+    <div class="controls-row">
+        <div class="symbol-picker">
+            <label for="symbolSelect">Symbol</label>
+            <select id="symbolSelect">
+                <option value="R_10">Volatility 10 Index</option>
+                <option value="R_25">Volatility 25 Index</option>
+                <option value="R_50">Volatility 50 Index</option>
+                <option value="R_75" selected>Volatility 75 Index</option>
+                <option value="R_100">Volatility 100 Index</option>
+                <option value="1HZ10V">Volatility 10 (1s)</option>
+                <option value="1HZ25V">Volatility 25 (1s)</option>
+                <option value="1HZ50V">Volatility 50 (1s)</option>
+                <option value="1HZ75V">Volatility 75 (1s)</option>
+                <option value="1HZ100V">Volatility 100 (1s)</option>
             </select>
         </div>
-        <div>
-            <label>WINDOW SIZE</label>
-            <input type="number" id="windowSize" value="120" min="40" max="500">
-        </div>
     </div>
 
-    <div class="settings-row">
-        <div>
-            <label>COLD THRESHOLD %</label>
-            <input type="number" id="coldThresh" value="7.5" step="0.5" min="4" max="9">
+    <details class="settings">
+        <summary>Settings &amp; Alerts</summary>
+        <div class="settings-body">
+            <div>
+                <label for="windowSize">Rolling window (ticks)</label>
+                <input type="number" id="windowSize" min="20" max="500" value="100">
+            </div>
+            <div>
+                <label for="threshold">Cold threshold %</label>
+                <input type="number" id="threshold" min="1" max="15" step="0.5" value="8.5">
+            </div>
+            <div>
+                <label for="confirmTicks">Confirm ticks</label>
+                <input type="number" id="confirmTicks" min="1" max="5" value="2">
+            </div>
+            <div>
+                <label for="minDiff">Min gap vs average %</label>
+                <input type="number" id="minDiff" min="0" max="5" step="0.1" value="1.5">
+            </div>
+            <div class="full toggle-row">
+                <span>🔊 Sound on signal</span>
+                <input type="checkbox" id="soundToggle" checked>
+            </div>
+            <div class="full toggle-row">
+                <span>🔔 Browser notification</span>
+                <input type="checkbox" id="notifyToggle" checked>
+            </div>
+            <button class="apply-btn" id="applyBtn">Apply &amp; restart feed</button>
         </div>
-        <div>
-            <label>HOT THRESHOLD %</label>
-            <input type="number" id="hotThresh" value="13" step="0.5" min="11" max="20">
-        </div>
-        <div>
-            <label>MIN COLD COUNT</label>
-            <input type="number" id="minCold" value="2" min="1" max="4">
-        </div>
+    </details>
+
+    <div class="chart-box">
+        <canvas id="priceChart"></canvas>
+        <div class="chart-range-label chart-range-max" id="chartMaxLabel"></div>
+        <div class="chart-range-label chart-range-min" id="chartMinLabel"></div>
+        <div class="chart-empty-msg" id="chartEmptyMsg">Waiting for ticks...</div>
     </div>
 
-    <button class="apply" id="applyBtn">APPLY & RESTART FEED</button>
-
-    <div class="price-box" style="margin-top:16px">
-        <div style="font-size:0.75rem;color:#7dd3fc;letter-spacing:1px">LIVE TICK</div>
-        <div class="price-value" id="price">0.00</div>
-        <div class="last-digit">LAST DIGIT → <span id="lastDigit" style="font-size:1.4rem;font-weight:700">-</span></div>
-        <div style="font-size:0.75rem;color:#64748b;margin-top:4px" id="tickTime">Waiting...</div>
+    <div class="price-card">
+        <div id="priceLabel" style="font-size:0.85em;color:#90a4ae;">REAL-TIME TICK PRICE</div>
+        <div id="livePrice" class="price-value">0.00</div>
+        <div id="lastUpdate" style="font-size: 0.8em; color: #78909c;">Connecting...</div>
+        <div id="lastDigitDisplay" style="font-size: 1.15em; margin-top: 6px; color: #ffeb3b; font-weight:bold;">Last digit: —</div>
     </div>
 
-    <!-- Digit Frequency Grid -->
-    <div style="font-family:'Orbitron';font-size:0.8rem;color:#7dd3fc;margin-bottom:8px;letter-spacing:1px">DIGIT MATRIX // HOT & COLD</div>
+    <div id="signalContainer" class="signal-box signal-neutral">
+        Collecting digit history...
+    </div>
+
+    <div class="info-row">
+        <div class="info-box" id="lowInfo">Low 0-4: —</div>
+        <div class="info-box best-digit" id="bestDigitBox">Best Digit: —</div>
+        <div class="info-box" id="highInfo">High 5-9: —</div>
+    </div>
+
     <div class="digit-grid" id="digitGrid"></div>
-
-    <!-- Quad Signals -->
-    <div style="font-family:'Orbitron';font-size:0.8rem;color:#7dd3fc;margin-bottom:8px;letter-spacing:1px">QUAD SIGNAL ARRAY</div>
-    <div class="quad-grid">
-        <div class="signal-card" id="cardOver2">
-            <div class="sig-title sig-over">OVER 2</div>
-            <div class="sig-strength" id="strOver2">ANALYZING</div>
-            <div class="sig-reason" id="reasonOver2">Collecting data...</div>
-            <div class="sig-bar"><div class="sig-bar-fill" id="barOver2" style="width:0%;background:#00f0ff"></div></div>
-        </div>
-        <div class="signal-card" id="cardOver3">
-            <div class="sig-title sig-over">OVER 3</div>
-            <div class="sig-strength" id="strOver3">ANALYZING</div>
-            <div class="sig-reason" id="reasonOver3">Collecting data...</div>
-            <div class="sig-bar"><div class="sig-bar-fill" id="barOver3" style="width:0%;background:#00f0ff"></div></div>
-        </div>
-        <div class="signal-card" id="cardUnder6">
-            <div class="sig-title sig-under">UNDER 6</div>
-            <div class="sig-strength" id="strUnder6">ANALYZING</div>
-            <div class="sig-reason" id="reasonUnder6">Collecting data...</div>
-            <div class="sig-bar"><div class="sig-bar-fill" id="barUnder6" style="width:0%;background:#ff00aa"></div></div>
-        </div>
-        <div class="signal-card" id="cardUnder7">
-            <div class="sig-title sig-under">UNDER 7</div>
-            <div class="sig-strength" id="strUnder7">ANALYZING</div>
-            <div class="sig-reason" id="reasonUnder7">Collecting data...</div>
-            <div class="sig-bar"><div class="sig-bar-fill" id="barUnder7" style="width:0%;background:#ff00aa"></div></div>
-        </div>
-    </div>
-
-    <div class="ai-panel">
-        <div class="ai-title">◈ NEURAL INSIGHT</div>
-        <div class="ai-text" id="aiText">Waiting for sufficient digit history...</div>
-    </div>
 
     <div class="history-section">
         <div class="history-header">
-            <h3>SIGNAL LOG</h3>
-            <button class="clear" id="clearBtn">CLEAR</button>
+            <h3>Signal history</h3>
+            <button class="clear-btn" id="clearHistoryBtn">Clear</button>
         </div>
-        <table>
+        <table class="history-table">
             <thead>
-                <tr><th>TIME</th><th>SIGNAL</th><th>STRENGTH</th><th>DETAIL</th></tr>
+                <tr><th>Time</th><th>Symbol</th><th>Signal</th><th>Detail</th></tr>
             </thead>
             <tbody id="historyBody"></tbody>
         </table>
-        <div class="empty" id="emptyHistory">No signals fired yet</div>
+        <div class="empty-history" id="emptyHistoryMsg">No signals yet.</div>
     </div>
 
+    <div id="logConsole"></div>
     <div class="disclaimer">
-        2050 QUAD OVER/UNDER SNIPER • Public Deriv WebSocket<br>
-        Experimental tool — not financial advice. Digits are theoretically random.
+        Public Deriv API • Over/Under + Best single digit for 1-tick contracts<br>
+        Experimental — not financial advice.
     </div>
 </div>
 
 <script>
-// Public WebSocket server using standard application ID 1089
-const WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
+    const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
 
-let settings = {
-    symbol: 'R_75',
-    windowSize: 120,
-    coldThresh: 7.5,
-    hotThresh: 13,
-    minCold: 2
-};
-
-let ws = null;
-let digitBuffer = [];
-let counts = new Array(10).fill(0);
-let lastSignal = {};
-let history = [];
-let audioCtx = null;
-let pingTimer = null;
-
-function loadSettings() {
-    try {
-        const s = JSON.parse(localStorage.getItem('quad_ou_2050'));
-        if (s) settings = Object.assign(settings, s);
-    } catch(e){}
-    try {
-        const h = JSON.parse(localStorage.getItem('quad_ou_hist'));
-        if (Array.isArray(h)) history = h;
-    } catch(e){}
-}
-function saveSettings() {
-    localStorage.setItem('quad_ou_2050', JSON.stringify(settings));
-}
-function saveHistory() {
-    localStorage.setItem('quad_ou_hist', JSON.stringify(history.slice(0, 40)));
-}
-
-function applyForm() {
-    settings.symbol = document.getElementById('symbol').value;
-    settings.windowSize = parseInt(document.getElementById('windowSize').value) || 120;
-    settings.coldThresh = parseFloat(document.getElementById('coldThresh').value) || 7.5;
-    settings.hotThresh = parseFloat(document.getElementById('hotThresh').value) || 13;
-    settings.minCold = parseInt(document.getElementById('minCold').value) || 2;
-    saveSettings();
-    initWS();
-}
-
-function getLastDigit(quote) {
-    const s = String(quote).trim();
-    const lastChar = s.charAt(s.length - 1);
-    return parseInt(lastChar, 10);
-}
-
-function pushDigit(d) {
-    if (digitBuffer.length >= settings.windowSize) {
-        const old = digitBuffer.shift();
-        counts[old]--;
-    }
-    digitBuffer.push(d);
-    counts[d]++;
-}
-
-function calcPct() {
-    const total = digitBuffer.length || 1;
-    return counts.map(c => (c / total) * 100);
-}
-
-function renderDigits(pct) {
-    const grid = document.getElementById('digitGrid');
-    grid.innerHTML = '';
-    for (let i = 0; i < 10; i++) {
-        const p = pct[i];
-        let cls = 'digit-cell';
-        let tag = 'NORMAL';
-        let tagCls = 'tag-normal';
-        if (p <= settings.coldThresh) {
-            cls += ' cold';
-            tag = 'COLD';
-            tagCls = 'tag-cold';
-        } else if (p >= settings.hotThresh) {
-            cls += ' hot';
-            tag = 'HOT';
-            tagCls = 'tag-hot';
-        }
-        const cell = document.createElement('div');
-        cell.className = cls;
-        cell.innerHTML = `
-            <div class="digit-num">${i}</div>
-            <div class="digit-pct">${p.toFixed(1)}%</div>
-            <div class="digit-tag ${tagCls}">${tag}</div>
-        `;
-        grid.appendChild(cell);
-    }
-}
-
-function evaluateSignals(pct) {
-    const cold = [];
-    const hot = [];
-    for (let i = 0; i < 10; i++) {
-        if (pct[i] <= settings.coldThresh) cold.push(i);
-        if (pct[i] >= settings.hotThresh) hot.push(i);
-    }
-
-    const over2Cold = [0,1,2].filter(d => cold.includes(d)).length;
-    const over3Cold = [0,1,2,3].filter(d => cold.includes(d)).length;
-    const under6Cold = [6,7,8,9].filter(d => cold.includes(d)).length;
-    const under7Cold = [7,8,9].filter(d => cold.includes(d)).length;
-
-    function rank(count, maxPossible) {
-        const score = (count / maxPossible) * 100;
-        if (count >= settings.minCold + 1) return { level: 'STRONG', score: Math.min(100, score + 20), cls: 'strong' };
-        if (count >= settings.minCold) return { level: 'MEDIUM', score: score + 10, cls: 'medium' };
-        if (count >= 1) return { level: 'WEAK', score: score, cls: 'weak' };
-        return { level: 'AVOID', score: 5, cls: 'avoid' };
-    }
-
-    const o2 = rank(over2Cold, 3);
-    const o3 = rank(over3Cold, 4);
-    const u6 = rank(under6Cold, 4);
-    const u7 = rank(under7Cold, 3);
-
-    updateCard('Over2', o2, over2Cold, [0,1,2]);
-    updateCard('Over3', o3, over3Cold, [0,1,2,3]);
-    updateCard('Under6', u6, under6Cold, [6,7,8,9]);
-    updateCard('Under7', u7, under7Cold, [7,8,9]);
-
-    let best = null;
-    let bestScore = 0;
-    [['OVER 2', o2], ['OVER 3', o3], ['UNDER 6', u6], ['UNDER 7', u7]].forEach(([name, r]) => {
-        if (r.score > bestScore) { bestScore = r.score; best = name; }
-    });
-
-    let ai = '';
-    if (digitBuffer.length < Math.min(settings.windowSize, 30)) {
-        ai = `Collecting digits... ${digitBuffer.length}/${settings.windowSize}`;
-    } else if (best && bestScore > 40) {
-        ai = `Strongest setup: <strong>${best}</strong>. Cold support active. Confirming tick flow...`;
-    } else {
-        ai = `Balanced distribution. No high-conviction extremes found yet.`;
-    }
-    if (hot.length) ai += ` Hot: ${hot.join(', ')}.`;
-    if (cold.length) ai += ` Cold: ${cold.join(', ')}.`;
-    document.getElementById('aiText').innerHTML = ai;
-
-    checkAndRecord('OVER 2', o2);
-    checkAndRecord('OVER 3', o3);
-    checkAndRecord('UNDER 6', u6);
-    checkAndRecord('UNDER 7', u7);
-}
-
-function updateCard(id, rankObj, coldCount, supportDigits) {
-    const card = document.getElementById('card' + id);
-    const strEl = document.getElementById('str' + id);
-    const reasonEl = document.getElementById('reason' + id);
-    const bar = document.getElementById('bar' + id);
-
-    if (!card) return;
-    card.className = 'signal-card ' + rankObj.cls;
-    strEl.className = 'sig-strength strength-' + rankObj.cls;
-    strEl.innerText = rankObj.level;
-    bar.style.width = rankObj.score + '%';
-
-    const coldList = supportDigits.filter(d => {
-        const pct = (counts[d] / (digitBuffer.length || 1)) * 100;
-        return pct <= settings.coldThresh;
-    });
-    reasonEl.innerText = coldList.length
-        ? `Cold support: ${coldList.join(', ')} (${coldCount} cold)`
-        : 'No strong cold support yet';
-}
-
-function checkAndRecord(name, rankObj) {
-    if (rankObj.level === 'STRONG' || rankObj.level === 'MEDIUM') {
-        if (lastSignal[name] !== rankObj.level) {
-            lastSignal[name] = rankObj.level;
-            addHistory(name, rankObj.level);
-            playBeep();
-        }
-    } else {
-        lastSignal[name] = null;
-    }
-}
-
-function addHistory(signal, strength) {
-    history.unshift({
-        time: new Date().toLocaleTimeString(),
-        signal,
-        strength
-    });
-    if (history.length > 30) history.pop();
-    saveHistory();
-    renderHistory();
-}
-
-function renderHistory() {
-    const body = document.getElementById('historyBody');
-    const empty = document.getElementById('emptyHistory');
-    if (!body || !empty) return;
-    body.innerHTML = '';
-    if (!history.length) {
-        empty.style.display = 'block';
-        return;
-    }
-    empty.style.display = 'none';
-    history.forEach(h => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${h.time}</td>
-            <td style="color:${h.signal.includes('OVER') ? '#00f0ff' : '#ff00aa'}">${h.signal}</td>
-            <td>${h.strength}</td>
-            <td>—</td>
-        `;
-        body.appendChild(tr);
-    });
-}
-
-function playBeep() {
-    try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.connect(g); g.connect(audioCtx.destination);
-        o.frequency.value = 720;
-        o.type = 'sine';
-        g.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-        o.start(); o.stop(audioCtx.currentTime + 0.2);
-    } catch(e){}
-}
-
-function initWS() {
-    if (ws) {
-        try { ws.close(); } catch(e){}
-    }
-    if (pingTimer) clearInterval(pingTimer);
-
-    digitBuffer = [];
-    counts = new Array(10).fill(0);
-    lastSignal = {};
-
-    const statusEl = document.getElementById('status');
-    statusEl.className = 'status disconnected';
-    statusEl.innerText = 'CONNECTING';
-
-    ws = new WebSocket(WS_URL);
-
-    ws.onopen = () => {
-        statusEl.className = 'status connected';
-        statusEl.innerText = 'ONLINE';
-
-        // Request initial tick history
-        ws.send(JSON.stringify({
-            ticks_history: settings.symbol,
-            adjust_start_time: 1,
-            count: settings.windowSize,
-            end: 'latest',
-            style: 'ticks',
-            subscribe: 1
-        }));
-
-        // Keep connection active
-        pingTimer = setInterval(() => {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ ping: 1 }));
-            }
-        }, 30000);
+    const SYMBOL_NAMES = {
+        R_10: 'Vol 10', R_25: 'Vol 25', R_50: 'Vol 50',
+        R_75: 'Vol 75', R_100: 'Vol 100',
+        '1HZ10V': 'Vol 10 (1s)', '1HZ25V': 'Vol 25 (1s)',
+        '1HZ50V': 'Vol 50 (1s)', '1HZ75V': 'Vol 75 (1s)', '1HZ100V': 'Vol 100 (1s)'
     };
 
-    ws.onmessage = (event) => {
-        let data;
+    const STORAGE_KEY = 'derivOverUnderBest_v1';
+    const HISTORY_KEY = 'derivOverUnderBestHistory_v1';
+    const CHART_MAX = 180;
+    const PING_MS = 25000;
+
+    let settings = {
+        symbol: 'R_75',
+        windowSize: 100,
+        threshold: 8.5,
+        confirmTicks: 2,
+        minDiff: 1.5,
+        sound: true,
+        notify: true
+    };
+
+    let ws = null, pingTimer = null;
+    let digitBuffer = [];
+    let digitCounts = new Array(10).fill(0);
+    let digitBufCount = 0, digitBufHead = 0;
+    let currentSignal = null;
+    let pendingSignal = null, pendingCount = 0;
+    let tradeHistory = [];
+    let audioCtx = null;
+    let chartPoints = [];
+
+    function getLastDigit(quote) {
+        const cleaned = String(quote).replace('.', '');
+        const d = parseInt(cleaned.charAt(cleaned.length - 1), 10);
+        return Number.isFinite(d) ? d : null;
+    }
+
+    function pushDigit(d) {
+        if (digitBufCount === settings.windowSize) {
+            const old = digitBuffer[digitBufHead];
+            if (old >= 0) digitCounts[old]--;
+        } else {
+            digitBufCount++;
+        }
+        digitBuffer[digitBufHead] = d;
+        digitCounts[d]++;
+        digitBufHead = (digitBufHead + 1) % settings.windowSize;
+    }
+
+    // ---------- Chart ----------
+    function resetChart() {
+        chartPoints = [];
+        const c = document.getElementById('priceChart');
+        if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+        document.getElementById('chartEmptyMsg').style.display = 'flex';
+        document.getElementById('chartMaxLabel').innerText = '';
+        document.getElementById('chartMinLabel').innerText = '';
+    }
+
+    function pushChartPoint(t, p) {
+        chartPoints.push({ time: t, price: p });
+        if (chartPoints.length > CHART_MAX) chartPoints.shift();
+        drawChart();
+    }
+
+    function drawChart() {
+        const canvas = document.getElementById('priceChart');
+        if (!canvas || chartPoints.length < 2) return;
+        document.getElementById('chartEmptyMsg').style.display = 'none';
+
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const W = rect.width, H = rect.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const prices = chartPoints.map(p => p.price);
+        let min = Math.min(...prices), max = Math.max(...prices);
+        if (min === max) { min -= 1; max += 1; }
+        const pad = (max - min) * 0.1;
+        min -= pad; max += pad;
+
+        const stepX = W / (chartPoints.length - 1);
+        const sy = v => H - ((v - min) / (max - min)) * H;
+
+        ctx.beginPath();
+        ctx.moveTo(0, sy(prices[0]));
+        prices.forEach((p, i) => ctx.lineTo(i * stepX, sy(p)));
+        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, 'rgba(0,188,212,0.2)');
+        g.addColorStop(1, 'rgba(0,188,212,0)');
+        ctx.fillStyle = g; ctx.fill();
+
+        ctx.beginPath();
+        prices.forEach((p, i) => {
+            const x = i * stepX, y = sy(p);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = '#00bcd4';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc((prices.length-1)*stepX, sy(prices[prices.length-1]), 3, 0, Math.PI*2);
+        ctx.fillStyle = '#00e5ff';
+        ctx.fill();
+
+        document.getElementById('chartMaxLabel').innerText = max.toFixed(2);
+        document.getElementById('chartMinLabel').innerText = min.toFixed(2);
+    }
+
+    // ---------- Core logic ----------
+    function evaluateOverUnder(rawQuote, price) {
+        const d = getLastDigit(rawQuote);
+        if (d === null) return;
+
+        pushDigit(d);
+        document.getElementById('lastDigitDisplay').innerText = 'Last digit: ' + d;
+
+        const box = document.getElementById('signalContainer');
+        if (digitBufCount < Math.min(30, settings.windowSize * 0.35)) {
+            box.className = 'signal-box signal-neutral';
+            box.innerText = `Collecting digits (${digitBufCount}/${settings.windowSize})...`;
+            renderDigitGrid(null, -1);
+            document.getElementById('bestDigitBox').innerText = 'Best Digit: —';
+            return;
+        }
+
+        const pct = digitCounts.map(c => (c / digitBufCount) * 100);
+
+        // Best (coldest) single digit
+        let bestDigit = 0, bestPct = pct[0];
+        for (let i = 1; i < 10; i++) {
+            if (pct[i] < bestPct) {
+                bestPct = pct[i];
+                bestDigit = i;
+            }
+        }
+
+        document.getElementById('bestDigitBox').innerHTML =
+            `Best Digit: <span style="font-size:1.3em">${bestDigit}</span> (${bestPct.toFixed(1)}%)`;
+
+        renderDigitGrid(pct, bestDigit);
+
+        // Group stats
+        const lowPct  = pct[0]+pct[1]+pct[2]+pct[3]+pct[4];
+        const highPct = pct[5]+pct[6]+pct[7]+pct[8]+pct[9];
+        document.getElementById('lowInfo').innerText  = `Low 0-4: ${lowPct.toFixed(1)}%`;
+        document.getElementById('highInfo').innerText = `High 5-9: ${highPct.toFixed(1)}%`;
+
+        const avg = 10;
+        const isBestCold = bestPct <= settings.threshold && (avg - bestPct) >= settings.minDiff;
+
+        let raw = null;
+        let detail = '';
+
+        // NEW RULE: Digits 1, 2, 3 all under 10% → OVER signal (priority)
+        if (pct[1] < 10 && pct[2] < 10 && pct[3] < 10) {
+            raw = 'over';
+            detail = `1,2,3 all <10% (${pct[1].toFixed(1)}%, ${pct[2].toFixed(1)}%, ${pct[3].toFixed(1)}%) → OVER`;
+        }
+        // 1) Group imbalance (stronger signal)
+        else if (lowPct <= (50 - settings.minDiff * 2) && lowPct < highPct) {
+            raw = 'over';
+            detail = `Low group cold (${lowPct.toFixed(1)}%) → OVER  |  Best digit ${bestDigit}`;
+        } else if (highPct <= (50 - settings.minDiff * 2) && highPct < lowPct) {
+            raw = 'under';
+            detail = `High group cold (${highPct.toFixed(1)}%) → UNDER  |  Best digit ${bestDigit}`;
+        }
+        // 2) Single best digit
+        else if (isBestCold) {
+            if (bestDigit <= 4) {
+                raw = 'over';
+                detail = `Best digit ${bestDigit} only ${bestPct.toFixed(1)}% → OVER ${bestDigit}`;
+            } else {
+                raw = 'under';
+                detail = `Best digit ${bestDigit} only ${bestPct.toFixed(1)}% → UNDER ${bestDigit}`;
+            }
+        }
+
+        // Confirmation
+        if (raw) {
+            if (pendingSignal === raw) pendingCount++;
+            else { pendingSignal = raw; pendingCount = 1; }
+        } else {
+            pendingSignal = null;
+            pendingCount = 0;
+        }
+
+        let final = null;
+        if (pendingCount >= settings.confirmTicks) final = pendingSignal;
+
+        if (final === 'over') {
+            box.className = 'signal-box signal-over';
+            box.innerHTML = `OVER  •  Confirmed<br><span style="font-size:0.85em">Best digit: ${bestDigit}</span>`;
+            if (final !== currentSignal) recordSignal('over', price, detail);
+        } else if (final === 'under') {
+            box.className = 'signal-box signal-under';
+            box.innerHTML = `UNDER  •  Confirmed<br><span style="font-size:0.85em">Best digit: ${bestDigit}</span>`;
+            if (final !== currentSignal) recordSignal('under', price, detail);
+        } else {
+            box.className = 'signal-box signal-neutral';
+            if (pendingSignal) {
+                box.innerText = `Building ${pendingSignal.toUpperCase()} (${pendingCount}/${settings.confirmTicks})`;
+            } else {
+                box.innerText = 'No clear edge • Waiting';
+            }
+        }
+        currentSignal = final;
+    }
+
+    function renderDigitGrid(pct, bestDigit) {
+        const grid = document.getElementById('digitGrid');
+        grid.innerHTML = '';
+        for (let i = 0; i < 10; i++) {
+            const cell = document.createElement('div');
+            const val = pct ? pct[i].toFixed(1) + '%' : '--';
+            let cls = 'digit-cell';
+            if (pct) {
+                if (i === bestDigit) cls += ' best';
+                else if (pct[i] <= settings.threshold) cls += ' cold';
+                else if (pct[i] >= 12) cls += ' hot';
+            }
+            cell.className = cls;
+            cell.innerHTML = `<div class="digit-label">${i}</div><div class="digit-value">${val}</div>`;
+            grid.appendChild(cell);
+        }
+    }
+
+    // ---------- Notifications & History ----------
+    function ensureNotifyPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
+
+    function sendNotification(dir, detail) {
+        if (!settings.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
+        const title = dir === 'over' ? '🟢 OVER SIGNAL' : '🔴 UNDER SIGNAL';
         try {
-            data = JSON.parse(event.data);
-        } catch(e) {
-            return;
-        }
-
-        if (data.error || data.msg_type === 'ping') return;
-
-        if (data.msg_type === 'history' && data.history) {
-            const prices = data.history.prices || [];
-            prices.forEach(p => {
-                const d = getLastDigit(p);
-                if (Number.isFinite(d)) pushDigit(d);
-            });
-            if (prices.length) {
-                const last = prices[prices.length - 1];
-                document.getElementById('price').innerText = Number(last).toFixed(2);
-                document.getElementById('lastDigit').innerText = getLastDigit(last);
-            }
-            const pct = calcPct();
-            renderDigits(pct);
-            evaluateSignals(pct);
-            return;
-        }
-
-        if (data.msg_type === 'tick' && data.tick) {
-            const quote = data.tick.quote;
-            const d = getLastDigit(quote);
-            if (!Number.isFinite(d)) return;
-            pushDigit(d);
-            document.getElementById('price').innerText = Number(quote).toFixed(2);
-            document.getElementById('lastDigit').innerText = d;
-            document.getElementById('tickTime').innerText = 'Last tick: ' + new Date().toLocaleTimeString();
-            const pct = calcPct();
-            renderDigits(pct);
-            evaluateSignals(pct);
-        }
-    };
-
-    ws.onerror = () => {
-        statusEl.className = 'status disconnected';
-        statusEl.innerText = 'ERROR';
-    };
-
-    ws.onclose = () => {
-        statusEl.className = 'status disconnected';
-        statusEl.innerText = 'RECONNECTING';
-        setTimeout(initWS, 3000);
-    };
-}
-
-document.getElementById('applyBtn').addEventListener('click', () => {
-    if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
+            new Notification(title + ' — ' + settings.symbol, { body: detail });
+        } catch (e) {}
     }
-    applyForm();
-});
 
-document.getElementById('clearBtn').addEventListener('click', () => {
-    history = [];
-    saveHistory();
-    renderHistory();
-});
+    function playBeep(dir) {
+        if (!settings.sound) return;
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g); g.connect(audioCtx.destination);
+            o.frequency.value = dir === 'over' ? 880 : 440;
+            o.type = 'sine';
+            g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            o.start(); o.stop(audioCtx.currentTime + 0.3);
+        } catch (e) {}
+    }
 
-window.onload = () => {
-    loadSettings();
-    document.getElementById('symbol').value = settings.symbol;
-    document.getElementById('windowSize').value = settings.windowSize;
-    document.getElementById('coldThresh').value = settings.coldThresh;
-    document.getElementById('hotThresh').value = settings.hotThresh;
-    document.getElementById('minCold').value = settings.minCold;
-    renderHistory();
-    initWS();
-};
+    function recordSignal(dir, price, detail) {
+        const entry = {
+            time: new Date().toLocaleTimeString(),
+            symbol: settings.symbol,
+            direction: dir,
+            detail: detail
+        };
+        tradeHistory.unshift(entry);
+        if (tradeHistory.length > 25) tradeHistory.pop();
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(tradeHistory));
+        renderHistory();
+        playBeep(dir);
+        sendNotification(dir, detail);
+    }
+
+    function renderHistory() {
+        const body = document.getElementById('historyBody');
+        const empty = document.getElementById('emptyHistoryMsg');
+        body.innerHTML = '';
+        if (!tradeHistory.length) {
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+        tradeHistory.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.time}</td>
+                <td>${item.symbol}</td>
+                <td class="dir-${item.direction}">${item.direction.toUpperCase()}</td>
+                <td>${item.detail}</td>`;
+            body.appendChild(tr);
+        });
+    }
+
+    // ---------- WebSocket ----------
+    function clearPing() {
+        if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+    }
+
+    function initWebSocket() {
+        if (ws) { try { ws.onclose = null; ws.close(); } catch(e){} }
+        clearPing();
+
+        digitBuffer = new Array(settings.windowSize).fill(-1);
+        digitCounts = new Array(10).fill(0);
+        digitBufCount = 0; digitBufHead = 0;
+        currentSignal = null; pendingSignal = null; pendingCount = 0;
+        resetChart();
+        document.getElementById('signalContainer').className = 'signal-box signal-neutral';
+        document.getElementById('signalContainer').innerText = 'Collecting digits...';
+        document.getElementById('lastDigitDisplay').innerText = 'Last digit: —';
+        document.getElementById('bestDigitBox').innerText = 'Best Digit: —';
+        renderDigitGrid(null, -1);
+
+        ws = new WebSocket(PUBLIC_WS);
+
+        ws.onopen = () => {
+            document.getElementById('connectionStatus').innerText = 'Connected (Public)';
+            document.getElementById('connectionStatus').className = 'status-badge connected';
+            document.getElementById('logConsole').innerText = '';
+            pingTimer = setInterval(() => {
+                if (ws && ws.readyState === 1) ws.send(JSON.stringify({ ping: 1 }));
+            }, PING_MS);
+
+            ws.send(JSON.stringify({
+                ticks_history: settings.symbol,
+                adjust_start_time: 1,
+                count: CHART_MAX,
+                end: 'latest',
+                style: 'ticks',
+                subscribe: 1
+            }));
+        };
+
+        ws.onmessage = (ev) => {
+            let data;
+            try { data = JSON.parse(ev.data); } catch(e){ return; }
+            if (data.error) {
+                document.getElementById('logConsole').innerText = 'API: ' + (data.error.message || '');
+                return;
+            }
+            if (data.msg_type === 'ping') return;
+
+            if (data.msg_type === 'history' && data.history) {
+                const prices = data.history.prices || [];
+                const times = data.history.times || [];
+                for (let i = 0; i < prices.length; i++) {
+                    const p = parseFloat(prices[i]);
+                    if (!Number.isFinite(p)) continue;
+                    pushChartPoint(Number(times[i])*1000, p);
+                    const d = getLastDigit(String(prices[i]));
+                    if (d !== null) pushDigit(d);
+                }
+                if (prices.length) {
+                    const lp = parseFloat(prices[prices.length-1]);
+                    document.getElementById('livePrice').innerText = lp.toFixed(2);
+                    document.getElementById('lastUpdate').innerText = 'Last tick: ' + new Date(Number(times[times.length-1])*1000).toLocaleTimeString();
+                    evaluateOverUnder(String(prices[prices.length-1]), lp);
+                }
+                return;
+            }
+
+            if (data.msg_type === 'tick' && data.tick) {
+                const raw = String(data.tick.quote);
+                const p = parseFloat(raw);
+                if (!Number.isFinite(p)) return;
+                const t = (data.tick.epoch || 0) * 1000;
+                document.getElementById('livePrice').innerText = p.toFixed(2);
+                document.getElementById('lastUpdate').innerText = 'Last tick: ' + new Date(t).toLocaleTimeString();
+                pushChartPoint(t, p);
+                evaluateOverUnder(raw, p);
+            }
+        };
+
+        ws.onclose = () => {
+            clearPing();
+            document.getElementById('connectionStatus').innerText = 'Disconnected';
+            document.getElementById('connectionStatus').className = 'status-badge disconnected';
+            document.getElementById('logConsole').innerText = 'Reconnecting in 3s...';
+            setTimeout(initWebSocket, 3000);
+        };
+        ws.onerror = () => document.getElementById('logConsole').innerText = 'WebSocket error';
+    }
+
+    // ---------- UI ----------
+    function loadSettings() {
+        try {
+            const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (s) settings = Object.assign(settings, s);
+        } catch(e){}
+        try {
+            const h = JSON.parse(localStorage.getItem(HISTORY_KEY));
+            if (Array.isArray(h)) tradeHistory = h;
+        } catch(e){}
+    }
+
+    function applySettingsToForm() {
+        document.getElementById('symbolSelect').value = settings.symbol;
+        document.getElementById('windowSize').value = settings.windowSize;
+        document.getElementById('threshold').value = settings.threshold;
+        document.getElementById('confirmTicks').value = settings.confirmTicks;
+        document.getElementById('minDiff').value = settings.minDiff;
+        document.getElementById('soundToggle').checked = settings.sound;
+        document.getElementById('notifyToggle').checked = settings.notify;
+        document.getElementById('dashTitle').innerText = (SYMBOL_NAMES[settings.symbol] || settings.symbol) + ' Over/Under';
+        document.getElementById('priceLabel').innerText = 'REAL-TIME TICK PRICE (' + settings.symbol + ')';
+    }
+
+    document.getElementById('applyBtn').addEventListener('click', () => {
+        settings.symbol = document.getElementById('symbolSelect').value;
+        settings.windowSize = parseInt(document.getElementById('windowSize').value, 10) || 100;
+        settings.threshold = parseFloat(document.getElementById('threshold').value) || 8.5;
+        settings.confirmTicks = parseInt(document.getElementById('confirmTicks').value, 10) || 2;
+        settings.minDiff = parseFloat(document.getElementById('minDiff').value) || 1.5;
+        settings.sound = document.getElementById('soundToggle').checked;
+        settings.notify = document.getElementById('notifyToggle').checked;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+        applySettingsToForm();
+        if (settings.notify) ensureNotifyPermission();
+        initWebSocket();
+    });
+
+    document.getElementById('notifyToggle').addEventListener('change', e => {
+        if (e.target.checked) ensureNotifyPermission();
+    });
+
+    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        tradeHistory = [];
+        localStorage.setItem(HISTORY_KEY, JSON.stringify([]));
+        renderHistory();
+    });
+
+    window.onload = () => {
+        loadSettings();
+        applySettingsToForm();
+        renderHistory();
+        if (settings.notify) ensureNotifyPermission();
+        initWebSocket();
+    };
 </script>
 </body>
 </html>
-\
-
-
-
-
