@@ -401,16 +401,9 @@
 </div>
 
 <script>
-// Multi-endpoint failover array to guarantee connection stability
-const WS_URLS = [
-    'wss://ws.derivws.com/websockets/v3?app_id=1089',
-    'wss://ws.deriv.ws/websockets/v3?app_id=1089',
-    'wss://blue.derivws.com/websockets/v3?app_id=1089',
-    'wss://green.derivws.com/websockets/v3?app_id=1089',
-    'wss://white.derivws.com/websockets/v3?app_id=1089'
-];
+// Public WebSocket server using standard application ID 1089
+const WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
 
-let currentUrlIdx = 0;
 let settings = {
     symbol: 'R_75',
     windowSize: 120,
@@ -425,7 +418,7 @@ let counts = new Array(10).fill(0);
 let lastSignal = {};
 let history = [];
 let audioCtx = null;
-let pingInterval = null;
+let pingTimer = null;
 
 function loadSettings() {
     try {
@@ -456,7 +449,6 @@ function applyForm() {
 
 function getLastDigit(quote) {
     const s = String(quote).trim();
-    const clean = s.includes('.') ? s.split('.')[1] : s;
     const lastChar = s.charAt(s.length - 1);
     return parseInt(lastChar, 10);
 }
@@ -643,28 +635,23 @@ function initWS() {
     if (ws) {
         try { ws.close(); } catch(e){}
     }
-    if (pingInterval) clearInterval(pingInterval);
+    if (pingTimer) clearInterval(pingTimer);
 
     digitBuffer = [];
     counts = new Array(10).fill(0);
     lastSignal = {};
 
-    const url = WS_URLS[currentUrlIdx];
-    document.getElementById('status').className = 'status disconnected';
-    document.getElementById('status').innerText = 'CONNECTING';
+    const statusEl = document.getElementById('status');
+    statusEl.className = 'status disconnected';
+    statusEl.innerText = 'CONNECTING';
 
-    try {
-        ws = new WebSocket(url);
-    } catch(e) {
-        handleWSError();
-        return;
-    }
+    ws = new WebSocket(WS_URL);
 
     ws.onopen = () => {
-        document.getElementById('status').className = 'status connected';
-        document.getElementById('status').innerText = 'ONLINE';
-        
-        // Send history request
+        statusEl.className = 'status connected';
+        statusEl.innerText = 'ONLINE';
+
+        // Request initial tick history
         ws.send(JSON.stringify({
             ticks_history: settings.symbol,
             adjust_start_time: 1,
@@ -674,19 +661,23 @@ function initWS() {
             subscribe: 1
         }));
 
-        // Keep connection alive via ping loop every 25s
-        pingInterval = setInterval(() => {
+        // Keep connection active
+        pingTimer = setInterval(() => {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ ping: 1 }));
             }
-        }, 25000);
+        }, 30000);
     };
 
-    ws.onmessage = (msg) => {
+    ws.onmessage = (event) => {
         let data;
-        try { data = JSON.parse(msg.data); } catch(e){ return; }
-        if (data.error) return;
-        if (data.msg_type === 'ping') return;
+        try {
+            data = JSON.parse(event.data);
+        } catch(e) {
+            return;
+        }
+
+        if (data.error || data.msg_type === 'ping') return;
 
         if (data.msg_type === 'history' && data.history) {
             const prices = data.history.prices || [];
@@ -720,23 +711,15 @@ function initWS() {
     };
 
     ws.onerror = () => {
-        handleWSError();
+        statusEl.className = 'status disconnected';
+        statusEl.innerText = 'ERROR';
     };
 
     ws.onclose = () => {
-        if (document.getElementById('status').innerText === 'ONLINE') {
-            document.getElementById('status').className = 'status disconnected';
-            document.getElementById('status').innerText = 'RECONNECTING';
-            setTimeout(initWS, 2000);
-        }
+        statusEl.className = 'status disconnected';
+        statusEl.innerText = 'RECONNECTING';
+        setTimeout(initWS, 3000);
     };
-}
-
-function handleWSError() {
-    currentUrlIdx = (currentUrlIdx + 1) % WS_URLS.length;
-    document.getElementById('status').className = 'status disconnected';
-    document.getElementById('status').innerText = 'SWITCHING NODE';
-    setTimeout(initWS, 1500);
 }
 
 document.getElementById('applyBtn').addEventListener('click', () => {
