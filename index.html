@@ -3,1033 +3,729 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deriv Solid Trend Sniper — V75 (1s)</title>
+<title>2050 Quad Over/Under Sniper</title>
 <style>
-    * { box-sizing: border-box; }
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #12161f;
-        color: #ffffff;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
+        font-family: 'Share Tech Mono', monospace;
+        background: #05070f;
+        color: #e0f7ff;
+        min-height: 100vh;
+        padding: 16px;
+        background-image: 
+            radial-gradient(ellipse at 20% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(255, 0, 255, 0.04) 0%, transparent 50%),
+            linear-gradient(180deg, #05070f 0%, #0a0e1a 100%);
     }
+
     .container {
-        width: 100%;
-        max-width: 640px;
-        background-color: #1a222d;
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        border: 1px solid #2a3444;
+        max-width: 780px;
+        margin: 0 auto;
+        background: rgba(10, 16, 32, 0.85);
+        border: 1px solid rgba(0, 255, 255, 0.25);
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 0 40px rgba(0, 255, 255, 0.08), inset 0 0 30px rgba(0, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
     }
+
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #2a3444;
-        padding-bottom: 15px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-        gap: 10px;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
     }
-    .header h2 { margin: 0; font-size: 1.25em; }
-    .status-badge {
-        display: inline-block;
-        padding: 4px 12px;
+    .header h1 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #00f0ff, #ff00aa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1px;
+    }
+    .status {
+        padding: 5px 14px;
         border-radius: 20px;
-        font-size: 0.85em;
-        font-weight: bold;
-        background-color: #ff9800;
-        color: #000;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 1px;
     }
-    .status-badge.connected { background-color: #4caf50; color: #fff; }
-    .status-badge.disconnected { background-color: #f44336; color: #fff; }
+    .status.connected { background: rgba(0, 255, 150, 0.15); color: #00ff99; border: 1px solid #00ff99; }
+    .status.disconnected { background: rgba(255, 50, 80, 0.15); color: #ff3250; border: 1px solid #ff3250; }
 
-    .controls-row {
+    .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    label { font-size: 0.72rem; color: #7dd3fc; display: block; margin-bottom: 4px; letter-spacing: 0.5px; }
+    select, input {
+        width: 100%;
+        background: rgba(0, 20, 40, 0.8);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #e0f7ff;
+        padding: 9px 12px;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.9rem;
+    }
+    select:focus, input:focus { outline: none; border-color: #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
+
+    .settings-row {
         display: flex;
         gap: 10px;
         margin-bottom: 16px;
         flex-wrap: wrap;
     }
-    .controls-row label {
-        font-size: 0.8em;
-        color: #90a4ae;
-        display: block;
-        margin-bottom: 4px;
-    }
-    select, input[type=number] {
-        background-color: #232d3b;
-        color: #fff;
-        border: 1px solid #2a3444;
-        border-radius: 6px;
-        padding: 8px;
-        font-size: 0.95em;
-        width: 100%;
-    }
-    .strategy-picker { flex: 1; min-width: 180px; }
+    .settings-row > div { flex: 1; min-width: 110px; }
 
+    button.apply {
+        width: 100%;
+        background: linear-gradient(90deg, #00c4ff, #7b2ff7);
+        border: none;
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        font-size: 0.9rem;
+        cursor: pointer;
+        letter-spacing: 1px;
+        margin-top: 8px;
+        transition: all 0.2s;
+    }
+    button.apply:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(0, 200, 255, 0.4); }
+
+    .price-box {
+        text-align: center;
+        background: rgba(0, 30, 50, 0.5);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    .price-value {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: #00f0ff;
+        text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+    }
+    .last-digit {
+        font-size: 1.1rem;
+        margin-top: 6px;
+        color: #ff00aa;
+    }
+
+    /* Digit Grid */
     .digit-grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 8px;
-        margin-top: 15px;
+        margin-bottom: 18px;
     }
     .digit-cell {
-        background-color: #232d3b;
-        padding: 8px 4px;
-        border-radius: 6px;
+        background: rgba(0, 20, 40, 0.7);
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 10px;
+        padding: 10px 4px;
         text-align: center;
+        transition: all 0.3s;
     }
-    .digit-cell .digit-label { font-size: 0.75em; color: #90a4ae; }
-    .digit-cell .digit-value { font-weight: bold; font-size: 0.95em; }
-    .digit-cell.under-threshold { border: 1px solid #4caf50; }
-    [data-strategy-fields] { display: none; }
-    [data-strategy-fields].active { display: block; }
+    .digit-cell.hot {
+        border-color: #ff3d71;
+        background: rgba(255, 61, 113, 0.12);
+        box-shadow: 0 0 12px rgba(255, 61, 113, 0.25);
+    }
+    .digit-cell.cold {
+        border-color: #00e5ff;
+        background: rgba(0, 229, 255, 0.1);
+        box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+    }
+    .digit-num {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    .digit-pct { font-size: 0.8rem; margin-top: 2px; }
+    .digit-tag {
+        font-size: 0.65rem;
+        margin-top: 4px;
+        letter-spacing: 1px;
+        font-weight: 700;
+    }
+    .tag-hot { color: #ff3d71; }
+    .tag-cold { color: #00e5ff; }
+    .tag-normal { color: #64748b; }
 
-    details.settings {
-        background-color: #202836;
-        border-radius: 8px;
-        margin-bottom: 16px;
-        border: 1px solid #2a3444;
-    }
-    details.settings summary {
-        padding: 12px 16px;
-        cursor: pointer;
-        font-weight: bold;
-        color: #90caf9;
-        list-style: none;
-    }
-    details.settings summary::-webkit-details-marker { display: none; }
-    .settings-body {
-        padding: 0 16px 16px 16px;
+    /* Quad Signals */
+    .quad-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
+        margin-bottom: 18px;
     }
-    .settings-body .full { grid-column: 1 / -1; }
-    .toggle-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: #232d3b;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 0.9em;
-    }
-    .toggle-row input { width: auto; }
-    button.apply-btn {
-        grid-column: 1 / -1;
-        background-color: #1565c0;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 10px;
-        font-weight: bold;
-        cursor: pointer;
-        font-size: 0.95em;
-    }
-    button.apply-btn:hover { background-color: #1976d2; }
-    button.clear-btn {
-        background: none;
-        border: 1px solid #455a64;
-        color: #90a4ae;
-        border-radius: 6px;
-        padding: 4px 10px;
-        font-size: 0.75em;
-        cursor: pointer;
-    }
-    button.clear-btn:hover { border-color: #f44336; color: #f44336; }
-
-    .chart-box {
-        width: 100%;
-        height: 240px;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid #2a3444;
-        margin-bottom: 16px;
-        background-color: #131722;
+    .signal-card {
+        background: rgba(8, 15, 30, 0.9);
+        border-radius: 12px;
+        padding: 14px;
+        border: 1px solid rgba(0, 255, 255, 0.2);
         position: relative;
+        overflow: hidden;
     }
-    .chart-box canvas { display: block; width: 100%; height: 100%; }
-    .chart-range-label {
-        position: absolute;
-        right: 8px;
-        font-size: 0.72em;
-        color: #607d8b;
-        background-color: rgba(19, 23, 34, 0.7);
-        padding: 2px 6px;
-        border-radius: 4px;
-        pointer-events: none;
+    .signal-card.strong {
+        border-color: #00ff99;
+        box-shadow: 0 0 18px rgba(0, 255, 153, 0.25);
     }
-    .chart-range-max { top: 8px; }
-    .chart-range-min { bottom: 8px; }
-    .chart-empty-msg {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 20px;
-        font-size: 0.85em;
-        color: #607d8b;
+    .signal-card.medium {
+        border-color: #fbbf24;
+        box-shadow: 0 0 12px rgba(251, 191, 36, 0.2);
+    }
+    .signal-card.weak {
+        border-color: #64748b;
+    }
+    .signal-card.avoid {
+        border-color: #ff3250;
+        opacity: 0.7;
+    }
+    .sig-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+    .sig-over { color: #00f0ff; }
+    .sig-under { color: #ff00aa; }
+    .sig-strength {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+    .strength-strong { color: #00ff99; }
+    .strength-medium { color: #fbbf24; }
+    .strength-weak { color: #94a3b8; }
+    .strength-avoid { color: #ff3250; }
+    .sig-reason {
+        font-size: 0.72rem;
+        color: #94a3b8;
+        line-height: 1.35;
+    }
+    .sig-bar {
+        height: 4px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 2px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+    .sig-bar-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.4s ease;
     }
 
-    .price-card {
-        background-color: #232d3b;
-        padding: 18px;
-        border-radius: 8px;
-        text-align: center;
+    .ai-panel {
+        background: linear-gradient(135deg, rgba(0, 40, 80, 0.6), rgba(60, 0, 80, 0.5));
+        border: 1px solid rgba(0, 255, 255, 0.25);
+        border-radius: 12px;
+        padding: 14px;
         margin-bottom: 16px;
     }
-    .price-value {
-        font-size: 2.1em;
-        font-weight: bold;
-        color: #00bcd4;
-        margin: 8px 0;
+    .ai-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.85rem;
+        color: #00f0ff;
+        margin-bottom: 6px;
+        letter-spacing: 1px;
     }
+    .ai-text { font-size: 0.85rem; line-height: 1.45; color: #e0f7ff; }
 
-    .signal-box {
-        padding: 18px;
-        border-radius: 8px;
-        text-align: center;
-        font-size: 1.15em;
-        font-weight: bold;
-        margin-top: 12px;
-        transition: all 0.3s ease;
-    }
-    .signal-neutral { background-color: #2e3846; color: #b0bec5; }
-    .signal-buy { background-color: #1b5e20; color: #81c784; border: 2px solid #4caf50; }
-    .signal-sell { background-color: #b71c1c; color: #ef9a9a; border: 2px solid #f44336; }
-
-    .details-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        margin-top: 12px;
-    }
-    .detail-item {
-        background-color: #232d3b;
-        padding: 12px;
-        border-radius: 6px;
-        text-align: center;
-    }
-    .detail-label { font-size: 0.85em; color: #90a4ae; margin-bottom: 4px; }
-    .detail-value { font-weight: bold; font-size: 1.1em; }
-
-    .trend-info {
-        font-size: 0.8em;
-        color: #90a4ae;
-        text-align: center;
-        margin-top: 8px;
-    }
-
-    .history-section { margin-top: 20px; }
+    .history-section { margin-top: 10px; }
     .history-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 8px;
     }
-    .history-header h3 { margin: 0; font-size: 1em; color: #90caf9; }
-    table.history-table {
+    .history-header h3 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.9rem;
+        color: #7dd3fc;
+    }
+    button.clear {
+        background: none;
+        border: 1px solid #475569;
+        color: #94a3b8;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+    table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.82em;
+        font-size: 0.75rem;
     }
-    table.history-table th, table.history-table td {
-        padding: 6px 8px;
+    th, td {
+        padding: 6px 4px;
         text-align: center;
-        border-bottom: 1px solid #2a3444;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
     }
-    table.history-table th { color: #90a4ae; font-weight: normal; }
-    .dir-buy { color: #81c784; font-weight: bold; }
-    .dir-sell { color: #ef9a9a; font-weight: bold; }
-    .dir-over { color: #ffca28; font-weight: bold; }
-    .empty-history { color: #607d8b; text-align: center; padding: 12px; font-size: 0.85em; }
+    th { color: #7dd3fc; font-weight: 400; }
+    .empty { text-align: center; color: #475569; padding: 12px; font-size: 0.8rem; }
 
-    #logConsole {
-        margin-top: 14px;
-        font-size: 0.8em;
-        color: #ff8a80;
-        text-align: center;
-        min-height: 1em;
-        white-space: pre-wrap;
-    }
     .disclaimer {
         margin-top: 16px;
-        font-size: 0.72em;
-        color: #607d8b;
         text-align: center;
+        font-size: 0.68rem;
+        color: #475569;
         line-height: 1.4;
     }
 </style>
 </head>
 <body>
-
 <div class="container">
     <div class="header">
-        <h2>V75 (1s) Solid Trend Sniper</h2>
-        <span id="connectionStatus" class="status-badge disconnected">Connecting...</span>
+        <h1>2050 QUAD OVER/UNDER</h1>
+        <span id="status" class="status disconnected">OFFLINE</span>
     </div>
 
-    <div class="controls-row">
-        <div class="strategy-picker">
-            <label for="strategySelect">Strategy</label>
-            <select id="strategySelect">
-                <option value="sma">Solid Trend (EMA)</option>
-                <option value="lastdigit">Last Digit</option>
+    <div class="controls">
+        <div>
+            <label>SYMBOL</label>
+            <select id="symbol">
+                <option value="R_10">Volatility 10</option>
+                <option value="R_25">Volatility 25</option>
+                <option value="R_50">Volatility 50</option>
+                <option value="R_75" selected>Volatility 75</option>
+                <option value="R_100">Volatility 100</option>
+                <option value="1HZ10V">Vol 10 (1s)</option>
+                <option value="1HZ25V">Vol 25 (1s)</option>
+                <option value="1HZ50V">Vol 50 (1s)</option>
+                <option value="1HZ75V">Vol 75 (1s)</option>
+                <option value="1HZ100V">Vol 100 (1s)</option>
             </select>
         </div>
-    </div>
-
-    <details class="settings" id="settingsPanel">
-        <summary>Settings &amp; Alerts</summary>
-        <div class="settings-body">
-            <div data-strategy-fields="sma" class="active">
-                <label for="fastPeriod">Fast EMA</label>
-                <input type="number" id="fastPeriod" min="3" max="30" value="8">
-            </div>
-            <div data-strategy-fields="sma" class="active">
-                <label for="slowPeriod">Mid EMA</label>
-                <input type="number" id="slowPeriod" min="10" max="50" value="21">
-            </div>
-            <div data-strategy-fields="sma" class="active">
-                <label for="trendPeriod">Slow EMA (trend)</label>
-                <input type="number" id="trendPeriod" min="20" max="100" value="50">
-            </div>
-            <div data-strategy-fields="sma" class="active">
-                <label for="tpOffset">TP offset (points)</label>
-                <input type="number" id="tpOffset" min="20" step="10" value="200">
-            </div>
-            <div data-strategy-fields="sma" class="active">
-                <label for="confirmTicks">Confirm ticks</label>
-                <input type="number" id="confirmTicks" min="1" max="8" value="3">
-            </div>
-            <div data-strategy-fields="sma" class="active">
-                <label for="minSeparation">Min EMA gap %</label>
-                <input type="number" id="minSeparation" min="0" step="0.005" value="0.02">
-            </div>
-
-            <div data-strategy-fields="lastdigit">
-                <label for="windowSize">Rolling window</label>
-                <input type="number" id="windowSize" min="10" max="1000" value="100">
-            </div>
-            <div data-strategy-fields="lastdigit">
-                <label for="digitThreshold">Threshold %</label>
-                <input type="number" id="digitThreshold" min="0" max="100" step="0.1" value="10.0">
-            </div>
-
-            <div class="full toggle-row">
-                <span>🔊 Sound on signal</span>
-                <input type="checkbox" id="soundToggle" checked>
-            </div>
-            <div class="full toggle-row">
-                <span>🔔 Browser notification on signal</span>
-                <input type="checkbox" id="notifyToggle" checked>
-            </div>
-            <button class="apply-btn" id="applyBtn">Apply &amp; restart feed</button>
-        </div>
-    </details>
-
-    <div class="chart-box">
-        <canvas id="priceChart"></canvas>
-        <div class="chart-range-label chart-range-max" id="chartMaxLabel"></div>
-        <div class="chart-range-label chart-range-min" id="chartMinLabel"></div>
-        <div class="chart-empty-msg" id="chartEmptyMsg">Waiting for tick history...</div>
-    </div>
-
-    <div class="price-card">
-        <div class="detail-label">REAL-TIME TICK PRICE (1HZ75V)</div>
-        <div id="livePrice" class="price-value">0.00</div>
-        <div id="lastUpdate" style="font-size: 0.8em; color: #78909c;">Connecting...</div>
-        <div class="trend-info" id="trendInfo">Trend: —</div>
-    </div>
-
-    <div id="signalContainer" class="signal-box signal-neutral">
-        Connecting to feed...
-    </div>
-
-    <div class="details-grid" id="smaDetailsGrid">
-        <div class="detail-item">
-            <div class="detail-label">Entry Price</div>
-            <div id="entryPrice" class="detail-value">--</div>
-        </div>
-        <div class="detail-item">
-            <div class="detail-label">Take Profit</div>
-            <div id="takeProfitPrice" class="detail-value" style="color: #4caf50;">--</div>
+        <div>
+            <label>WINDOW SIZE</label>
+            <input type="number" id="windowSize" value="120" min="40" max="500">
         </div>
     </div>
 
-    <div class="digit-grid" id="digitGrid" style="display:none;"></div>
+    <div class="settings-row">
+        <div>
+            <label>COLD THRESHOLD %</label>
+            <input type="number" id="coldThresh" value="7.5" step="0.5" min="4" max="9">
+        </div>
+        <div>
+            <label>HOT THRESHOLD %</label>
+            <input type="number" id="hotThresh" value="13" step="0.5" min="11" max="20">
+        </div>
+        <div>
+            <label>MIN COLD COUNT</label>
+            <input type="number" id="minCold" value="2" min="1" max="4">
+        </div>
+    </div>
+
+    <button class="apply" id="applyBtn">APPLY & RESTART FEED</button>
+
+    <div class="price-box" style="margin-top:16px">
+        <div style="font-size:0.75rem;color:#7dd3fc;letter-spacing:1px">LIVE TICK</div>
+        <div class="price-value" id="price">0.00</div>
+        <div class="last-digit">LAST DIGIT → <span id="lastDigit" style="font-size:1.4rem;font-weight:700">-</span></div>
+        <div style="font-size:0.75rem;color:#64748b;margin-top:4px" id="tickTime">Waiting...</div>
+    </div>
+
+    <!-- Digit Frequency Grid -->
+    <div style="font-family:'Orbitron';font-size:0.8rem;color:#7dd3fc;margin-bottom:8px;letter-spacing:1px">DIGIT MATRIX // HOT & COLD</div>
+    <div class="digit-grid" id="digitGrid"></div>
+
+    <!-- Quad Signals -->
+    <div style="font-family:'Orbitron';font-size:0.8rem;color:#7dd3fc;margin-bottom:8px;letter-spacing:1px">QUAD SIGNAL ARRAY</div>
+    <div class="quad-grid">
+        <div class="signal-card" id="cardOver2">
+            <div class="sig-title sig-over">OVER 2</div>
+            <div class="sig-strength" id="strOver2">ANALYZING</div>
+            <div class="sig-reason" id="reasonOver2">Collecting data...</div>
+            <div class="sig-bar"><div class="sig-bar-fill" id="barOver2" style="width:0%;background:#00f0ff"></div></div>
+        </div>
+        <div class="signal-card" id="cardOver3">
+            <div class="sig-title sig-over">OVER 3</div>
+            <div class="sig-strength" id="strOver3">ANALYZING</div>
+            <div class="sig-reason" id="reasonOver3">Collecting data...</div>
+            <div class="sig-bar"><div class="sig-bar-fill" id="barOver3" style="width:0%;background:#00f0ff"></div></div>
+        </div>
+        <div class="signal-card" id="cardUnder6">
+            <div class="sig-title sig-under">UNDER 6</div>
+            <div class="sig-strength" id="strUnder6">ANALYZING</div>
+            <div class="sig-reason" id="reasonUnder6">Collecting data...</div>
+            <div class="sig-bar"><div class="sig-bar-fill" id="barUnder6" style="width:0%;background:#ff00aa"></div></div>
+        </div>
+        <div class="signal-card" id="cardUnder7">
+            <div class="sig-title sig-under">UNDER 7</div>
+            <div class="sig-strength" id="strUnder7">ANALYZING</div>
+            <div class="sig-reason" id="reasonUnder7">Collecting data...</div>
+            <div class="sig-bar"><div class="sig-bar-fill" id="barUnder7" style="width:0%;background:#ff00aa"></div></div>
+        </div>
+    </div>
+
+    <div class="ai-panel">
+        <div class="ai-title">◈ NEURAL INSIGHT</div>
+        <div class="ai-text" id="aiText">Waiting for sufficient digit history...</div>
+    </div>
 
     <div class="history-section">
         <div class="history-header">
-            <h3>Signal history</h3>
-            <button class="clear-btn" id="clearHistoryBtn">Clear</button>
+            <h3>SIGNAL LOG</h3>
+            <button class="clear" id="clearBtn">CLEAR</button>
         </div>
-        <table class="history-table">
+        <table>
             <thead>
-                <tr><th>Time</th><th>Signal</th><th>Detail 1</th><th>Detail 2</th></tr>
+                <tr><th>TIME</th><th>SIGNAL</th><th>STRENGTH</th><th>DETAIL</th></tr>
             </thead>
             <tbody id="historyBody"></tbody>
         </table>
-        <div class="empty-history" id="emptyHistoryMsg">No signals yet.</div>
+        <div class="empty" id="emptyHistory">No signals fired yet</div>
     </div>
 
-    <div id="logConsole"></div>
     <div class="disclaimer">
-        Locked to Volatility 75 (1s) • Public Deriv API<br>
-        Experimental — not financial advice.
+        2050 QUAD OVER/UNDER SNIPER • Public Deriv WebSocket<br>
+        Experimental tool — not financial advice. Digits are theoretically random.
     </div>
 </div>
 
 <script>
-    const APP_ID = '1089';
-    const SYMBOL = '1HZ75V';          // locked to V75 1s only
-    const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
+const WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
 
-    const STORAGE_KEY = 'derivSolidTrend_v75_1s_v1';
-    const HISTORY_KEY = 'derivSolidTrendHistory_v75_1s_v1';
-    const CHART_MAX_POINTS = 200;
-    const PING_MS = 20000;
-    const MAX_MARKERS = 18;
+let settings = {
+    symbol: 'R_75',
+    windowSize: 120,
+    coldThresh: 7.5,
+    hotThresh: 13,
+    minCold: 2
+};
 
-    let settings = {
-        strategy: 'sma',
-        fastPeriod: 8,
-        slowPeriod: 21,
-        trendPeriod: 50,
-        tpOffset: 200,
-        confirmTicks: 3,
-        minSeparation: 0.02,
-        rsiPeriod: 14,
-        rsiBuyMax: 68,
-        rsiSellMin: 32,
-        windowSize: 100,
-        digitThreshold: 10,
-        sound: true,
-        notify: true
+let ws = null;
+let digitBuffer = [];
+let counts = new Array(10).fill(0);
+let lastSignal = {};
+let history = [];
+let audioCtx = null;
+
+function loadSettings() {
+    try {
+        const s = JSON.parse(localStorage.getItem('quad_ou_2050'));
+        if (s) settings = Object.assign(settings, s);
+    } catch(e){}
+    try {
+        const h = JSON.parse(localStorage.getItem('quad_ou_hist'));
+        if (Array.isArray(h)) history = h;
+    } catch(e){}
+}
+function saveSettings() {
+    localStorage.setItem('quad_ou_2050', JSON.stringify(settings));
+}
+function saveHistory() {
+    localStorage.setItem('quad_ou_hist', JSON.stringify(history.slice(0, 40)));
+}
+
+function applyForm() {
+    settings.symbol = document.getElementById('symbol').value;
+    settings.windowSize = parseInt(document.getElementById('windowSize').value) || 120;
+    settings.coldThresh = parseFloat(document.getElementById('coldThresh').value) || 7.5;
+    settings.hotThresh = parseFloat(document.getElementById('hotThresh').value) || 13;
+    settings.minCold = parseInt(document.getElementById('minCold').value) || 2;
+    saveSettings();
+    initWS();
+}
+
+function getLastDigit(quote) {
+    const s = String(quote).replace('.', '');
+    return parseInt(s.charAt(s.length - 1), 10);
+}
+
+function pushDigit(d) {
+    if (digitBuffer.length >= settings.windowSize) {
+        const old = digitBuffer.shift();
+        counts[old]--;
+    }
+    digitBuffer.push(d);
+    counts[d]++;
+}
+
+function calcPct() {
+    const total = digitBuffer.length || 1;
+    return counts.map(c => (c / total) * 100);
+}
+
+function renderDigits(pct) {
+    const grid = document.getElementById('digitGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+        const p = pct[i];
+        let cls = 'digit-cell';
+        let tag = 'NORMAL';
+        let tagCls = 'tag-normal';
+        if (p <= settings.coldThresh) {
+            cls += ' cold';
+            tag = 'COLD';
+            tagCls = 'tag-cold';
+        } else if (p >= settings.hotThresh) {
+            cls += ' hot';
+            tag = 'HOT';
+            tagCls = 'tag-hot';
+        }
+        const cell = document.createElement('div');
+        cell.className = cls;
+        cell.innerHTML = `
+            <div class="digit-num">${i}</div>
+            <div class="digit-pct">${p.toFixed(1)}%</div>
+            <div class="digit-tag ${tagCls}">${tag}</div>
+        `;
+        grid.appendChild(cell);
+    }
+}
+
+function evaluateSignals(pct) {
+    const cold = [];
+    const hot = [];
+    for (let i = 0; i < 10; i++) {
+        if (pct[i] <= settings.coldThresh) cold.push(i);
+        if (pct[i] >= settings.hotThresh) hot.push(i);
+    }
+
+    // OVER 2 → wins on 3,4,5,6,7,8,9  → cold 0,1,2 help
+    const over2Cold = [0,1,2].filter(d => cold.includes(d)).length;
+    // OVER 3 → wins on 4-9 → cold 0-3 help
+    const over3Cold = [0,1,2,3].filter(d => cold.includes(d)).length;
+    // UNDER 6 → wins on 0-5 → cold 6-9 help
+    const under6Cold = [6,7,8,9].filter(d => cold.includes(d)).length;
+    // UNDER 7 → wins on 0-6 → cold 7-9 help
+    const under7Cold = [7,8,9].filter(d => cold.includes(d)).length;
+
+    function rank(count, maxPossible) {
+        const score = (count / maxPossible) * 100;
+        if (count >= settings.minCold + 1) return { level: 'STRONG', score: Math.min(100, score + 20), cls: 'strong' };
+        if (count >= settings.minCold) return { level: 'MEDIUM', score: score + 10, cls: 'medium' };
+        if (count >= 1) return { level: 'WEAK', score: score, cls: 'weak' };
+        return { level: 'AVOID', score: 5, cls: 'avoid' };
+    }
+
+    const o2 = rank(over2Cold, 3);
+    const o3 = rank(over3Cold, 4);
+    const u6 = rank(under6Cold, 4);
+    const u7 = rank(under7Cold, 3);
+
+    // Update cards
+    updateCard('Over2', o2, over2Cold, [0,1,2], 'OVER 2');
+    updateCard('Over3', o3, over3Cold, [0,1,2,3], 'OVER 3');
+    updateCard('Under6', u6, under6Cold, [6,7,8,9], 'UNDER 6');
+    updateCard('Under7', u7, under7Cold, [7,8,9], 'UNDER 7');
+
+    // AI text
+    let best = null;
+    let bestScore = 0;
+    [['OVER 2', o2], ['OVER 3', o3], ['UNDER 6', u6], ['UNDER 7', u7]].forEach(([name, r]) => {
+        if (r.score > bestScore) { bestScore = r.score; best = name; }
+    });
+
+    let ai = '';
+    if (digitBuffer.length < settings.windowSize * 0.6) {
+        ai = `Collecting digits... ${digitBuffer.length}/${settings.windowSize}`;
+    } else if (best && bestScore > 40) {
+        ai = `Strongest setup right now: <strong>${best}</strong>. Cold digits are supporting this direction. Consider waiting for confirmation tick before entry.`;
+    } else {
+        ai = `No high-conviction setup. Market digits are relatively balanced. Stay flat or reduce size.`;
+    }
+    if (hot.length) ai += ` Hot digits: ${hot.join(', ')}.`;
+    if (cold.length) ai += ` Cold digits: ${cold.join(', ')}.`;
+    document.getElementById('aiText').innerHTML = ai;
+
+    // Fire history on strong signals (once)
+    checkAndRecord('OVER 2', o2);
+    checkAndRecord('OVER 3', o3);
+    checkAndRecord('UNDER 6', u6);
+    checkAndRecord('UNDER 7', u7);
+}
+
+function updateCard(id, rankObj, coldCount, supportDigits, name) {
+    const card = document.getElementById('card' + id);
+    const strEl = document.getElementById('str' + id);
+    const reasonEl = document.getElementById('reason' + id);
+    const bar = document.getElementById('bar' + id);
+
+    card.className = 'signal-card ' + rankObj.cls;
+    strEl.className = 'sig-strength strength-' + rankObj.cls;
+    strEl.innerText = rankObj.level;
+    bar.style.width = rankObj.score + '%';
+
+    const coldList = supportDigits.filter(d => {
+        const pct = (counts[d] / (digitBuffer.length || 1)) * 100;
+        return pct <= settings.coldThresh;
+    });
+    reasonEl.innerText = coldList.length
+        ? `Cold support: ${coldList.join(', ')} (${coldCount} cold)`
+        : 'No strong cold support yet';
+}
+
+function checkAndRecord(name, rankObj) {
+    if (rankObj.level === 'STRONG' || rankObj.level === 'MEDIUM') {
+        if (lastSignal[name] !== rankObj.level) {
+            lastSignal[name] = rankObj.level;
+            addHistory(name, rankObj.level);
+            playBeep();
+            notify(name, rankObj.level);
+        }
+    } else {
+        lastSignal[name] = null;
+    }
+}
+
+function addHistory(signal, strength) {
+    history.unshift({
+        time: new Date().toLocaleTimeString(),
+        signal,
+        strength
+    });
+    if (history.length > 30) history.pop();
+    saveHistory();
+    renderHistory();
+}
+
+function renderHistory() {
+    const body = document.getElementById('historyBody');
+    const empty = document.getElementById('emptyHistory');
+    body.innerHTML = '';
+    if (!history.length) {
+        empty.style.display = 'block';
+        return;
+    }
+    empty.style.display = 'none';
+    history.forEach(h => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${h.time}</td>
+            <td style="color:${h.signal.includes('OVER') ? '#00f0ff' : '#ff00aa'}">${h.signal}</td>
+            <td>${h.strength}</td>
+            <td>—</td>
+        `;
+        body.appendChild(tr);
+    });
+}
+
+function playBeep() {
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.frequency.value = 720;
+        o.type = 'sine';
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        o.start(); o.stop(audioCtx.currentTime + 0.25);
+    } catch(e){}
+}
+
+function notify(signal, strength) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+        new Notification(`2050 ${signal}`, { body: `Strength: ${strength}` });
+    } catch(e){}
+}
+
+function initWS() {
+    if (ws) { try { ws.close(); } catch(e){} }
+    digitBuffer = [];
+    counts = new Array(10).fill(0);
+    lastSignal = {};
+    document.getElementById('status').className = 'status disconnected';
+    document.getElementById('status').innerText = 'CONNECTING';
+
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => {
+        document.getElementById('status').className = 'status connected';
+        document.getElementById('status').innerText = 'ONLINE';
+        ws.send(JSON.stringify({
+            ticks_history: settings.symbol,
+            adjust_start_time: 1,
+            count: settings.windowSize,
+            end: 'latest',
+            style: 'ticks',
+            subscribe: 1
+        }));
     };
 
-    let priceHistory = [];
-    let emaFastState = null, emaMidState = null, emaSlowState = null;
-    let ws = null, pingTimer = null, watchDog = null;
-    let currentSignal = null;
-    let pendingSignal = null, pendingCount = 0;
-    let tradeHistory = [];
-    let audioCtx = null;
+    ws.onmessage = (msg) => {
+        let data;
+        try { data = JSON.parse(msg.data); } catch(e){ return; }
+        if (data.error) return;
 
-    let digitBuffer = [], digitCounts = new Array(10).fill(0);
-    let digitBufCount = 0, digitBufHead = 0, lastFiredDigit = -1;
-
-    let chartPoints = [];
-    let entryMarkers = [];
-
-    // ---------- EMA ----------
-    function updateEMA(prev, price, period) {
-        const k = 2 / (period + 1);
-        return prev === null ? price : price * k + prev * (1 - k);
-    }
-
-    function calculateRSI(period) {
-        if (priceHistory.length < period + 1) return null;
-        let gains = 0, losses = 0;
-        for (let i = priceHistory.length - period; i < priceHistory.length; i++) {
-            const d = priceHistory[i] - priceHistory[i - 1];
-            if (d >= 0) gains += d; else losses -= d;
-        }
-        if (losses === 0) return 100;
-        return 100 - (100 / (1 + gains / losses));
-    }
-
-    function recentMomentum(lookback = 5) {
-        if (priceHistory.length < lookback + 1) return 0;
-        const now = priceHistory[priceHistory.length - 1];
-        const past = priceHistory[priceHistory.length - 1 - lookback];
-        return ((now - past) / past) * 100;
-    }
-
-    // ---------- Chart ----------
-    function resetChart() {
-        chartPoints = [];
-        entryMarkers = [];
-        const c = document.getElementById('priceChart');
-        if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
-        document.getElementById('chartMaxLabel').innerText = '';
-        document.getElementById('chartMinLabel').innerText = '';
-        document.getElementById('chartEmptyMsg').style.display = 'flex';
-    }
-
-    function pushChartPoint(t, p) {
-        chartPoints.push({ time: t, price: p });
-        if (chartPoints.length > CHART_MAX_POINTS) chartPoints.shift();
-        if (chartPoints.length) {
-            const oldest = chartPoints[0].time;
-            entryMarkers = entryMarkers.filter(m => m.time >= oldest);
-        }
-        drawChart();
-    }
-
-    function addEntryMarker(t, p, dir) {
-        entryMarkers.push({ time: t, price: p, direction: dir });
-        if (entryMarkers.length > MAX_MARKERS) entryMarkers.shift();
-        drawChart();
-    }
-
-    function drawChart() {
-        const canvas = document.getElementById('priceChart');
-        if (!canvas || chartPoints.length < 2) return;
-        document.getElementById('chartEmptyMsg').style.display = 'none';
-
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        const ctx = canvas.getContext('2d');
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const W = rect.width, H = rect.height;
-        ctx.clearRect(0, 0, W, H);
-
-        const prices = chartPoints.map(p => p.price);
-        let min = Math.min(...prices), max = Math.max(...prices);
-        if (min === max) { min -= 1; max += 1; }
-        const pad = (max - min) * 0.12;
-        min -= pad; max += pad;
-
-        const stepX = W / (chartPoints.length - 1);
-        const sy = v => H - ((v - min) / (max - min)) * H;
-
-        ctx.beginPath();
-        ctx.moveTo(0, sy(prices[0]));
-        prices.forEach((p, i) => ctx.lineTo(i * stepX, sy(p)));
-        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-        const g = ctx.createLinearGradient(0, 0, 0, H);
-        g.addColorStop(0, 'rgba(0,188,212,0.22)');
-        g.addColorStop(1, 'rgba(0,188,212,0)');
-        ctx.fillStyle = g; ctx.fill();
-
-        ctx.beginPath();
-        prices.forEach((p, i) => {
-            const x = i * stepX, y = sy(p);
-            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        });
-        ctx.strokeStyle = '#00bcd4';
-        ctx.lineWidth = 1.7;
-        ctx.lineJoin = 'round';
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc((prices.length - 1) * stepX, sy(prices[prices.length - 1]), 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#00e5ff';
-        ctx.fill();
-
-        entryMarkers.forEach(m => {
-            let idx = 0, best = Infinity;
-            for (let i = 0; i < chartPoints.length; i++) {
-                const d = Math.abs(chartPoints[i].time - m.time);
-                if (d < best) { best = d; idx = i; }
+        if (data.msg_type === 'history' && data.history) {
+            const prices = data.history.prices || [];
+            prices.forEach(p => {
+                const d = getLastDigit(p);
+                if (Number.isFinite(d)) pushDigit(d);
+            });
+            if (prices.length) {
+                const last = prices[prices.length - 1];
+                document.getElementById('price').innerText = parseFloat(last).toFixed(2);
+                document.getElementById('lastDigit').innerText = getLastDigit(last);
             }
-            const x = idx * stepX, y = sy(m.price);
-
-            if (m.direction === 'buy') {
-                ctx.beginPath();
-                ctx.moveTo(x, y - 11);
-                ctx.lineTo(x - 7, y + 2);
-                ctx.lineTo(x + 7, y + 2);
-                ctx.closePath();
-                ctx.fillStyle = '#4caf50';
-                ctx.fill();
-                ctx.fillStyle = '#81c784';
-                ctx.font = 'bold 10px Segoe UI';
-                ctx.textAlign = 'center';
-                ctx.fillText('BUY', x, y - 15);
-            } else {
-                ctx.beginPath();
-                ctx.moveTo(x, y + 11);
-                ctx.lineTo(x - 7, y - 2);
-                ctx.lineTo(x + 7, y - 2);
-                ctx.closePath();
-                ctx.fillStyle = '#f44336';
-                ctx.fill();
-                ctx.fillStyle = '#ef9a9a';
-                ctx.font = 'bold 10px Segoe UI';
-                ctx.textAlign = 'center';
-                ctx.fillText('SELL', x, y + 23);
-            }
-        });
-
-        document.getElementById('chartMaxLabel').innerText = max.toFixed(2);
-        document.getElementById('chartMinLabel').innerText = min.toFixed(2);
-    }
-
-    window.addEventListener('resize', () => { if (chartPoints.length >= 2) drawChart(); });
-
-    // ---------- Storage ----------
-    function loadSettings() {
-        try {
-            const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            if (s) settings = Object.assign(settings, s);
-        } catch (e) {}
-        try {
-            const h = JSON.parse(localStorage.getItem(HISTORY_KEY));
-            if (Array.isArray(h)) tradeHistory = h;
-        } catch (e) {}
-    }
-    function saveSettings() { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); }
-    function saveHistory() { localStorage.setItem(HISTORY_KEY, JSON.stringify(tradeHistory)); }
-
-    function applySettingsToForm() {
-        document.getElementById('strategySelect').value = settings.strategy;
-        document.getElementById('fastPeriod').value = settings.fastPeriod;
-        document.getElementById('slowPeriod').value = settings.slowPeriod;
-        document.getElementById('trendPeriod').value = settings.trendPeriod;
-        document.getElementById('tpOffset').value = settings.tpOffset;
-        document.getElementById('confirmTicks').value = settings.confirmTicks;
-        document.getElementById('minSeparation').value = settings.minSeparation;
-        document.getElementById('windowSize').value = settings.windowSize;
-        document.getElementById('digitThreshold').value = settings.digitThreshold;
-        document.getElementById('soundToggle').checked = settings.sound;
-        document.getElementById('notifyToggle').checked = settings.notify;
-        updateStrategyVisibility();
-    }
-
-    function updateStrategyVisibility() {
-        document.querySelectorAll('[data-strategy-fields]').forEach(el => {
-            el.classList.toggle('active', el.getAttribute('data-strategy-fields') === settings.strategy);
-        });
-        document.getElementById('smaDetailsGrid').style.display = settings.strategy === 'sma' ? 'grid' : 'none';
-        document.getElementById('digitGrid').style.display = settings.strategy === 'lastdigit' ? 'grid' : 'none';
-    }
-
-    function readSettingsFromForm() {
-        const strategy = document.getElementById('strategySelect').value;
-        const fast = parseInt(document.getElementById('fastPeriod').value, 10);
-        const mid = parseInt(document.getElementById('slowPeriod').value, 10);
-        const trend = parseInt(document.getElementById('trendPeriod').value, 10);
-        const tp = parseFloat(document.getElementById('tpOffset').value);
-        const conf = parseInt(document.getElementById('confirmTicks').value, 10);
-        const sep = parseFloat(document.getElementById('minSeparation').value);
-        const win = parseInt(document.getElementById('windowSize').value, 10);
-        const thr = parseFloat(document.getElementById('digitThreshold').value);
-
-        if (strategy === 'sma') {
-            if (fast < 3 || mid <= fast || trend <= mid) {
-                logError('EMAs must be: Fast < Mid < Slow');
-                return false;
-            }
-            if (tp <= 0 || conf < 1) { logError('Invalid TP or confirm ticks'); return false; }
-        }
-
-        settings.strategy = strategy;
-        settings.fastPeriod = fast;
-        settings.slowPeriod = mid;
-        settings.trendPeriod = trend;
-        settings.tpOffset = tp;
-        settings.confirmTicks = conf;
-        settings.minSeparation = sep;
-        settings.windowSize = win;
-        settings.digitThreshold = thr;
-        settings.sound = document.getElementById('soundToggle').checked;
-        settings.notify = document.getElementById('notifyToggle').checked;
-        logError('');
-        return true;
-    }
-
-    function logError(m) { document.getElementById('logConsole').innerText = m || ''; }
-
-    // ---------- Notifications ----------
-    function ensureNotifyPermission() {
-        if (!('Notification' in window)) return;
-        if (Notification.permission === 'default') Notification.requestPermission();
-    }
-
-    function sendNotification(dir, price, extra) {
-        if (!settings.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
-        let title, body;
-        if (dir === 'over') {
-            title = `🟡 OVER ${extra.digit} — 1HZ75V`;
-            body = `Price ${price.toFixed(2)}`;
-        } else {
-            title = (dir === 'buy' ? '🟢 SOLID BUY' : '🔴 SOLID SELL') + ' — 1HZ75V';
-            body = `Entry ${price.toFixed(2)}  |  TP ${(dir === 'buy' ? price + settings.tpOffset : price - settings.tpOffset).toFixed(2)}`;
-        }
-        try { new Notification(title, { body, silent: false }); } catch (e) {}
-    }
-
-    function playBeep(dir) {
-        if (!settings.sound) return;
-        try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            o.connect(g); g.connect(audioCtx.destination);
-            o.frequency.value = dir === 'buy' || dir === 'over' ? 880 : 440;
-            o.type = 'sine';
-            g.gain.setValueAtTime(0.12, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
-            o.start(); o.stop(audioCtx.currentTime + 0.35);
-        } catch (e) {}
-    }
-
-    // ---------- WebSocket ----------
-    function clearPing() {
-        if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
-        if (watchDog) { clearTimeout(watchDog); watchDog = null; }
-    }
-
-    function resetWatchDog() {
-        clearTimeout(watchDog);
-        watchDog = setTimeout(() => {
-            console.warn('Feed stalled – reconnecting');
-            initWebSocket();
-        }, 8000);
-    }
-
-    function initWebSocket() {
-        if (ws) { try { ws.onclose = null; ws.close(); } catch (e) {} }
-        clearPing();
-
-        priceHistory = [];
-        emaFastState = emaMidState = emaSlowState = null;
-        currentSignal = null;
-        pendingSignal = null;
-        pendingCount = 0;
-        digitBuffer = new Array(settings.windowSize).fill(-1);
-        digitCounts = new Array(10).fill(0);
-        digitBufCount = 0; digitBufHead = 0; lastFiredDigit = -1;
-        resetSignalDisplay();
-        resetChart();
-
-        ws = new WebSocket(WS_URL);
-
-        ws.onopen = () => {
-            document.getElementById('connectionStatus').innerText = 'Connected';
-            document.getElementById('connectionStatus').className = 'status-badge connected';
-            logError('');
-
-            // History + live stream
-            ws.send(JSON.stringify({
-                ticks_history: SYMBOL,
-                count: CHART_MAX_POINTS,
-                end: 'latest',
-                style: 'ticks',
-                subscribe: 1
-            }));
-
-            pingTimer = setInterval(() => {
-                if (ws && ws.readyState === 1) ws.send(JSON.stringify({ ping: 1 }));
-            }, PING_MS);
-        };
-
-        ws.onmessage = (ev) => {
-            let data;
-            try { data = JSON.parse(ev.data); } catch (e) { return; }
-            resetWatchDog();
-
-            if (data.error) {
-                logError('API: ' + (data.error.message || JSON.stringify(data.error)));
-                return;
-            }
-            if (data.msg_type === 'ping') return;
-
-            if (data.msg_type === 'history' && data.history) {
-                const prices = data.history.prices || [];
-                const times = data.history.times || [];
-                for (let i = 0; i < prices.length; i++) {
-                    const p = parseFloat(prices[i]);
-                    if (!Number.isFinite(p)) continue;
-                    const t = Number(times[i]) * 1000;
-                    pushChartPoint(t, p);
-                    if (settings.strategy === 'sma') {
-                        priceHistory.push(p);
-                        emaFastState = updateEMA(emaFastState, p, settings.fastPeriod);
-                        emaMidState  = updateEMA(emaMidState,  p, settings.slowPeriod);
-                        emaSlowState = updateEMA(emaSlowState, p, settings.trendPeriod);
-                    } else {
-                        const d = getLastDigit(String(prices[i]));
-                        if (Number.isFinite(d)) pushDigit(d);
-                    }
-                }
-                const keep = Math.max(settings.trendPeriod, settings.rsiPeriod) + 30;
-                if (priceHistory.length > keep) priceHistory = priceHistory.slice(-keep);
-
-                if (prices.length) {
-                    const lp = parseFloat(prices[prices.length - 1]);
-                    const lt = Number(times[times.length - 1]) * 1000;
-                    document.getElementById('livePrice').innerText = lp.toFixed(2);
-                    document.getElementById('lastUpdate').innerText = 'Last tick: ' + new Date(lt).toLocaleTimeString();
-                    if (settings.strategy === 'sma') evaluateSolidTrend(lp, lt);
-                    else evaluateLastDigit(String(prices[prices.length - 1]), lp);
-                }
-                return;
-            }
-
-            if (data.msg_type === 'tick' && data.tick) {
-                const raw = String(data.tick.quote);
-                const p = parseFloat(raw);
-                if (!Number.isFinite(p)) return;
-                const t = (data.tick.epoch || 0) * 1000;
-                document.getElementById('livePrice').innerText = p.toFixed(2);
-                document.getElementById('lastUpdate').innerText = 'Last tick: ' + new Date(t).toLocaleTimeString();
-                pushChartPoint(t, p);
-
-                if (settings.strategy === 'sma') {
-                    priceHistory.push(p);
-                    emaFastState = updateEMA(emaFastState, p, settings.fastPeriod);
-                    emaMidState  = updateEMA(emaMidState,  p, settings.slowPeriod);
-                    emaSlowState = updateEMA(emaSlowState, p, settings.trendPeriod);
-                    const keep = Math.max(settings.trendPeriod, settings.rsiPeriod) + 30;
-                    if (priceHistory.length > keep) priceHistory.shift();
-                    evaluateSolidTrend(p, t);
-                } else {
-                    evaluateLastDigit(raw, p);
-                }
-            }
-        };
-
-        ws.onclose = () => {
-            clearPing();
-            document.getElementById('connectionStatus').innerText = 'Disconnected';
-            document.getElementById('connectionStatus').className = 'status-badge disconnected';
-            logError('Reconnecting in 3s...');
-            setTimeout(initWebSocket, 3000);
-        };
-        ws.onerror = () => logError('WebSocket error');
-    }
-
-    function resetSignalDisplay() {
-        const el = document.getElementById('signalContainer');
-        el.className = 'signal-box signal-neutral';
-        el.innerText = 'Collecting data...';
-        document.getElementById('entryPrice').innerText = '--';
-        document.getElementById('takeProfitPrice').innerText = '--';
-        document.getElementById('trendInfo').innerText = 'Trend: —';
-        renderDigitGrid(null);
-    }
-
-    // ---------- SOLID TREND ----------
-    function evaluateSolidTrend(price, epochMs) {
-        const box = document.getElementById('signalContainer');
-        const entryEl = document.getElementById('entryPrice');
-        const tpEl = document.getElementById('takeProfitPrice');
-        const trendEl = document.getElementById('trendInfo');
-
-        if (emaFastState === null || emaMidState === null || emaSlowState === null) {
-            box.innerText = `Warming up EMAs (${priceHistory.length})...`;
+            const pct = calcPct();
+            renderDigits(pct);
+            evaluateSignals(pct);
             return;
         }
 
-        const rsi = calculateRSI(settings.rsiPeriod);
-        const mom = recentMomentum(6);
-
-        const gapFastMid = Math.abs((emaFastState - emaMidState) / emaMidState) * 100;
-        const gapMidSlow = Math.abs((emaMidState - emaSlowState) / emaSlowState) * 100;
-
-        const solidBull =
-            emaFastState > emaMidState &&
-            emaMidState > emaSlowState &&
-            price > emaSlowState &&
-            gapFastMid >= settings.minSeparation * 0.6 &&
-            gapMidSlow >= settings.minSeparation * 0.4 &&
-            (rsi === null || rsi < settings.rsiBuyMax) &&
-            mom > 0.01;
-
-        const solidBear =
-            emaFastState < emaMidState &&
-            emaMidState < emaSlowState &&
-            price < emaSlowState &&
-            gapFastMid >= settings.minSeparation * 0.6 &&
-            gapMidSlow >= settings.minSeparation * 0.4 &&
-            (rsi === null || rsi > settings.rsiSellMin) &&
-            mom < -0.01;
-
-        if (solidBull) trendEl.innerText = 'Trend: 🟢 SOLID UP  |  RSI ' + (rsi ? rsi.toFixed(0) : '—');
-        else if (solidBear) trendEl.innerText = 'Trend: 🔴 SOLID DOWN  |  RSI ' + (rsi ? rsi.toFixed(0) : '—');
-        else if (emaFastState > emaMidState && emaMidState > emaSlowState)
-            trendEl.innerText = 'Trend: weak up / waiting  |  RSI ' + (rsi ? rsi.toFixed(0) : '—');
-        else if (emaFastState < emaMidState && emaMidState < emaSlowState)
-            trendEl.innerText = 'Trend: weak down / waiting  |  RSI ' + (rsi ? rsi.toFixed(0) : '—');
-        else
-            trendEl.innerText = 'Trend: ranging / no setup  |  RSI ' + (rsi ? rsi.toFixed(0) : '—');
-
-        let raw = 'neutral';
-        if (solidBull) raw = 'buy';
-        else if (solidBear) raw = 'sell';
-
-        if (raw === 'buy' || raw === 'sell') {
-            if (pendingSignal === raw) pendingCount++;
-            else { pendingSignal = raw; pendingCount = 1; }
-        } else {
-            pendingSignal = null;
-            pendingCount = 0;
+        if (data.msg_type === 'tick' && data.tick) {
+            const quote = data.tick.quote;
+            const d = getLastDigit(quote);
+            if (!Number.isFinite(d)) return;
+            pushDigit(d);
+            document.getElementById('price').innerText = parseFloat(quote).toFixed(2);
+            document.getElementById('lastDigit').innerText = d;
+            document.getElementById('tickTime').innerText = 'Last tick: ' + new Date().toLocaleTimeString();
+            const pct = calcPct();
+            renderDigits(pct);
+            evaluateSignals(pct);
         }
-
-        let final = 'neutral';
-        if (pendingCount >= settings.confirmTicks) final = pendingSignal;
-
-        if (final === 'buy') {
-            const tp = price + settings.tpOffset;
-            box.className = 'signal-box signal-buy';
-            box.innerText = 'SOLID BUY  •  Confirmed';
-            entryEl.innerText = price.toFixed(2);
-            tpEl.innerText = tp.toFixed(2);
-            if (final !== currentSignal) recordSignal('buy', price, tp, epochMs);
-        } else if (final === 'sell') {
-            const tp = price - settings.tpOffset;
-            box.className = 'signal-box signal-sell';
-            box.innerText = 'SOLID SELL  •  Confirmed';
-            entryEl.innerText = price.toFixed(2);
-            tpEl.innerText = tp.toFixed(2);
-            if (final !== currentSignal) recordSignal('sell', price, tp, epochMs);
-        } else {
-            box.className = 'signal-box signal-neutral';
-            if (pendingSignal) {
-                box.innerText = `Building ${pendingSignal.toUpperCase()} (${pendingCount}/${settings.confirmTicks})`;
-            } else {
-                box.innerText = 'NO SOLID TREND  •  Waiting';
-            }
-            entryEl.innerText = '--';
-            tpEl.innerText = '--';
-        }
-        currentSignal = final;
-    }
-
-    // ---------- Last Digit ----------
-    function getLastDigit(q) {
-        const c = String(q).replace('.', '');
-        const d = parseInt(c.charAt(c.length - 1), 10);
-        return Number.isFinite(d) ? d : NaN;
-    }
-    function pushDigit(d) {
-        if (digitBufCount === settings.windowSize) {
-            const old = digitBuffer[digitBufHead];
-            if (old >= 0) digitCounts[old]--;
-        } else digitBufCount++;
-        digitBuffer[digitBufHead] = d;
-        digitCounts[d]++;
-        digitBufHead = (digitBufHead + 1) % settings.windowSize;
-    }
-    function evaluateLastDigit(raw, price) {
-        const d = getLastDigit(raw);
-        if (!Number.isFinite(d)) return;
-        pushDigit(d);
-        const box = document.getElementById('signalContainer');
-        if (digitBufCount === 0) { box.innerText = 'Waiting...'; return; }
-        const pct = digitCounts.map(c => (c / digitBufCount) * 100);
-        renderDigitGrid(pct);
-        const ok = pct[0] < settings.digitThreshold && pct[1] < settings.digitThreshold &&
-                   pct[2] < settings.digitThreshold && pct[3] < settings.digitThreshold;
-        if (ok && digitBufCount >= settings.windowSize) {
-            let pick = 0, best = pct[0];
-            for (let i = 1; i <= 3; i++) if (pct[i] < best) { best = pct[i]; pick = i; }
-            box.className = 'signal-box signal-buy';
-            box.innerText = `BUY OVER ${pick} (${best.toFixed(1)}%)`;
-            if (lastFiredDigit !== pick) {
-                lastFiredDigit = pick;
-                recordSignal('over', price, null, null, { digit: pick, pct: best });
-            }
-            currentSignal = 'over-' + pick;
-        } else {
-            box.className = 'signal-box signal-neutral';
-            box.innerText = `Flat — digits 0-3 under ${settings.digitThreshold}%`;
-            currentSignal = 'neutral';
-            lastFiredDigit = -1;
-        }
-    }
-    function renderDigitGrid(pct) {
-        const g = document.getElementById('digitGrid');
-        g.innerHTML = '';
-        for (let i = 0; i < 10; i++) {
-            const cell = document.createElement('div');
-            const v = pct ? pct[i].toFixed(1) + '%' : '--';
-            const under = pct && i <= 3 && pct[i] < settings.digitThreshold;
-            cell.className = 'digit-cell' + (under ? ' under-threshold' : '');
-            cell.innerHTML = `<div class="digit-label">digit ${i}</div><div class="digit-value">${v}</div>`;
-            g.appendChild(cell);
-        }
-    }
-
-    // ---------- History + alerts ----------
-    function recordSignal(dir, price, tp, epochMs, extra) {
-        if ((dir === 'buy' || dir === 'sell') && epochMs) {
-            addEntryMarker(epochMs, price, dir);
-        }
-        let entry;
-        if (dir === 'over') {
-            entry = {
-                time: new Date().toLocaleTimeString(),
-                direction: dir,
-                detail1: 'OVER ' + extra.digit,
-                detail2: extra.pct.toFixed(1) + '%'
-            };
-        } else {
-            entry = {
-                time: new Date().toLocaleTimeString(),
-                direction: dir,
-                detail1: 'Entry ' + price.toFixed(2),
-                detail2: 'TP ' + tp.toFixed(2)
-            };
-        }
-        tradeHistory.unshift(entry);
-        if (tradeHistory.length > 30) tradeHistory.pop();
-        saveHistory();
-        renderHistory();
-        playBeep(dir);
-        sendNotification(dir, price, extra);
-    }
-
-    function renderHistory() {
-        const body = document.getElementById('historyBody');
-        const empty = document.getElementById('emptyHistoryMsg');
-        body.innerHTML = '';
-        if (!tradeHistory.length) { empty.style.display = 'block'; return; }
-        empty.style.display = 'none';
-        tradeHistory.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${item.time}</td>
-                <td class="dir-${item.direction}">${item.direction.toUpperCase()}</td>
-                <td>${item.detail1}</td>
-                <td>${item.detail2}</td>`;
-            body.appendChild(tr);
-        });
-    }
-
-    // ---------- UI ----------
-    document.getElementById('applyBtn').addEventListener('click', () => {
-        if (!readSettingsFromForm()) return;
-        saveSettings();
-        applySettingsToForm();
-        if (settings.notify) ensureNotifyPermission();
-        initWebSocket();
-    });
-
-    document.getElementById('strategySelect').addEventListener('change', e => {
-        document.querySelectorAll('[data-strategy-fields]').forEach(el => {
-            el.classList.toggle('active', el.getAttribute('data-strategy-fields') === e.target.value);
-        });
-    });
-
-    document.getElementById('notifyToggle').addEventListener('change', e => {
-        if (e.target.checked) ensureNotifyPermission();
-    });
-
-    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-        tradeHistory = [];
-        saveHistory();
-        renderHistory();
-    });
-
-    window.onload = () => {
-        loadSettings();
-        applySettingsToForm();
-        renderHistory();
-        if (settings.notify) ensureNotifyPermission();
-        initWebSocket();
     };
+
+    ws.onclose = () => {
+        document.getElementById('status').className = 'status disconnected';
+        document.getElementById('status').innerText = 'RECONNECTING';
+        setTimeout(initWS, 3000);
+    };
+}
+
+document.getElementById('applyBtn').addEventListener('click', applyForm);
+document.getElementById('clearBtn').addEventListener('click', () => {
+    history = [];
+    saveHistory();
+    renderHistory();
+});
+
+window.onload = () => {
+    loadSettings();
+    document.getElementById('symbol').value = settings.symbol;
+    document.getElementById('windowSize').value = settings.windowSize;
+    document.getElementById('coldThresh').value = settings.coldThresh;
+    document.getElementById('hotThresh').value = settings.hotThresh;
+    document.getElementById('minCold').value = settings.minCold;
+    renderHistory();
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+    initWS();
+};
 </script>
 </body>
 </html>
