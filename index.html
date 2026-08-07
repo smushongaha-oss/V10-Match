@@ -16,17 +16,19 @@
         padding: 16px;
         background-image: 
             radial-gradient(ellipse at 20% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 80%, rgba(255, 0, 255, 0.04) 0%, transparent 50%);
+            radial-gradient(ellipse at 80% 80%, rgba(255, 0, 255, 0.04) 0%, transparent 50%),
+            linear-gradient(180deg, #05070f 0%, #0a0e1a 100%);
     }
 
     .container {
         max-width: 780px;
         margin: 0 auto;
-        background: rgba(10, 16, 32, 0.9);
+        background: rgba(10, 16, 32, 0.85);
         border: 1px solid rgba(0, 255, 255, 0.25);
         border-radius: 16px;
         padding: 22px;
-        box-shadow: 0 0 40px rgba(0, 255, 255, 0.08);
+        box-shadow: 0 0 40px rgba(0, 255, 255, 0.08), inset 0 0 30px rgba(0, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
     }
 
     .header {
@@ -39,29 +41,30 @@
     }
     .header h1 {
         font-family: 'Orbitron', sans-serif;
-        font-size: 1.3rem;
+        font-size: 1.35rem;
         font-weight: 700;
         background: linear-gradient(90deg, #00f0ff, #ff00aa);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        letter-spacing: 1px;
     }
     .status {
         padding: 5px 14px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.78rem;
         font-weight: 700;
+        letter-spacing: 1px;
     }
     .status.connected { background: rgba(0, 255, 150, 0.15); color: #00ff99; border: 1px solid #00ff99; }
     .status.disconnected { background: rgba(255, 50, 80, 0.15); color: #ff3250; border: 1px solid #ff3250; }
-    .status.connecting { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid #fbbf24; }
 
     .controls {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
     }
-    label { font-size: 0.7rem; color: #7dd3fc; display: block; margin-bottom: 4px; }
+    label { font-size: 0.72rem; color: #7dd3fc; display: block; margin-bottom: 4px; letter-spacing: 0.5px; }
     select, input {
         width: 100%;
         background: rgba(0, 20, 40, 0.8);
@@ -70,15 +73,17 @@
         padding: 9px 12px;
         border-radius: 8px;
         font-family: inherit;
+        font-size: 0.9rem;
     }
+    select:focus, input:focus { outline: none; border-color: #00f0ff; box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
 
     .settings-row {
         display: flex;
         gap: 10px;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
         flex-wrap: wrap;
     }
-    .settings-row > div { flex: 1; min-width: 100px; }
+    .settings-row > div { flex: 1; min-width: 110px; }
 
     button.apply {
         width: 100%;
@@ -89,117 +94,206 @@
         border-radius: 8px;
         font-family: 'Orbitron', sans-serif;
         font-weight: 700;
+        font-size: 0.9rem;
         cursor: pointer;
-        margin-bottom: 16px;
+        letter-spacing: 1px;
+        margin-top: 8px;
+        transition: all 0.2s;
     }
+    button.apply:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(0, 200, 255, 0.4); }
 
     .price-box {
         text-align: center;
         background: rgba(0, 30, 50, 0.5);
         border: 1px solid rgba(0, 255, 255, 0.2);
         border-radius: 12px;
-        padding: 14px;
+        padding: 16px;
         margin-bottom: 16px;
     }
     .price-value {
         font-family: 'Orbitron', sans-serif;
-        font-size: 2.3rem;
+        font-size: 2.4rem;
         font-weight: 700;
         color: #00f0ff;
-        text-shadow: 0 0 18px rgba(0, 240, 255, 0.4);
+        text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
     }
-    .last-digit { font-size: 1.05rem; margin-top: 4px; color: #ff00aa; }
+    .last-digit {
+        font-size: 1.1rem;
+        margin-top: 6px;
+        color: #ff00aa;
+    }
 
+    /* Digit Grid */
     .digit-grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 8px;
-        margin-bottom: 16px;
+        margin-bottom: 18px;
     }
     .digit-cell {
         background: rgba(0, 20, 40, 0.7);
         border: 1px solid rgba(0, 255, 255, 0.15);
         border-radius: 10px;
-        padding: 9px 4px;
+        padding: 10px 4px;
         text-align: center;
+        transition: all 0.3s;
     }
     .digit-cell.hot {
         border-color: #ff3d71;
         background: rgba(255, 61, 113, 0.12);
-        box-shadow: 0 0 10px rgba(255, 61, 113, 0.2);
+        box-shadow: 0 0 12px rgba(255, 61, 113, 0.25);
     }
     .digit-cell.cold {
         border-color: #00e5ff;
         background: rgba(0, 229, 255, 0.1);
-        box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+        box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
     }
-    .digit-num { font-family: 'Orbitron'; font-size: 1.25rem; font-weight: 700; }
-    .digit-pct { font-size: 0.78rem; margin-top: 2px; }
-    .digit-tag { font-size: 0.62rem; margin-top: 3px; font-weight: 700; letter-spacing: 0.5px; }
+    .digit-num {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+    .digit-pct { font-size: 0.8rem; margin-top: 2px; }
+    .digit-tag {
+        font-size: 0.65rem;
+        margin-top: 4px;
+        letter-spacing: 1px;
+        font-weight: 700;
+    }
     .tag-hot { color: #ff3d71; }
     .tag-cold { color: #00e5ff; }
     .tag-normal { color: #64748b; }
 
+    /* Quad Signals */
     .quad-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 11px;
-        margin-bottom: 16px;
+        gap: 12px;
+        margin-bottom: 18px;
     }
     .signal-card {
         background: rgba(8, 15, 30, 0.9);
         border-radius: 12px;
-        padding: 13px;
+        padding: 14px;
         border: 1px solid rgba(0, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
     }
-    .signal-card.strong { border-color: #00ff99; box-shadow: 0 0 15px rgba(0, 255, 153, 0.2); }
-    .signal-card.medium { border-color: #fbbf24; }
-    .signal-card.weak { border-color: #64748b; }
-    .signal-card.avoid { border-color: #ff3250; opacity: 0.75; }
-
-    .sig-title { font-family: 'Orbitron'; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .signal-card.strong {
+        border-color: #00ff99;
+        box-shadow: 0 0 18px rgba(0, 255, 153, 0.25);
+    }
+    .signal-card.medium {
+        border-color: #fbbf24;
+        box-shadow: 0 0 12px rgba(251, 191, 36, 0.2);
+    }
+    .signal-card.weak {
+        border-color: #64748b;
+    }
+    .signal-card.avoid {
+        border-color: #ff3250;
+        opacity: 0.7;
+    }
+    .sig-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
     .sig-over { color: #00f0ff; }
     .sig-under { color: #ff00aa; }
-    .sig-strength { font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
+    .sig-strength {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
     .strength-strong { color: #00ff99; }
     .strength-medium { color: #fbbf24; }
     .strength-weak { color: #94a3b8; }
     .strength-avoid { color: #ff3250; }
-    .sig-reason { font-size: 0.7rem; color: #94a3b8; line-height: 1.3; }
-    .sig-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-    .sig-bar-fill { height: 100%; border-radius: 2px; transition: width 0.35s; }
+    .sig-reason {
+        font-size: 0.72rem;
+        color: #94a3b8;
+        line-height: 1.35;
+    }
+    .sig-bar {
+        height: 4px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 2px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+    .sig-bar-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.4s ease;
+    }
 
     .ai-panel {
-        background: linear-gradient(135deg, rgba(0, 40, 80, 0.55), rgba(60, 0, 80, 0.45));
+        background: linear-gradient(135deg, rgba(0, 40, 80, 0.6), rgba(60, 0, 80, 0.5));
         border: 1px solid rgba(0, 255, 255, 0.25);
         border-radius: 12px;
-        padding: 13px;
-        margin-bottom: 14px;
+        padding: 14px;
+        margin-bottom: 16px;
     }
-    .ai-title { font-family: 'Orbitron'; font-size: 0.8rem; color: #00f0ff; margin-bottom: 5px; }
-    .ai-text { font-size: 0.82rem; line-height: 1.4; }
+    .ai-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.85rem;
+        color: #00f0ff;
+        margin-bottom: 6px;
+        letter-spacing: 1px;
+    }
+    .ai-text { font-size: 0.85rem; line-height: 1.45; color: #e0f7ff; }
 
-    .history-section { margin-top: 8px; }
-    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .history-header h3 { font-family: 'Orbitron'; font-size: 0.85rem; color: #7dd3fc; }
+    .history-section { margin-top: 10px; }
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .history-header h3 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.9rem;
+        color: #7dd3fc;
+    }
     button.clear {
-        background: none; border: 1px solid #475569; color: #94a3b8;
-        padding: 3px 10px; border-radius: 6px; font-size: 0.68rem; cursor: pointer;
+        background: none;
+        border: 1px solid #475569;
+        color: #94a3b8;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        cursor: pointer;
     }
-    table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
-    th, td { padding: 5px 3px; text-align: center; border-bottom: 1px solid rgba(0,255,255,0.1); }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+    }
+    th, td {
+        padding: 6px 4px;
+        text-align: center;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    }
     th { color: #7dd3fc; font-weight: 400; }
-    .empty { text-align: center; color: #475569; padding: 10px; font-size: 0.78rem; }
+    .empty { text-align: center; color: #475569; padding: 12px; font-size: 0.8rem; }
 
-    .disclaimer { margin-top: 14px; text-align: center; font-size: 0.65rem; color: #475569; }
-    #log { font-size: 0.7rem; color: #ff6b8a; text-align: center; min-height: 18px; margin-top: 6px; }
+    .disclaimer {
+        margin-top: 16px;
+        text-align: center;
+        font-size: 0.68rem;
+        color: #475569;
+        line-height: 1.4;
+    }
 </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
         <h1>2050 QUAD OVER/UNDER</h1>
-        <span id="status" class="status connecting">CONNECTING</span>
+        <span id="status" class="status disconnected">OFFLINE</span>
     </div>
 
     <div class="controls">
@@ -220,68 +314,70 @@
         </div>
         <div>
             <label>WINDOW SIZE</label>
-            <input type="number" id="windowSize" value="100" min="50" max="300">
+            <input type="number" id="windowSize" value="120" min="40" max="500">
         </div>
     </div>
 
     <div class="settings-row">
         <div>
-            <label>COLD % ≤</label>
-            <input type="number" id="coldThresh" value="8" step="0.5">
+            <label>COLD THRESHOLD %</label>
+            <input type="number" id="coldThresh" value="7.5" step="0.5" min="4" max="9">
         </div>
         <div>
-            <label>HOT % ≥</label>
-            <input type="number" id="hotThresh" value="13" step="0.5">
+            <label>HOT THRESHOLD %</label>
+            <input type="number" id="hotThresh" value="13" step="0.5" min="11" max="20">
         </div>
         <div>
-            <label>MIN COLD</label>
+            <label>MIN COLD COUNT</label>
             <input type="number" id="minCold" value="2" min="1" max="4">
         </div>
     </div>
 
-    <button class="apply" id="applyBtn">APPLY & RESTART</button>
+    <button class="apply" id="applyBtn">APPLY & RESTART FEED</button>
 
-    <div class="price-box">
-        <div style="font-size:0.72rem;color:#7dd3fc">LIVE TICK</div>
-        <div class="price-value" id="price">—</div>
-        <div class="last-digit">LAST DIGIT → <span id="lastDigit" style="font-size:1.35rem;font-weight:700">-</span></div>
-        <div style="font-size:0.72rem;color:#64748b;margin-top:3px" id="tickInfo">Waiting for connection...</div>
+    <div class="price-box" style="margin-top:16px">
+        <div style="font-size:0.75rem;color:#7dd3fc;letter-spacing:1px">LIVE TICK</div>
+        <div class="price-value" id="price">0.00</div>
+        <div class="last-digit">LAST DIGIT → <span id="lastDigit" style="font-size:1.4rem;font-weight:700">-</span></div>
+        <div style="font-size:0.75rem;color:#64748b;margin-top:4px" id="tickTime">Waiting...</div>
     </div>
 
-    <div style="font-family:'Orbitron';font-size:0.75rem;color:#7dd3fc;margin-bottom:6px">DIGIT MATRIX</div>
+    <!-- Digit Frequency Grid -->
+    <div style="font-family:'Orbitron';font-size:0.8rem;color:#7dd3fc;margin-bottom:8px;letter-spacing:1px">DIGIT MATRIX // HOT & COLD</div>
     <div class="digit-grid" id="digitGrid"></div>
 
-    <div style="font-family:'Orbitron';font-size:0.75rem;color:#7dd3fc;margin-bottom:6px">QUAD SIGNALS</div>
+    <!-- Quad Signals -->
+    <div style="font-family:'Orbitron';font-size:0.8rem;color:#7dd3fc;margin-bottom:8px;letter-spacing:1px">QUAD SIGNAL ARRAY</div>
     <div class="quad-grid">
         <div class="signal-card" id="cardOver2">
             <div class="sig-title sig-over">OVER 2</div>
-            <div class="sig-strength" id="strOver2">WAITING</div>
-            <div class="sig-reason" id="reasonOver2">Need more ticks...</div>
+            <div class="sig-strength" id="strOver2">ANALYZING</div>
+            <div class="sig-reason" id="reasonOver2">Collecting data...</div>
             <div class="sig-bar"><div class="sig-bar-fill" id="barOver2" style="width:0%;background:#00f0ff"></div></div>
         </div>
         <div class="signal-card" id="cardOver3">
             <div class="sig-title sig-over">OVER 3</div>
-            <div class="sig-strength" id="strOver3">WAITING</div>
-            <div class="sig-reason" id="reasonOver3">Need more ticks...</div>
+            <div class="sig-strength" id="strOver3">ANALYZING</div>
+            <div class="sig-reason" id="reasonOver3">Collecting data...</div>
             <div class="sig-bar"><div class="sig-bar-fill" id="barOver3" style="width:0%;background:#00f0ff"></div></div>
         </div>
         <div class="signal-card" id="cardUnder6">
             <div class="sig-title sig-under">UNDER 6</div>
-            <div class="sig-strength" id="strUnder6">WAITING</div>
-            <div class="sig-reason" id="reasonUnder6">Need more ticks...</div>
+            <div class="sig-strength" id="strUnder6">ANALYZING</div>
+            <div class="sig-reason" id="reasonUnder6">Collecting data...</div>
             <div class="sig-bar"><div class="sig-bar-fill" id="barUnder6" style="width:0%;background:#ff00aa"></div></div>
         </div>
         <div class="signal-card" id="cardUnder7">
             <div class="sig-title sig-under">UNDER 7</div>
-            <div class="sig-strength" id="strUnder7">WAITING</div>
-            <div class="sig-reason" id="reasonUnder7">Need more ticks...</div>
+            <div class="sig-strength" id="strUnder7">ANALYZING</div>
+            <div class="sig-reason" id="reasonUnder7">Collecting data...</div>
             <div class="sig-bar"><div class="sig-bar-fill" id="barUnder7" style="width:0%;background:#ff00aa"></div></div>
         </div>
     </div>
 
     <div class="ai-panel">
         <div class="ai-title">◈ NEURAL INSIGHT</div>
-        <div class="ai-text" id="aiText">Connecting to Deriv feed...</div>
+        <div class="ai-text" id="aiText">Waiting for sufficient digit history...</div>
     </div>
 
     <div class="history-section">
@@ -290,14 +386,18 @@
             <button class="clear" id="clearBtn">CLEAR</button>
         </div>
         <table>
-            <thead><tr><th>TIME</th><th>SIGNAL</th><th>STRENGTH</th></tr></thead>
+            <thead>
+                <tr><th>TIME</th><th>SIGNAL</th><th>STRENGTH</th><th>DETAIL</th></tr>
+            </thead>
             <tbody id="historyBody"></tbody>
         </table>
-        <div class="empty" id="emptyHistory">No signals yet</div>
+        <div class="empty" id="emptyHistory">No signals fired yet</div>
     </div>
 
-    <div id="log"></div>
-    <div class="disclaimer">2050 Quad Over/Under • Public Deriv API • Experimental only</div>
+    <div class="disclaimer">
+        2050 QUAD OVER/UNDER SNIPER • Public Deriv WebSocket<br>
+        Experimental tool — not financial advice. Digits are theoretically random.
+    </div>
 </div>
 
 <script>
@@ -305,48 +405,52 @@ const WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
 
 let settings = {
     symbol: 'R_75',
-    windowSize: 100,
-    coldThresh: 8,
+    windowSize: 120,
+    coldThresh: 7.5,
     hotThresh: 13,
     minCold: 2
 };
 
 let ws = null;
-let pingTimer = null;
 let digitBuffer = [];
 let counts = new Array(10).fill(0);
-let lastSignalKey = {};
+let lastSignal = {};
 let history = [];
 let audioCtx = null;
-let reconnectDelay = 2000;
 
-function load() {
+function loadSettings() {
     try {
-        const s = JSON.parse(localStorage.getItem('quad2050_v2'));
-        if (s) Object.assign(settings, s);
+        const s = JSON.parse(localStorage.getItem('quad_ou_2050'));
+        if (s) settings = Object.assign(settings, s);
     } catch(e){}
     try {
-        const h = JSON.parse(localStorage.getItem('quad2050_hist'));
+        const h = JSON.parse(localStorage.getItem('quad_ou_hist'));
         if (Array.isArray(h)) history = h;
     } catch(e){}
 }
-function save() {
-    localStorage.setItem('quad2050_v2', JSON.stringify(settings));
-    localStorage.setItem('quad2050_hist', JSON.stringify(history.slice(0, 35)));
+function saveSettings() {
+    localStorage.setItem('quad_ou_2050', JSON.stringify(settings));
+}
+function saveHistory() {
+    localStorage.setItem('quad_ou_hist', JSON.stringify(history.slice(0, 40)));
 }
 
-function log(msg) {
-    document.getElementById('log').innerText = msg || '';
+function applyForm() {
+    settings.symbol = document.getElementById('symbol').value;
+    settings.windowSize = parseInt(document.getElementById('windowSize').value) || 120;
+    settings.coldThresh = parseFloat(document.getElementById('coldThresh').value) || 7.5;
+    settings.hotThresh = parseFloat(document.getElementById('hotThresh').value) || 13;
+    settings.minCold = parseInt(document.getElementById('minCold').value) || 2;
+    saveSettings();
+    initWS();
 }
 
-function getLastDigit(q) {
-    const s = String(q).replace(/[^0-9]/g, '');
-    if (!s.length) return NaN;
+function getLastDigit(quote) {
+    const s = String(quote).replace('.', '');
     return parseInt(s.charAt(s.length - 1), 10);
 }
 
 function pushDigit(d) {
-    if (!Number.isFinite(d) || d < 0 || d > 9) return;
     if (digitBuffer.length >= settings.windowSize) {
         const old = digitBuffer.shift();
         counts[old]--;
@@ -364,13 +468,18 @@ function renderDigits(pct) {
     const grid = document.getElementById('digitGrid');
     grid.innerHTML = '';
     for (let i = 0; i < 10; i++) {
-        const p = pct[i] || 0;
+        const p = pct[i];
         let cls = 'digit-cell';
         let tag = 'NORMAL';
         let tagCls = 'tag-normal';
-        if (digitBuffer.length >= 30) {
-            if (p <= settings.coldThresh) { cls += ' cold'; tag = 'COLD'; tagCls = 'tag-cold'; }
-            else if (p >= settings.hotThresh) { cls += ' hot'; tag = 'HOT'; tagCls = 'tag-hot'; }
+        if (p <= settings.coldThresh) {
+            cls += ' cold';
+            tag = 'COLD';
+            tagCls = 'tag-cold';
+        } else if (p >= settings.hotThresh) {
+            cls += ' hot';
+            tag = 'HOT';
+            tagCls = 'tag-hot';
         }
         const cell = document.createElement('div');
         cell.className = cls;
@@ -383,96 +492,129 @@ function renderDigits(pct) {
     }
 }
 
-function rank(coldCount, maxPossible) {
-    if (coldCount >= settings.minCold + 1) return { level: 'STRONG', score: 85 + coldCount * 5, cls: 'strong' };
-    if (coldCount >= settings.minCold) return { level: 'MEDIUM', score: 55 + coldCount * 8, cls: 'medium' };
-    if (coldCount >= 1) return { level: 'WEAK', score: 25 + coldCount * 10, cls: 'weak' };
-    return { level: 'AVOID', score: 8, cls: 'avoid' };
-}
-
-function evaluate(pct) {
+function evaluateSignals(pct) {
     const cold = [];
+    const hot = [];
     for (let i = 0; i < 10; i++) {
         if (pct[i] <= settings.coldThresh) cold.push(i);
+        if (pct[i] >= settings.hotThresh) hot.push(i);
     }
 
-    const o2c = [0,1,2].filter(d => cold.includes(d)).length;
-    const o3c = [0,1,2,3].filter(d => cold.includes(d)).length;
-    const u6c = [6,7,8,9].filter(d => cold.includes(d)).length;
-    const u7c = [7,8,9].filter(d => cold.includes(d)).length;
+    // OVER 2 → wins on 3,4,5,6,7,8,9  → cold 0,1,2 help
+    const over2Cold = [0,1,2].filter(d => cold.includes(d)).length;
+    // OVER 3 → wins on 4-9 → cold 0-3 help
+    const over3Cold = [0,1,2,3].filter(d => cold.includes(d)).length;
+    // UNDER 6 → wins on 0-5 → cold 6-9 help
+    const under6Cold = [6,7,8,9].filter(d => cold.includes(d)).length;
+    // UNDER 7 → wins on 0-6 → cold 7-9 help
+    const under7Cold = [7,8,9].filter(d => cold.includes(d)).length;
 
-    const o2 = rank(o2c, 3);
-    const o3 = rank(o3c, 4);
-    const u6 = rank(u6c, 4);
-    const u7 = rank(u7c, 3);
+    function rank(count, maxPossible) {
+        const score = (count / maxPossible) * 100;
+        if (count >= settings.minCold + 1) return { level: 'STRONG', score: Math.min(100, score + 20), cls: 'strong' };
+        if (count >= settings.minCold) return { level: 'MEDIUM', score: score + 10, cls: 'medium' };
+        if (count >= 1) return { level: 'WEAK', score: score, cls: 'weak' };
+        return { level: 'AVOID', score: 5, cls: 'avoid' };
+    }
 
-    updateCard('Over2', o2, [0,1,2].filter(d => cold.includes(d)));
-    updateCard('Over3', o3, [0,1,2,3].filter(d => cold.includes(d)));
-    updateCard('Under6', u6, [6,7,8,9].filter(d => cold.includes(d)));
-    updateCard('Under7', u7, [7,8,9].filter(d => cold.includes(d)));
+    const o2 = rank(over2Cold, 3);
+    const o3 = rank(over3Cold, 4);
+    const u6 = rank(under6Cold, 4);
+    const u7 = rank(under7Cold, 3);
 
-    // AI
-    let best = null, bestScore = 0;
-    [['OVER 2', o2], ['OVER 3', o3], ['UNDER 6', u6], ['UNDER 7', u7]].forEach(([n, r]) => {
-        if (r.score > bestScore) { bestScore = r.score; best = n; }
+    // Update cards
+    updateCard('Over2', o2, over2Cold, [0,1,2], 'OVER 2');
+    updateCard('Over3', o3, over3Cold, [0,1,2,3], 'OVER 3');
+    updateCard('Under6', u6, under6Cold, [6,7,8,9], 'UNDER 6');
+    updateCard('Under7', u7, under7Cold, [7,8,9], 'UNDER 7');
+
+    // AI text
+    let best = null;
+    let bestScore = 0;
+    [['OVER 2', o2], ['OVER 3', o3], ['UNDER 6', u6], ['UNDER 7', u7]].forEach(([name, r]) => {
+        if (r.score > bestScore) { bestScore = r.score; best = name; }
     });
 
     let ai = '';
-    if (digitBuffer.length < 40) {
-        ai = `Building history... ${digitBuffer.length}/${settings.windowSize} ticks`;
-    } else if (best && bestScore >= 55) {
-        ai = `Best current setup: <b>${best}</b> (${bestScore > 80 ? 'STRONG' : 'MEDIUM'}). Cold digits are supporting it.`;
+    if (digitBuffer.length < settings.windowSize * 0.6) {
+        ai = `Collecting digits... ${digitBuffer.length}/${settings.windowSize}`;
+    } else if (best && bestScore > 40) {
+        ai = `Strongest setup right now: <strong>${best}</strong>. Cold digits are supporting this direction. Consider waiting for confirmation tick before entry.`;
     } else {
-        ai = `Digits relatively balanced. No high-conviction Over/Under setup right now.`;
+        ai = `No high-conviction setup. Market digits are relatively balanced. Stay flat or reduce size.`;
     }
-    if (cold.length) ai += ` Cold: ${cold.join(',')}`;
+    if (hot.length) ai += ` Hot digits: ${hot.join(', ')}.`;
+    if (cold.length) ai += ` Cold digits: ${cold.join(', ')}.`;
     document.getElementById('aiText').innerHTML = ai;
 
-    // Record strong/medium once
-    recordIfNew('OVER 2', o2);
-    recordIfNew('OVER 3', o3);
-    recordIfNew('UNDER 6', u6);
-    recordIfNew('UNDER 7', u7);
+    // Fire history on strong signals (once)
+    checkAndRecord('OVER 2', o2);
+    checkAndRecord('OVER 3', o3);
+    checkAndRecord('UNDER 6', u6);
+    checkAndRecord('UNDER 7', u7);
 }
 
-function updateCard(id, r, coldList) {
+function updateCard(id, rankObj, coldCount, supportDigits, name) {
     const card = document.getElementById('card' + id);
-    const str = document.getElementById('str' + id);
-    const reason = document.getElementById('reason' + id);
+    const strEl = document.getElementById('str' + id);
+    const reasonEl = document.getElementById('reason' + id);
     const bar = document.getElementById('bar' + id);
 
-    card.className = 'signal-card ' + r.cls;
-    str.className = 'sig-strength strength-' + r.cls;
-    str.innerText = r.level;
-    bar.style.width = Math.min(100, r.score) + '%';
-    reason.innerText = coldList.length ? `Cold support: ${coldList.join(', ')}` : 'No cold support yet';
+    card.className = 'signal-card ' + rankObj.cls;
+    strEl.className = 'sig-strength strength-' + rankObj.cls;
+    strEl.innerText = rankObj.level;
+    bar.style.width = rankObj.score + '%';
+
+    const coldList = supportDigits.filter(d => {
+        const pct = (counts[d] / (digitBuffer.length || 1)) * 100;
+        return pct <= settings.coldThresh;
+    });
+    reasonEl.innerText = coldList.length
+        ? `Cold support: ${coldList.join(', ')} (${coldCount} cold)`
+        : 'No strong cold support yet';
 }
 
-function recordIfNew(name, r) {
-    if (r.level === 'STRONG' || r.level === 'MEDIUM') {
-        const key = name + r.level;
-        if (lastSignalKey[name] !== key) {
-            lastSignalKey[name] = key;
-            history.unshift({ time: new Date().toLocaleTimeString(), signal: name, strength: r.level });
-            if (history.length > 30) history.pop();
-            save();
-            renderHistory();
+function checkAndRecord(name, rankObj) {
+    if (rankObj.level === 'STRONG' || rankObj.level === 'MEDIUM') {
+        if (lastSignal[name] !== rankObj.level) {
+            lastSignal[name] = rankObj.level;
+            addHistory(name, rankObj.level);
             playBeep();
+            notify(name, rankObj.level);
         }
     } else {
-        lastSignalKey[name] = null;
+        lastSignal[name] = null;
     }
+}
+
+function addHistory(signal, strength) {
+    history.unshift({
+        time: new Date().toLocaleTimeString(),
+        signal,
+        strength
+    });
+    if (history.length > 30) history.pop();
+    saveHistory();
+    renderHistory();
 }
 
 function renderHistory() {
     const body = document.getElementById('historyBody');
     const empty = document.getElementById('emptyHistory');
     body.innerHTML = '';
-    if (!history.length) { empty.style.display = 'block'; return; }
+    if (!history.length) {
+        empty.style.display = 'block';
+        return;
+    }
     empty.style.display = 'none';
     history.forEach(h => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${h.time}</td><td style="color:${h.signal.includes('OVER')?'#00f0ff':'#ff00aa'}">${h.signal}</td><td>${h.strength}</td>`;
+        tr.innerHTML = `
+            <td>${h.time}</td>
+            <td style="color:${h.signal.includes('OVER') ? '#00f0ff' : '#ff00aa'}">${h.signal}</td>
+            <td>${h.strength}</td>
+            <td>—</td>
+        `;
         body.appendChild(tr);
     });
 }
@@ -483,47 +625,34 @@ function playBeep() {
         const o = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         o.connect(g); g.connect(audioCtx.destination);
-        o.frequency.value = 680;
-        g.gain.setValueAtTime(0.09, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
-        o.start(); o.stop(audioCtx.currentTime + 0.22);
+        o.frequency.value = 720;
+        o.type = 'sine';
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        o.start(); o.stop(audioCtx.currentTime + 0.25);
     } catch(e){}
 }
 
-function clearPing() {
-    if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+function notify(signal, strength) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+        new Notification(`2050 ${signal}`, { body: `Strength: ${strength}` });
+    } catch(e){}
 }
 
 function initWS() {
-    if (ws) {
-        try { ws.onclose = null; ws.close(); } catch(e){}
-    }
-    clearPing();
+    if (ws) { try { ws.close(); } catch(e){} }
     digitBuffer = [];
     counts = new Array(10).fill(0);
-    lastSignalKey = {};
-
-    document.getElementById('status').className = 'status connecting';
+    lastSignal = {};
+    document.getElementById('status').className = 'status disconnected';
     document.getElementById('status').innerText = 'CONNECTING';
-    document.getElementById('tickInfo').innerText = 'Connecting to Deriv...';
-    log('');
 
     ws = new WebSocket(WS_URL);
 
     ws.onopen = () => {
         document.getElementById('status').className = 'status connected';
         document.getElementById('status').innerText = 'ONLINE';
-        reconnectDelay = 2000;
-        log('');
-
-        // keep alive
-        pingTimer = setInterval(() => {
-            if (ws && ws.readyState === 1) {
-                ws.send(JSON.stringify({ ping: 1 }));
-            }
-        }, 20000);
-
-        // request history + subscribe
         ws.send(JSON.stringify({
             ticks_history: settings.symbol,
             adjust_start_time: 1,
@@ -534,90 +663,67 @@ function initWS() {
         }));
     };
 
-    ws.onmessage = (ev) => {
+    ws.onmessage = (msg) => {
         let data;
-        try { data = JSON.parse(ev.data); } catch(e) { return; }
+        try { data = JSON.parse(msg.data); } catch(e){ return; }
+        if (data.error) return;
 
-        if (data.error) {
-            log('Error: ' + (data.error.message || 'unknown'));
-            return;
-        }
-        if (data.msg_type === 'ping') return;
-
-        // History response
         if (data.msg_type === 'history' && data.history) {
             const prices = data.history.prices || [];
             prices.forEach(p => {
                 const d = getLastDigit(p);
-                pushDigit(d);
+                if (Number.isFinite(d)) pushDigit(d);
             });
             if (prices.length) {
-                const lastP = prices[prices.length - 1];
-                document.getElementById('price').innerText = parseFloat(lastP).toFixed(2);
-                document.getElementById('lastDigit').innerText = getLastDigit(lastP);
-                document.getElementById('tickInfo').innerText = `History loaded • ${digitBuffer.length} ticks`;
+                const last = prices[prices.length - 1];
+                document.getElementById('price').innerText = parseFloat(last).toFixed(2);
+                document.getElementById('lastDigit').innerText = getLastDigit(last);
             }
             const pct = calcPct();
             renderDigits(pct);
-            evaluate(pct);
+            evaluateSignals(pct);
             return;
         }
 
-        // Live tick
         if (data.msg_type === 'tick' && data.tick) {
             const quote = data.tick.quote;
             const d = getLastDigit(quote);
+            if (!Number.isFinite(d)) return;
             pushDigit(d);
-
             document.getElementById('price').innerText = parseFloat(quote).toFixed(2);
-            document.getElementById('lastDigit').innerText = Number.isFinite(d) ? d : '-';
-            document.getElementById('tickInfo').innerText = `Live • ${digitBuffer.length}/${settings.windowSize} ticks • ${new Date().toLocaleTimeString()}`;
-
+            document.getElementById('lastDigit').innerText = d;
+            document.getElementById('tickTime').innerText = 'Last tick: ' + new Date().toLocaleTimeString();
             const pct = calcPct();
             renderDigits(pct);
-            evaluate(pct);
+            evaluateSignals(pct);
         }
     };
 
     ws.onclose = () => {
-        clearPing();
         document.getElementById('status').className = 'status disconnected';
         document.getElementById('status').innerText = 'RECONNECTING';
-        document.getElementById('tickInfo').innerText = 'Connection lost – retrying...';
-        log('Disconnected. Reconnecting in ' + (reconnectDelay/1000) + 's');
-        setTimeout(initWS, reconnectDelay);
-        reconnectDelay = Math.min(reconnectDelay * 1.4, 12000);
-    };
-
-    ws.onerror = () => {
-        log('WebSocket error – will retry');
+        setTimeout(initWS, 3000);
     };
 }
 
-document.getElementById('applyBtn').onclick = () => {
-    settings.symbol = document.getElementById('symbol').value;
-    settings.windowSize = parseInt(document.getElementById('windowSize').value) || 100;
-    settings.coldThresh = parseFloat(document.getElementById('coldThresh').value) || 8;
-    settings.hotThresh = parseFloat(document.getElementById('hotThresh').value) || 13;
-    settings.minCold = parseInt(document.getElementById('minCold').value) || 2;
-    save();
-    initWS();
-};
-
-document.getElementById('clearBtn').onclick = () => {
+document.getElementById('applyBtn').addEventListener('click', applyForm);
+document.getElementById('clearBtn').addEventListener('click', () => {
     history = [];
-    save();
+    saveHistory();
     renderHistory();
-};
+});
 
 window.onload = () => {
-    load();
+    loadSettings();
     document.getElementById('symbol').value = settings.symbol;
     document.getElementById('windowSize').value = settings.windowSize;
     document.getElementById('coldThresh').value = settings.coldThresh;
     document.getElementById('hotThresh').value = settings.hotThresh;
     document.getElementById('minCold').value = settings.minCold;
     renderHistory();
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
     initWS();
 };
 </script>
