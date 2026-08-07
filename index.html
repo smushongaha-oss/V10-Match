@@ -401,8 +401,16 @@
 </div>
 
 <script>
-const WS_URL = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
+// Multi-endpoint failover array to guarantee connection stability
+const WS_URLS = [
+    'wss://ws.derivws.com/websockets/v3?app_id=1089',
+    'wss://ws.deriv.ws/websockets/v3?app_id=1089',
+    'wss://blue.derivws.com/websockets/v3?app_id=1089',
+    'wss://green.derivws.com/websockets/v3?app_id=1089',
+    'wss://white.derivws.com/websockets/v3?app_id=1089'
+];
 
+let currentUrlIdx = 0;
 let settings = {
     symbol: 'R_75',
     windowSize: 120,
@@ -417,6 +425,7 @@ let counts = new Array(10).fill(0);
 let lastSignal = {};
 let history = [];
 let audioCtx = null;
+let pingInterval = null;
 
 function loadSettings() {
     try {
@@ -446,8 +455,10 @@ function applyForm() {
 }
 
 function getLastDigit(quote) {
-    const s = String(quote).replace('.', '');
-    return parseInt(s.charAt(s.length - 1), 10);
+    const s = String(quote).trim();
+    const clean = s.includes('.') ? s.split('.')[1] : s;
+    const lastChar = s.charAt(s.length - 1);
+    return parseInt(lastChar, 10);
 }
 
 function pushDigit(d) {
@@ -500,13 +511,9 @@ function evaluateSignals(pct) {
         if (pct[i] >= settings.hotThresh) hot.push(i);
     }
 
-    // OVER 2 → wins on 3,4,5,6,7,8,9  → cold 0,1,2 help
     const over2Cold = [0,1,2].filter(d => cold.includes(d)).length;
-    // OVER 3 → wins on 4-9 → cold 0-3 help
     const over3Cold = [0,1,2,3].filter(d => cold.includes(d)).length;
-    // UNDER 6 → wins on 0-5 → cold 6-9 help
     const under6Cold = [6,7,8,9].filter(d => cold.includes(d)).length;
-    // UNDER 7 → wins on 0-6 → cold 7-9 help
     const under7Cold = [7,8,9].filter(d => cold.includes(d)).length;
 
     function rank(count, maxPossible) {
@@ -522,13 +529,11 @@ function evaluateSignals(pct) {
     const u6 = rank(under6Cold, 4);
     const u7 = rank(under7Cold, 3);
 
-    // Update cards
-    updateCard('Over2', o2, over2Cold, [0,1,2], 'OVER 2');
-    updateCard('Over3', o3, over3Cold, [0,1,2,3], 'OVER 3');
-    updateCard('Under6', u6, under6Cold, [6,7,8,9], 'UNDER 6');
-    updateCard('Under7', u7, under7Cold, [7,8,9], 'UNDER 7');
+    updateCard('Over2', o2, over2Cold, [0,1,2]);
+    updateCard('Over3', o3, over3Cold, [0,1,2,3]);
+    updateCard('Under6', u6, under6Cold, [6,7,8,9]);
+    updateCard('Under7', u7, under7Cold, [7,8,9]);
 
-    // AI text
     let best = null;
     let bestScore = 0;
     [['OVER 2', o2], ['OVER 3', o3], ['UNDER 6', u6], ['UNDER 7', u7]].forEach(([name, r]) => {
@@ -536,30 +541,30 @@ function evaluateSignals(pct) {
     });
 
     let ai = '';
-    if (digitBuffer.length < settings.windowSize * 0.6) {
+    if (digitBuffer.length < Math.min(settings.windowSize, 30)) {
         ai = `Collecting digits... ${digitBuffer.length}/${settings.windowSize}`;
     } else if (best && bestScore > 40) {
-        ai = `Strongest setup right now: <strong>${best}</strong>. Cold digits are supporting this direction. Consider waiting for confirmation tick before entry.`;
+        ai = `Strongest setup: <strong>${best}</strong>. Cold support active. Confirming tick flow...`;
     } else {
-        ai = `No high-conviction setup. Market digits are relatively balanced. Stay flat or reduce size.`;
+        ai = `Balanced distribution. No high-conviction extremes found yet.`;
     }
-    if (hot.length) ai += ` Hot digits: ${hot.join(', ')}.`;
-    if (cold.length) ai += ` Cold digits: ${cold.join(', ')}.`;
+    if (hot.length) ai += ` Hot: ${hot.join(', ')}.`;
+    if (cold.length) ai += ` Cold: ${cold.join(', ')}.`;
     document.getElementById('aiText').innerHTML = ai;
 
-    // Fire history on strong signals (once)
     checkAndRecord('OVER 2', o2);
     checkAndRecord('OVER 3', o3);
     checkAndRecord('UNDER 6', u6);
     checkAndRecord('UNDER 7', u7);
 }
 
-function updateCard(id, rankObj, coldCount, supportDigits, name) {
+function updateCard(id, rankObj, coldCount, supportDigits) {
     const card = document.getElementById('card' + id);
     const strEl = document.getElementById('str' + id);
     const reasonEl = document.getElementById('reason' + id);
     const bar = document.getElementById('bar' + id);
 
+    if (!card) return;
     card.className = 'signal-card ' + rankObj.cls;
     strEl.className = 'sig-strength strength-' + rankObj.cls;
     strEl.innerText = rankObj.level;
@@ -580,7 +585,6 @@ function checkAndRecord(name, rankObj) {
             lastSignal[name] = rankObj.level;
             addHistory(name, rankObj.level);
             playBeep();
-            notify(name, rankObj.level);
         }
     } else {
         lastSignal[name] = null;
@@ -601,6 +605,7 @@ function addHistory(signal, strength) {
 function renderHistory() {
     const body = document.getElementById('historyBody');
     const empty = document.getElementById('emptyHistory');
+    if (!body || !empty) return;
     body.innerHTML = '';
     if (!history.length) {
         empty.style.display = 'block';
@@ -622,37 +627,44 @@ function renderHistory() {
 function playBeep() {
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         const o = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         o.connect(g); g.connect(audioCtx.destination);
         o.frequency.value = 720;
         o.type = 'sine';
-        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-        o.start(); o.stop(audioCtx.currentTime + 0.25);
-    } catch(e){}
-}
-
-function notify(signal, strength) {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    try {
-        new Notification(`2050 ${signal}`, { body: `Strength: ${strength}` });
+        g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        o.start(); o.stop(audioCtx.currentTime + 0.2);
     } catch(e){}
 }
 
 function initWS() {
-    if (ws) { try { ws.close(); } catch(e){} }
+    if (ws) {
+        try { ws.close(); } catch(e){}
+    }
+    if (pingInterval) clearInterval(pingInterval);
+
     digitBuffer = [];
     counts = new Array(10).fill(0);
     lastSignal = {};
+
+    const url = WS_URLS[currentUrlIdx];
     document.getElementById('status').className = 'status disconnected';
     document.getElementById('status').innerText = 'CONNECTING';
 
-    ws = new WebSocket(WS_URL);
+    try {
+        ws = new WebSocket(url);
+    } catch(e) {
+        handleWSError();
+        return;
+    }
 
     ws.onopen = () => {
         document.getElementById('status').className = 'status connected';
         document.getElementById('status').innerText = 'ONLINE';
+        
+        // Send history request
         ws.send(JSON.stringify({
             ticks_history: settings.symbol,
             adjust_start_time: 1,
@@ -661,12 +673,20 @@ function initWS() {
             style: 'ticks',
             subscribe: 1
         }));
+
+        // Keep connection alive via ping loop every 25s
+        pingInterval = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ ping: 1 }));
+            }
+        }, 25000);
     };
 
     ws.onmessage = (msg) => {
         let data;
         try { data = JSON.parse(msg.data); } catch(e){ return; }
         if (data.error) return;
+        if (data.msg_type === 'ping') return;
 
         if (data.msg_type === 'history' && data.history) {
             const prices = data.history.prices || [];
@@ -676,7 +696,7 @@ function initWS() {
             });
             if (prices.length) {
                 const last = prices[prices.length - 1];
-                document.getElementById('price').innerText = parseFloat(last).toFixed(2);
+                document.getElementById('price').innerText = Number(last).toFixed(2);
                 document.getElementById('lastDigit').innerText = getLastDigit(last);
             }
             const pct = calcPct();
@@ -690,7 +710,7 @@ function initWS() {
             const d = getLastDigit(quote);
             if (!Number.isFinite(d)) return;
             pushDigit(d);
-            document.getElementById('price').innerText = parseFloat(quote).toFixed(2);
+            document.getElementById('price').innerText = Number(quote).toFixed(2);
             document.getElementById('lastDigit').innerText = d;
             document.getElementById('tickTime').innerText = 'Last tick: ' + new Date().toLocaleTimeString();
             const pct = calcPct();
@@ -699,14 +719,33 @@ function initWS() {
         }
     };
 
+    ws.onerror = () => {
+        handleWSError();
+    };
+
     ws.onclose = () => {
-        document.getElementById('status').className = 'status disconnected';
-        document.getElementById('status').innerText = 'RECONNECTING';
-        setTimeout(initWS, 3000);
+        if (document.getElementById('status').innerText === 'ONLINE') {
+            document.getElementById('status').className = 'status disconnected';
+            document.getElementById('status').innerText = 'RECONNECTING';
+            setTimeout(initWS, 2000);
+        }
     };
 }
 
-document.getElementById('applyBtn').addEventListener('click', applyForm);
+function handleWSError() {
+    currentUrlIdx = (currentUrlIdx + 1) % WS_URLS.length;
+    document.getElementById('status').className = 'status disconnected';
+    document.getElementById('status').innerText = 'SWITCHING NODE';
+    setTimeout(initWS, 1500);
+}
+
+document.getElementById('applyBtn').addEventListener('click', () => {
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    applyForm();
+});
+
 document.getElementById('clearBtn').addEventListener('click', () => {
     history = [];
     saveHistory();
@@ -721,9 +760,6 @@ window.onload = () => {
     document.getElementById('hotThresh').value = settings.hotThresh;
     document.getElementById('minCold').value = settings.minCold;
     renderHistory();
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
     initWS();
 };
 </script>
