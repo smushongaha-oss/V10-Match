@@ -66,6 +66,7 @@
 const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
 
 const SYMBOLS = [
+  // Original synthetics
   {code:'R_10', name:'Volatility 10 Index'},
   {code:'R_25', name:'Volatility 25 Index'},
   {code:'R_50', name:'Volatility 50 Index'},
@@ -79,7 +80,13 @@ const SYMBOLS = [
   {code:'BOOM1000', name:'Boom 1000'},
   {code:'BOOM500', name:'Boom 500'},
   {code:'CRASH1000', name:'Crash 1000'},
-  {code:'CRASH500', name:'Crash 500'}
+  {code:'CRASH500', name:'Crash 500'},
+
+  // ===== NEW MARKETS YOU REQUESTED =====
+  {code:'OTC_NDX', name:'US Tech 100'},
+  {code:'OTC_DJI', name:'Wall Street 30'},
+  {code:'OTC_HSCE', name:'China H Shares'},
+  {code:'frxXAUUSD', name:'XAUUSD (Gold)'}
 ];
 
 const state = {};
@@ -131,7 +138,6 @@ function connect(){
   ws.onopen = () => {
     dot.classList.add('on');
     statusText.textContent = 'connected – loading…';
-    // sequential requests (same style as Over/Under tool)
     let i = 0;
     function next(){
       if(i >= SYMBOLS.length) return;
@@ -169,7 +175,6 @@ function connect(){
         return;
       }
 
-      // history candles (same as Over/Under uses for ticks)
       if(data.msg_type === 'candles' || (data.msg_type === 'history' && data.candles)){
         const sym = pending[data.req_id];
         if(!sym) return;
@@ -184,7 +189,6 @@ function connect(){
         setCardStatus(sym, 'live ('+state[sym].candles.length+')');
         recompute(sym);
       }
-      // live ohlc updates
       else if(data.msg_type === 'ohlc' && data.ohlc){
         const sym = data.ohlc.symbol;
         if(!state[sym]) return;
@@ -202,10 +206,6 @@ function connect(){
         setCardStatus(sym, 'live ('+arr.length+')');
         recompute(sym);
       }
-      // also accept tick history style (some public responses)
-      else if(data.msg_type === 'history' && data.history && data.history.prices){
-        // convert ticks → simple candles if needed (rare)
-      }
     }catch(e){console.error(e);}
   };
 }
@@ -214,7 +214,6 @@ function requestCandles(sym){
   if(!ws || ws.readyState !== 1) return;
   const id = reqId++;
   pending[id] = sym;
-  // exactly the same request style the Over/Under tool uses, but for candles
   ws.send(JSON.stringify({
     ticks_history: sym,
     adjust_start_time: 1,
@@ -236,7 +235,7 @@ document.getElementById('btnRefresh').onclick = () => {
 };
 granSel.onchange = () => document.getElementById('btnRefresh').click();
 
-// ===== indicators (same Trend-Fan logic) =====
+// ===== indicators =====
 function ema(values,period){const k=2/(period+1);const out=[];values.forEach((v,i)=>out.push(i===0?v:v*k+out[i-1]*(1-k)));return out;}
 function cci(candles,period){const tp=candles.map(c=>(c.high+c.low+c.close)/3);const out=new Array(candles.length).fill(null);for(let i=period-1;i<candles.length;i++){const slice=tp.slice(i-period+1,i+1);const sma=slice.reduce((a,b)=>a+b,0)/period;const md=slice.reduce((a,b)=>a+Math.abs(b-sma),0)/period;out[i]=md===0?0:(tp[i]-sma)/(0.015*md);}return out;}
 function atr(candles,period){const trs=candles.map((c,i)=>{if(i===0)return c.high-c.low;const pc=candles[i-1].close;return Math.max(c.high-c.low,Math.abs(c.high-pc),Math.abs(c.low-pc));});const out=new Array(candles.length).fill(null);for(let i=period-1;i<candles.length;i++)out[i]=trs.slice(i-period+1,i+1).reduce((a,b)=>a+b,0)/period;return out;}
@@ -347,7 +346,6 @@ function drawChart(sym){
     const x = i => ((i-start)/spanCount)*(W-12)+6;
     const y = v => H-((v-lo)/range)*(H-12)-6;
     const finite = (...v) => v.every(n => typeof n==='number' && isFinite(n));
-    // candles
     const candleW = Math.max(2,(W/spanCount)*0.55);
     sliceCandles.forEach((c,i)=>{
       const idx=start+i, cx=x(idx);
@@ -358,11 +356,9 @@ function drawChart(sym){
       ctx.beginPath(); ctx.moveTo(cx,highY); ctx.lineTo(cx,lowY); ctx.stroke();
       ctx.fillRect(cx-candleW/2, Math.min(openY,closeY), candleW, Math.max(1,Math.abs(closeY-openY)));
     });
-    // EMA
     ctx.strokeStyle='#e8e9f0'; ctx.lineWidth=1.6; ctx.beginPath();
     sliceEma.forEach((v,i)=>{const idx=start+i; if(i===0) ctx.moveTo(x(idx),y(v)); else ctx.lineTo(x(idx),y(v));});
     ctx.stroke();
-    // fan
     if(s.signal && projIndex!==null && finite(s.signal.tp,s.signal.sl,s.signal.entry,s.signal.p1.price,s.signal.p2.price)){
       const {p1,p2,tp,sl,entry,dir} = s.signal;
       const color = dir==='SELL'?'#3b82f6':'#22d3ee';
