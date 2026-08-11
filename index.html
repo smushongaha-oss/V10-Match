@@ -42,9 +42,9 @@
 <div class="controls">
   <label>Timeframe
     <select id="granularity">
-      <option value="900">M15</option>
+      <option value="900" selected>M15</option>
       <option value="1800">M30</option>
-      <option value="3600" selected>H1</option>
+      <option value="3600">H1</option>
       <option value="14400">H4</option>
     </select>
   </label>
@@ -85,7 +85,7 @@ const SYMBOLS = [
   // Financial markets
   {code:'OTC_NDX', name:'US Tech 100'},
   {code:'OTC_DJI', name:'Wall Street 30'},
-  {code:'OTC_HSI', name:'Hong Kong 50'},      // Fixed (China H Shares not available on public endpoint)
+  {code:'OTC_HSI', name:'Hong Kong 50'},
   {code:'frxXAUUSD', name:'XAUUSD (Gold)'}
 ];
 
