@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trend-Fan Signal Scanner</title>
+<title>Trend-Fan Crash & Boom Scanner (Optimized)</title>
 <style>
   :root{--bg:#0a0a0e;--panel:#12131a;--panel2:#181a24;--border:#242633;--white:#e8e9f0;--dim:#8a8da3;--blue:#3b82f6;--cyan:#22d3ee;--red:#ef4444;--green:#22c55e;--orange:#f59e0b;--mono:'SF Mono','Consolas',monospace;}
   *{box-sizing:border-box;}body{margin:0;background:var(--bg);color:var(--white);font-family:-apple-system,Segoe UI,Roboto,sans-serif;}
@@ -30,67 +30,54 @@
   .v.entry{color:var(--white);}.v.sl{color:var(--red);}.v.tp{color:var(--cyan);}
   .cci{font-size:10px;color:var(--dim);margin-top:6px;font-family:var(--mono);}.cci b{color:var(--orange);}
   .card-status{font-size:10px;color:var(--dim);margin-top:4px;font-family:var(--mono);}
+  .tf-note{font-size:9px;color:var(--cyan);margin-top:2px;}
   footer{padding:16px 18px;color:var(--dim);font-size:11px;line-height:1.6;}
 </style>
 </head>
 <body>
 <header>
-  <h1>Trend-Fan <span>Signal Scanner</span></h1>
+  <h1>Trend-Fan <span>Crash & Boom Scanner</span></h1>
   <div class="status"><span class="dot" id="dot"></span><span id="statusText">connecting…</span></div>
 </header>
 
 <div class="controls">
-  <label>Timeframe
+  <label>Override TF
     <select id="granularity">
-      <option value="900" selected>M15</option>
-      <option value="1800">M30</option>
-      <option value="3600">H1</option>
-      <option value="14400">H4</option>
+      <option value="0" selected>Auto (best per index)</option>
+      <option value="900">M15 force all</option>
+      <option value="1800">M30 force all</option>
+      <option value="3600">H1 force all</option>
+      <option value="14400">H4 force all</option>
     </select>
   </label>
-  <label>Projection ×<input id="projMult" type="number" value="2.5" step="0.1" min="1" max="6" style="width:56px"></label>
-  <label>CCI threshold<input id="cciThresh" type="number" value="50" step="5" min="0" max="150" style="width:56px"></label>
-  <label>SL buffer<input id="slBuf" type="number" value="0.5" step="0.1" min="0.1" max="3" style="width:56px"></label>
-  <label><input type="checkbox" id="signalsOnly"> Signals only</label>
+  <label>Projection ×<input id="projMult" type="number" value="2.0" step="0.1" min="1" max="6" style="width:56px"></label>
+  <label>CCI threshold<input id="cciThresh" type="number" value="40" step="5" min="0" max="150" style="width:56px"></label>
+  <label>SL buffer<input id="slBuf" type="number" value="0.8" step="0.1" min="0.1" max="3" style="width:56px"></label>
+  <label><input type="checkbox" id="signalsOnly" checked> Signals only</label>
   <button id="btnRefresh">Force Refresh</button>
 </div>
 
 <div class="grid" id="grid"></div>
 <footer>
-  Uses the same public endpoint as the Over/Under tool (no App ID needed).<br>
-  Logic: two consecutive EMA(9) swing pivots → break + CCI → Entry / SL / TP (fan projection).<br>
-  Educational only — not financial advice.
+  <strong>Optimized for Crash & Boom only.</strong><br>
+  Best TFs (research-backed): Boom/Crash 500 → M15 | Boom/Crash 1000 → H1.<br>
+  Logic unchanged: 2 consecutive EMA(9) pivots → break + CCI extreme → Entry / SL (ATR buffer) / TP (fan projection).<br>
+  Params tuned for more visible signals on the natural drift (SELL bias Boom, BUY bias Crash).<br>
+  Uses public Deriv endpoint. Educational only — not financial advice. Spikes can invalidate setups instantly.
 </footer>
 
 <script>
 const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
 
 const SYMBOLS = [
-  // Synthetics
-  {code:'R_10', name:'Volatility 10 Index'},
-  {code:'R_25', name:'Volatility 25 Index'},
-  {code:'R_50', name:'Volatility 50 Index'},
-  {code:'R_75', name:'Volatility 75 Index'},
-  {code:'R_100', name:'Volatility 100 Index'},
-  {code:'1HZ10V', name:'Volatility 10 (1s)'},
-  {code:'1HZ25V', name:'Volatility 25 (1s)'},
-  {code:'1HZ50V', name:'Volatility 50 (1s)'},
-  {code:'1HZ75V', name:'Volatility 75 (1s)'},
-  {code:'1HZ100V', name:'Volatility 100 (1s)'},
-  {code:'BOOM1000', name:'Boom 1000'},
-  {code:'BOOM500', name:'Boom 500'},
-  {code:'CRASH1000', name:'Crash 1000'},
-  {code:'CRASH500', name:'Crash 500'},
-
-  // Financial markets
-  {code:'OTC_NDX', name:'US Tech 100'},
-  {code:'OTC_DJI', name:'Wall Street 30'},
-  {code:'OTC_HSI', name:'Hong Kong 50'},
-  {code:'frxXAUUSD', name:'XAUUSD (Gold)'}
+  {code:'BOOM1000', name:'Boom 1000', preferredGran:3600}, // H1
+  {code:'BOOM500',  name:'Boom 500',  preferredGran:900},  // M15
+  {code:'CRASH1000',name:'Crash 1000',preferredGran:3600}, // H1
+  {code:'CRASH500', name:'Crash 500', preferredGran:900}   // M15
 ];
 
 const state = {};
-SYMBOLS.forEach(s => state[s.code] = {candles:[], ema:[], cci:[], atr:[], signal:null, status:'idle'});
+SYMBOLS.forEach(s => state[s.code] = {candles:[], ema:[], cci:[], atr:[], signal:null, status:'idle', gran:s.preferredGran});
 
 let ws = null, reqId = 1, pending = {}, pingTimer = null;
 
@@ -108,9 +95,12 @@ SYMBOLS.forEach(s => {
   const card = document.createElement('div');
   card.className = 'card';
   card.id = 'card-' + s.code;
+  const tfLabel = s.preferredGran === 900 ? 'M15 (best)' : 'H1 (best)';
   card.innerHTML = `
     <div class="card-top">
-      <div class="sym">${s.code}<small>${s.name}</small></div>
+      <div class="sym">${s.code}<small>${s.name}</small>
+        <div class="tf-note">Preferred: ${tfLabel}</div>
+      </div>
       <div class="badge wait" id="badge-${s.code}">WAIT</div>
     </div>
     <canvas id="canvas-${s.code}" width="640" height="320"></canvas>
@@ -131,13 +121,19 @@ function setCardStatus(sym, txt, isError=false){
   if(state[sym]) state[sym].status = txt;
 }
 
+function getGran(sym){
+  const override = +granSel.value;
+  if(override > 0) return override;
+  return state[sym].gran || 900;
+}
+
 function connect(){
   if(ws) try{ws.close();}catch(e){}
   ws = new WebSocket(PUBLIC_WS);
 
   ws.onopen = () => {
     dot.classList.add('on');
-    statusText.textContent = 'connected – loading…';
+    statusText.textContent = 'connected – loading Crash & Boom…';
     let i = 0;
     function next(){
       if(i >= SYMBOLS.length) return;
@@ -146,7 +142,7 @@ function connect(){
       const badge = document.getElementById('badge-'+sym);
       if(badge){badge.textContent='…'; badge.className='badge loading';}
       requestCandles(sym);
-      setTimeout(next, 350);
+      setTimeout(next, 400);
     }
     next();
     clearInterval(pingTimer);
@@ -186,7 +182,7 @@ function connect(){
           low: +c.low,
           close: +c.close
         }));
-        setCardStatus(sym, 'live ('+state[sym].candles.length+')');
+        setCardStatus(sym, 'live ('+state[sym].candles.length+') @ '+(getGran(sym)===900?'M15':getGran(sym)===3600?'H1':getGran(sym)+'s'));
         recompute(sym);
       }
       else if(data.msg_type === 'ohlc' && data.ohlc){
@@ -214,13 +210,14 @@ function requestCandles(sym){
   if(!ws || ws.readyState !== 1) return;
   const id = reqId++;
   pending[id] = sym;
+  const gran = getGran(sym);
   ws.send(JSON.stringify({
     ticks_history: sym,
     adjust_start_time: 1,
-    count: 200,
+    count: 250,
     end: 'latest',
     style: 'candles',
-    granularity: +granSel.value,
+    granularity: gran,
     subscribe: 1,
     req_id: id
   }));
@@ -228,7 +225,7 @@ function requestCandles(sym){
 
 document.getElementById('btnRefresh').onclick = () => {
   SYMBOLS.forEach(s => {
-    state[s.code] = {candles:[],ema:[],cci:[],atr:[],signal:null,status:'idle'};
+    state[s.code] = {candles:[],ema:[],cci:[],atr:[],signal:null,status:'idle',gran:s.preferredGran};
   });
   if(ws && ws.readyState === 1) ws.close();
   else connect();
@@ -259,6 +256,7 @@ function recompute(sym){
     const slBufMult = +slBufEl.value;
     let signal = null;
 
+    // SELL (favors Boom drift)
     if(highs.length >= 2){
       const p2=highs[highs.length-1], p1=highs[highs.length-2];
       if(p2.price < p1.price && lastClose < p2.price && lastCci != null && lastCci < -cciThresh){
@@ -269,6 +267,7 @@ function recompute(sym){
         if(tp < lastClose) signal = {dir:'SELL',entry:lastClose,sl,tp,p1,p2,projIndex};
       }
     }
+    // BUY (favors Crash drift)
     if(!signal && lows.length >= 2){
       const p2=lows[lows.length-1], p1=lows[lows.length-2];
       if(p2.price > p1.price && lastClose > p2.price && lastCci != null && lastCci > cciThresh){
