@@ -3,387 +3,565 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trend-Fan Crash & Boom Scanner (Optimized)</title>
+<title>Ultimate Crash & Boom Trend-Fan Scanner</title>
 <style>
-  :root{--bg:#0a0a0e;--panel:#12131a;--panel2:#181a24;--border:#242633;--white:#e8e9f0;--dim:#8a8da3;--blue:#3b82f6;--cyan:#22d3ee;--red:#ef4444;--green:#22c55e;--orange:#f59e0b;--mono:'SF Mono','Consolas',monospace;}
-  *{box-sizing:border-box;}body{margin:0;background:var(--bg);color:var(--white);font-family:-apple-system,Segoe UI,Roboto,sans-serif;}
-  header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;background:var(--bg);z-index:10;}
-  header h1{font-size:16px;margin:0;font-weight:600;}header h1 span{color:var(--cyan);}
-  .status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);}
-  .dot{width:8px;height:8px;border-radius:50%;background:var(--red);}.dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}
-  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid var(--border);font-size:12px;color:var(--dim);}
-  .controls label{display:flex;align-items:center;gap:6px;}
-  select,input[type=number]{background:var(--panel2);color:var(--white);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;font-family:var(--mono);}
-  button{background:var(--panel2);color:var(--cyan);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;padding:16px 18px;}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;}
-  .card.signal-sell{border-color:rgba(239,68,68,.5);}.card.signal-buy{border-color:rgba(34,197,94,.5);}
-  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
-  .sym{font-weight:600;font-size:13px;}.sym small{display:block;color:var(--dim);font-weight:400;font-size:10px;margin-top:2px;}
-  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;}
-  .badge.sell{background:rgba(239,68,68,.15);color:var(--red);}.badge.buy{background:rgba(34,197,94,.15);color:var(--green);}
-  .badge.wait{background:rgba(138,141,163,.12);color:var(--dim);}.badge.loading{background:rgba(59,130,246,.15);color:var(--blue);}
-  .badge.error{background:rgba(239,68,68,.2);color:var(--red);}
-  canvas{width:100%;height:160px;display:block;border-radius:6px;background:#000;}
-  .rows{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:8px;font-family:var(--mono);font-size:11px;}
-  .rows .k{color:var(--dim);}.rows .v{text-align:right;}
-  .v.entry{color:var(--white);}.v.sl{color:var(--red);}.v.tp{color:var(--cyan);}
-  .cci{font-size:10px;color:var(--dim);margin-top:6px;font-family:var(--mono);}.cci b{color:var(--orange);}
-  .card-status{font-size:10px;color:var(--dim);margin-top:4px;font-family:var(--mono);}
-  .tf-note{font-size:9px;color:var(--cyan);margin-top:2px;}
-  footer{padding:16px 18px;color:var(--dim);font-size:11px;line-height:1.6;}
+:root {
+  --bg: #07080c; --panel: #0f1118; --panel2: #161925; --border: #252836;
+  --white: #eef0f6; --dim: #8b90a8; --blue: #3b82f6; --cyan: #22d3ee;
+  --red: #ef4444; --green: #22c55e; --orange: #f59e0b; --purple: #a78bfa;
+  --mono: 'SF Mono', 'JetBrains Mono', Consolas, monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--white);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;min-height:100vh}
+header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:0;background:rgba(7,8,12,.92);backdrop-filter:blur(12px);z-index:20}
+h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
+h1 span{color:var(--cyan)}
+.dash{display:flex;gap:14px;align-items:center;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.dash b{color:var(--white);font-family:var(--mono)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--red);display:inline-block}
+.dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid var(--border);font-size:12px;color:var(--dim);background:var(--panel)}
+.controls label{display:flex;align-items:center;gap:5px}
+select,input[type=number]{background:var(--panel2);color:var(--white);border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;font-family:var(--mono)}
+button{background:var(--panel2);color:var(--cyan);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;transition:.15s}
+button:hover{border-color:var(--cyan);background:#1a1d2b}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;padding:16px 18px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;transition:border-color .25s,box-shadow .25s;position:relative;overflow:hidden}
+.card.signal-sell{border-color:rgba(239,68,68,.55);box-shadow:0 0 0 1px rgba(239,68,68,.15)}
+.card.signal-buy{border-color:rgba(34,197,94,.55);box-shadow:0 0 0 1px rgba(34,197,94,.15)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.sym{font-weight:700;font-size:14px}
+.sym small{display:block;color:var(--dim);font-weight:400;font-size:10px;margin-top:2px}
+.tf{font-size:9px;color:var(--cyan);margin-top:3px;font-family:var(--mono)}
+.badge{font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:.3px}
+.badge.sell{background:rgba(239,68,68,.18);color:var(--red)}
+.badge.buy{background:rgba(34,197,94,.18);color:var(--green)}
+.badge.wait{background:rgba(139,144,168,.12);color:var(--dim)}
+.badge.loading{background:rgba(59,130,246,.15);color:var(--blue)}
+.badge.error{background:rgba(239,68,68,.25);color:var(--red)}
+canvas{width:100%;height:170px;display:block;border-radius:8px;background:#000;margin-top:4px}
+.rows{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;margin-top:10px;font-family:var(--mono);font-size:11px}
+.rows .k{color:var(--dim)}.rows .v{text-align:right}
+.v.entry{color:var(--white);font-weight:600}.v.sl{color:var(--red)}.v.tp{color:var(--cyan)}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:10px;color:var(--dim);font-family:var(--mono)}
+.strength{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.strength-bar{height:100%;border-radius:2px;transition:width .4s}
+.strength-bar.high{background:linear-gradient(90deg,var(--green),var(--cyan))}
+.strength-bar.med{background:linear-gradient(90deg,var(--orange),var(--green))}
+.strength-bar.low{background:var(--dim)}
+.cci{font-size:10px;color:var(--dim);margin-top:6px;font-family:var(--mono)}.cci b{color:var(--orange)}
+.copy-btn{position:absolute;top:12px;right:12px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);color:var(--cyan);font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;opacity:0;transition:.2s}
+.card:hover .copy-btn,.card.signal-sell .copy-btn,.card.signal-buy .copy-btn{opacity:1}
+.copy-btn:hover{background:rgba(34,211,238,.2)}
+.card-status{font-size:10px;color:var(--dim);margin-top:4px;font-family:var(--mono)}
+footer{padding:18px;color:var(--dim);font-size:11px;line-height:1.65;border-top:1px solid var(--border);margin-top:10px}
+.peak{color:var(--orange);font-weight:600}
+@media(max-width:600px){.grid{grid-template-columns:1fr;padding:12px}.controls{gap:8px}}
 </style>
 </head>
 <body>
 <header>
-  <h1>Trend-Fan <span>Crash & Boom Scanner</span></h1>
-  <div class="status"><span class="dot" id="dot"></span><span id="statusText">connecting…</span></div>
+  <h1>Ultimate <span>Crash & Boom</span> Trend-Fan</h1>
+  <div class="dash">
+    <span class="dot" id="dot"></span>
+    <span id="statusText">connecting…</span>
+    <span>|</span>
+    <span>Signals: <b id="sigCount">0</b></span>
+    <span>Bias: <b id="biasText">—</b></span>
+    <span id="utcClock">—</span>
+  </div>
 </header>
 
 <div class="controls">
-  <label>Override TF
+  <label>TF Override
     <select id="granularity">
-      <option value="0" selected>Auto (best per index)</option>
-      <option value="900">M15 force all</option>
-      <option value="1800">M30 force all</option>
-      <option value="3600">H1 force all</option>
-      <option value="14400">H4 force all</option>
+      <option value="0" selected>Auto (best)</option>
+      <option value="900">Force M15</option>
+      <option value="1800">Force M30</option>
+      <option value="3600">Force H1</option>
     </select>
   </label>
-  <label>Projection ×<input id="projMult" type="number" value="2.0" step="0.1" min="1" max="6" style="width:56px"></label>
-  <label>CCI threshold<input id="cciThresh" type="number" value="40" step="5" min="0" max="150" style="width:56px"></label>
-  <label>SL buffer<input id="slBuf" type="number" value="0.8" step="0.1" min="0.1" max="3" style="width:56px"></label>
+  <label>Mode
+    <select id="mode">
+      <option value="balanced" selected>Balanced</option>
+      <option value="aggressive">Aggressive</option>
+      <option value="strict">Strict</option>
+    </select>
+  </label>
+  <label>Proj × <input id="projMult" type="number" value="2.2" step="0.1" min="1.2" max="5" style="width:52px"></label>
+  <label>CCI <input id="cciThresh" type="number" value="38" step="2" min="15" max="100" style="width:48px"></label>
+  <label>SL ATR <input id="slBuf" type="number" value="0.9" step="0.1" min="0.3" max="2.5" style="width:48px"></label>
   <label><input type="checkbox" id="signalsOnly" checked> Signals only</label>
-  <button id="btnRefresh">Force Refresh</button>
+  <label><input type="checkbox" id="soundOn" checked> Sound</label>
+  <button id="btnRefresh">Refresh</button>
 </div>
 
 <div class="grid" id="grid"></div>
+
 <footer>
-  <strong>Optimized for Crash & Boom only.</strong><br>
-  Best TFs (research-backed): Boom/Crash 500 → M15 | Boom/Crash 1000 → H1.<br>
-  Logic unchanged: 2 consecutive EMA(9) pivots → break + CCI extreme → Entry / SL (ATR buffer) / TP (fan projection).<br>
-  Params tuned for more visible signals on the natural drift (SELL bias Boom, BUY bias Crash).<br>
-  Uses public Deriv endpoint. Educational only — not financial advice. Spikes can invalidate setups instantly.
+  <strong>Ultimate Crash & Boom edition</strong> — only Boom 1000 / 500 & Crash 1000 / 500.<br>
+  Auto TF: 500-series → M15 · 1000-series → H1. Hard drift bias + adaptive projection/SL + strength scoring.<br>
+  Peak hours (UTC) often stronger structure: Boom 500 ~11:00 & 21:00 · Crash 500 ~09:00 · 1000-series early London / midnight windows.<br>
+  Educational tool only. Not financial advice. Spikes are random and can wipe any setup. Risk management is mandatory.
 </footer>
 
 <script>
 const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
 
 const SYMBOLS = [
-  {code:'BOOM1000', name:'Boom 1000', preferredGran:3600}, // H1
-  {code:'BOOM500',  name:'Boom 500',  preferredGran:900},  // M15
-  {code:'CRASH1000',name:'Crash 1000',preferredGran:3600}, // H1
-  {code:'CRASH500', name:'Crash 500', preferredGran:900}   // M15
+  {code:'BOOM1000', name:'Boom 1000', preferred:3600, bias:'SELL'},
+  {code:'BOOM500',  name:'Boom 500',  preferred:900,  bias:'SELL'},
+  {code:'CRASH1000',name:'Crash 1000',preferred:3600, bias:'BUY'},
+  {code:'CRASH500', name:'Crash 500', preferred:900,  bias:'BUY'}
 ];
 
 const state = {};
-SYMBOLS.forEach(s => state[s.code] = {candles:[], ema:[], cci:[], atr:[], signal:null, status:'idle', gran:s.preferredGran});
+SYMBOLS.forEach(s => state[s.code] = {
+  candles:[], ema:[], cci:[], atr:[], signal:null, lastSignal:null,
+  status:'idle', preferred:s.preferred, bias:s.bias, strength:0
+});
 
-let ws = null, reqId = 1, pending = {}, pingTimer = null;
+let ws=null, reqId=1, pending={}, pingTimer=null, lastBeep=0;
 
 const grid = document.getElementById('grid');
 const dot = document.getElementById('dot');
 const statusText = document.getElementById('statusText');
 const granSel = document.getElementById('granularity');
+const modeSel = document.getElementById('mode');
 const projMultEl = document.getElementById('projMult');
 const cciThreshEl = document.getElementById('cciThresh');
 const slBufEl = document.getElementById('slBuf');
 const signalsOnlyEl = document.getElementById('signalsOnly');
+const soundOnEl = document.getElementById('soundOn');
 
-// build cards
 SYMBOLS.forEach(s => {
   const card = document.createElement('div');
   card.className = 'card';
-  card.id = 'card-' + s.code;
-  const tfLabel = s.preferredGran === 900 ? 'M15 (best)' : 'H1 (best)';
+  card.id = 'card-'+s.code;
+  const tf = s.preferred===900 ? 'M15' : 'H1';
   card.innerHTML = `
+    <button class="copy-btn" id="copy-${s.code}">Copy</button>
     <div class="card-top">
       <div class="sym">${s.code}<small>${s.name}</small>
-        <div class="tf-note">Preferred: ${tfLabel}</div>
+        <div class="tf">Preferred ${tf} · Bias ${s.bias}</div>
       </div>
       <div class="badge wait" id="badge-${s.code}">WAIT</div>
     </div>
-    <canvas id="canvas-${s.code}" width="640" height="320"></canvas>
+    <canvas id="canvas-${s.code}" width="680" height="340"></canvas>
     <div class="rows">
       <div class="k">Price</div><div class="v" id="price-${s.code}">—</div>
       <div class="k">Entry</div><div class="v entry" id="entry-${s.code}">—</div>
       <div class="k">SL</div><div class="v sl" id="sl-${s.code}">—</div>
       <div class="k">TP</div><div class="v tp" id="tp-${s.code}">—</div>
     </div>
+    <div class="strength"><div class="strength-bar" id="str-${s.code}" style="width:0%"></div></div>
+    <div class="meta">
+      <span>Strength <b id="strtxt-${s.code}">0</b></span>
+      <span>R:R <b id="rr-${s.code}">—</b></span>
+      <span id="age-${s.code}">—</span>
+    </div>
     <div class="cci">CCI(14) <b id="cci-${s.code}">—</b></div>
     <div class="card-status" id="status-${s.code}">idle</div>`;
   grid.appendChild(card);
+  document.getElementById('copy-'+s.code).onclick = () => copySignal(s.code);
 });
 
-function setCardStatus(sym, txt, isError=false){
+function copySignal(sym){
+  const s = state[sym];
+  if(!s.signal) return;
+  const t = `${sym} ${s.signal.dir}\nEntry: ${fmt(s.signal.entry)}\nSL: ${fmt(s.signal.sl)}\nTP: ${fmt(s.signal.tp)}\nStrength: ${s.strength}`;
+  navigator.clipboard.writeText(t).then(()=>{
+    const btn = document.getElementById('copy-'+sym);
+    btn.textContent = 'Copied!';
+    setTimeout(()=>btn.textContent='Copy',1200);
+  });
+}
+
+function setCardStatus(sym,txt){
   const el = document.getElementById('status-'+sym);
   if(el) el.textContent = txt;
   if(state[sym]) state[sym].status = txt;
 }
 
 function getGran(sym){
-  const override = +granSel.value;
-  if(override > 0) return override;
-  return state[sym].gran || 900;
+  const o = +granSel.value;
+  return o > 0 ? o : (state[sym].preferred || 900);
+}
+
+function getModeParams(){
+  const m = modeSel.value;
+  if(m==='aggressive') return {cciMul:0.85, minStr:35, pivotLB:2};
+  if(m==='strict') return {cciMul:1.25, minStr:62, pivotLB:4};
+  return {cciMul:1.0, minStr:48, pivotLB:3};
 }
 
 function connect(){
-  if(ws) try{ws.close();}catch(e){}
+  if(ws) try{ws.close()}catch(e){}
   ws = new WebSocket(PUBLIC_WS);
-
   ws.onopen = () => {
     dot.classList.add('on');
-    statusText.textContent = 'connected – loading Crash & Boom…';
-    let i = 0;
+    statusText.textContent = 'live · Crash & Boom';
+    let i=0;
     function next(){
-      if(i >= SYMBOLS.length) return;
+      if(i>=SYMBOLS.length) return;
       const sym = SYMBOLS[i++].code;
-      setCardStatus(sym, 'loading…');
-      const badge = document.getElementById('badge-'+sym);
-      if(badge){badge.textContent='…'; badge.className='badge loading';}
+      setCardStatus(sym,'loading…');
+      const b = document.getElementById('badge-'+sym);
+      if(b){b.textContent='…';b.className='badge loading'}
       requestCandles(sym);
-      setTimeout(next, 400);
+      setTimeout(next,380);
     }
     next();
     clearInterval(pingTimer);
-    pingTimer = setInterval(()=>{if(ws&&ws.readyState===1) ws.send(JSON.stringify({ping:1}));},25000);
+    pingTimer = setInterval(()=>{if(ws?.readyState===1) ws.send(JSON.stringify({ping:1}))},22000);
   };
-
   ws.onclose = () => {
     dot.classList.remove('on');
-    statusText.textContent = 'disconnected – retrying…';
+    statusText.textContent = 'reconnecting…';
     clearInterval(pingTimer);
-    setTimeout(connect, 4000);
+    setTimeout(connect,3500);
   };
-
-  ws.onerror = () => {statusText.textContent = 'connection error';};
-
+  ws.onerror = () => statusText.textContent = 'connection error';
   ws.onmessage = (msg) => {
     try{
       const data = JSON.parse(msg.data);
       if(data.error){
-        const sym = pending[data.req_id] || (data.echo_req && data.echo_req.ticks_history);
+        const sym = pending[data.req_id];
         if(sym){
-          setCardStatus(sym, 'ERR: '+(data.error.message||data.error.code), true);
-          const badge = document.getElementById('badge-'+sym);
-          if(badge){badge.textContent='ERR'; badge.className='badge error';}
+          setCardStatus(sym,'ERR: '+(data.error.message||data.error.code));
+          const b=document.getElementById('badge-'+sym);
+          if(b){b.textContent='ERR';b.className='badge error'}
         }
         return;
       }
-
-      if(data.msg_type === 'candles' || (data.msg_type === 'history' && data.candles)){
+      if(data.msg_type==='candles' || (data.msg_type==='history' && data.candles)){
         const sym = pending[data.req_id];
         if(!sym) return;
         const raw = data.candles || data.history?.candles || [];
-        state[sym].candles = raw.map(c => ({
-          epoch: c.epoch || c.open_time,
-          open: +c.open,
-          high: +c.high,
-          low: +c.low,
-          close: +c.close
+        state[sym].candles = raw.map(c=>({
+          epoch:c.epoch||c.open_time, open:+c.open, high:+c.high, low:+c.low, close:+c.close
         }));
-        setCardStatus(sym, 'live ('+state[sym].candles.length+') @ '+(getGran(sym)===900?'M15':getGran(sym)===3600?'H1':getGran(sym)+'s'));
+        setCardStatus(sym,`live (${state[sym].candles.length})`);
         recompute(sym);
-      }
-      else if(data.msg_type === 'ohlc' && data.ohlc){
+      } else if(data.msg_type==='ohlc' && data.ohlc){
         const sym = data.ohlc.symbol;
         if(!state[sym]) return;
-        const c = {
-          epoch: data.ohlc.open_time,
-          open: +data.ohlc.open,
-          high: +data.ohlc.high,
-          low: +data.ohlc.low,
-          close: +data.ohlc.close
-        };
+        const c = {epoch:data.ohlc.open_time, open:+data.ohlc.open, high:+data.ohlc.high, low:+data.ohlc.low, close:+data.ohlc.close};
         const arr = state[sym].candles;
         const last = arr[arr.length-1];
-        if(last && last.epoch === c.epoch) arr[arr.length-1] = c;
-        else {arr.push(c); if(arr.length > 300) arr.shift();}
-        setCardStatus(sym, 'live ('+arr.length+')');
+        if(last && last.epoch===c.epoch) arr[arr.length-1]=c;
+        else {arr.push(c); if(arr.length>320) arr.shift()}
+        setCardStatus(sym,`live (${arr.length})`);
         recompute(sym);
       }
-    }catch(e){console.error(e);}
+    }catch(e){console.error(e)}
   };
 }
 
 function requestCandles(sym){
-  if(!ws || ws.readyState !== 1) return;
+  if(!ws || ws.readyState!==1) return;
   const id = reqId++;
   pending[id] = sym;
-  const gran = getGran(sym);
   ws.send(JSON.stringify({
-    ticks_history: sym,
-    adjust_start_time: 1,
-    count: 250,
-    end: 'latest',
-    style: 'candles',
-    granularity: gran,
-    subscribe: 1,
-    req_id: id
+    ticks_history:sym, adjust_start_time:1, count:280, end:'latest',
+    style:'candles', granularity:getGran(sym), subscribe:1, req_id:id
   }));
 }
 
 document.getElementById('btnRefresh').onclick = () => {
-  SYMBOLS.forEach(s => {
-    state[s.code] = {candles:[],ema:[],cci:[],atr:[],signal:null,status:'idle',gran:s.preferredGran};
+  SYMBOLS.forEach(s=>{
+    state[s.code] = {candles:[],ema:[],cci:[],atr:[],signal:null,lastSignal:null,status:'idle',preferred:s.preferred,bias:s.bias,strength:0};
   });
-  if(ws && ws.readyState === 1) ws.close();
-  else connect();
+  if(ws?.readyState===1) ws.close(); else connect();
 };
-granSel.onchange = () => document.getElementById('btnRefresh').click();
+granSel.onchange = modeSel.onchange = () => document.getElementById('btnRefresh').click();
 
-// ===== indicators =====
-function ema(values,period){const k=2/(period+1);const out=[];values.forEach((v,i)=>out.push(i===0?v:v*k+out[i-1]*(1-k)));return out;}
-function cci(candles,period){const tp=candles.map(c=>(c.high+c.low+c.close)/3);const out=new Array(candles.length).fill(null);for(let i=period-1;i<candles.length;i++){const slice=tp.slice(i-period+1,i+1);const sma=slice.reduce((a,b)=>a+b,0)/period;const md=slice.reduce((a,b)=>a+Math.abs(b-sma),0)/period;out[i]=md===0?0:(tp[i]-sma)/(0.015*md);}return out;}
-function atr(candles,period){const trs=candles.map((c,i)=>{if(i===0)return c.high-c.low;const pc=candles[i-1].close;return Math.max(c.high-c.low,Math.abs(c.high-pc),Math.abs(c.low-pc));});const out=new Array(candles.length).fill(null);for(let i=period-1;i<candles.length;i++)out[i]=trs.slice(i-period+1,i+1).reduce((a,b)=>a+b,0)/period;return out;}
-function findPivots(emaArr,lookback){const highs=[],lows=[];for(let i=lookback;i<emaArr.length-lookback;i++){const w=emaArr.slice(i-lookback,i+lookback+1);if(emaArr[i]===Math.max(...w))highs.push({index:i,price:emaArr[i]});if(emaArr[i]===Math.min(...w))lows.push({index:i,price:emaArr[i]});}return{highs,lows};}
+function ema(v,p){const k=2/(p+1);const o=[];v.forEach((x,i)=>o.push(i===0?x:x*k+o[i-1]*(1-k)));return o}
+function cci(candles,p){
+  const tp=candles.map(c=>(c.high+c.low+c.close)/3);
+  const out=new Array(candles.length).fill(null);
+  for(let i=p-1;i<candles.length;i++){
+    const sl=tp.slice(i-p+1,i+1);
+    const sma=sl.reduce((a,b)=>a+b,0)/p;
+    const md=sl.reduce((a,b)=>a+Math.abs(b-sma),0)/p;
+    out[i]=md===0?0:(tp[i]-sma)/(0.015*md);
+  }
+  return out;
+}
+function atr(candles,p){
+  const trs=candles.map((c,i)=>{
+    if(i===0) return c.high-c.low;
+    const pc=candles[i-1].close;
+    return Math.max(c.high-c.low,Math.abs(c.high-pc),Math.abs(c.low-pc));
+  });
+  const out=new Array(candles.length).fill(null);
+  for(let i=p-1;i<candles.length;i++) out[i]=trs.slice(i-p+1,i+1).reduce((a,b)=>a+b,0)/p;
+  return out;
+}
+function findPivots(emaArr,lookback,minDist){
+  const highs=[],lows=[];
+  for(let i=lookback;i<emaArr.length-lookback;i++){
+    const w=emaArr.slice(i-lookback,i+lookback+1);
+    if(emaArr[i]===Math.max(...w)) highs.push({index:i,price:emaArr[i]});
+    if(emaArr[i]===Math.min(...w)) lows.push({index:i,price:emaArr[i]});
+  }
+  // enforce min distance between consecutive pivots
+  const clean=(arr)=>{
+    if(arr.length<2) return arr;
+    const out=[arr[0]];
+    for(let i=1;i<arr.length;i++) if(arr[i].index-out[out.length-1].index>=minDist) out.push(arr[i]);
+    return out;
+  };
+  return {highs:clean(highs), lows:clean(lows)};
+}
 
 function recompute(sym){
   try{
-    const s = state[sym];
-    if(s.candles.length < 50) return;
-    const closes = s.candles.map(c=>c.close);
-    s.ema = ema(closes,9);
-    s.cci = cci(s.candles,14);
-    s.atr = atr(s.candles,14);
-    const {highs,lows} = findPivots(s.ema,3);
-    const lastIdx = s.candles.length-1;
-    const lastClose = closes[lastIdx];
-    const lastCci = s.cci[lastIdx];
-    const lastAtr = s.atr[lastIdx]||0;
-    const projMult = +projMultEl.value;
-    const cciThresh = +cciThreshEl.value;
-    const slBufMult = +slBufEl.value;
-    let signal = null;
+    const s=state[sym];
+    if(s.candles.length<60) return;
+    const closes=s.candles.map(c=>c.close);
+    s.ema=ema(closes,9);
+    s.cci=cci(s.candles,14);
+    s.atr=atr(s.candles,14);
+    const {cciMul,minStr,pivotLB}=getModeParams();
+    const {highs,lows}=findPivots(s.ema,pivotLB,5);
+    const lastIdx=s.candles.length-1;
+    const lastClose=closes[lastIdx];
+    const lastCci=s.cci[lastIdx];
+    const lastAtr=s.atr[lastIdx]||0;
+    const baseProj=+projMultEl.value;
+    const baseCci=+cciThreshEl.value*cciMul;
+    const baseSl=+slBufEl.value;
+    // adaptive proj slightly higher when ATR is calm
+    const recentAtr=s.atr.slice(-20).filter(x=>x!=null);
+    const avgAtr=recentAtr.length?recentAtr.reduce((a,b)=>a+b,0)/recentAtr.length:lastAtr;
+    const volFactor=lastAtr>0?Math.min(1.35,Math.max(0.75,avgAtr/lastAtr)):1;
+    const projMult=baseProj*volFactor;
+    const slBuf=baseSl*(2-volFactor*0.5);
 
-    // SELL (favors Boom drift)
-    if(highs.length >= 2){
+    let signal=null;
+    const prefer=s.bias;
+
+    // SELL logic (primary for Boom)
+    if(highs.length>=2){
       const p2=highs[highs.length-1], p1=highs[highs.length-2];
-      if(p2.price < p1.price && lastClose < p2.price && lastCci != null && lastCci < -cciThresh){
-        const slope = (p2.price-p1.price)/(p2.index-p1.index);
-        const projIndex = p2.index + projMult*(p2.index-p1.index);
-        const tp = p2.price + slope*(projIndex-p2.index);
-        const sl = p2.price + slBufMult*lastAtr;
-        if(tp < lastClose) signal = {dir:'SELL',entry:lastClose,sl,tp,p1,p2,projIndex};
+      const pivotDist=Math.abs(p1.price-p2.price);
+      if(pivotDist>lastAtr*0.35 && p2.price<p1.price && lastClose<p2.price && lastCci!=null && lastCci<-baseCci){
+        const slope=(p2.price-p1.price)/(p2.index-p1.index);
+        const projIndex=p2.index+projMult*(p2.index-p1.index);
+        const tp=p2.price+slope*(projIndex-p2.index);
+        const sl=p2.price+slBuf*lastAtr;
+        if(tp<lastClose && (prefer==='SELL' || lastCci<-baseCci*1.35)){
+          const rr=(lastClose-tp)/(sl-lastClose||1e-9);
+          if(rr>0.8) signal={dir:'SELL',entry:lastClose,sl,tp,p1,p2,projIndex,rr,cci:lastCci};
+        }
       }
     }
-    // BUY (favors Crash drift)
-    if(!signal && lows.length >= 2){
+    // BUY logic (primary for Crash)
+    if(!signal && lows.length>=2){
       const p2=lows[lows.length-1], p1=lows[lows.length-2];
-      if(p2.price > p1.price && lastClose > p2.price && lastCci != null && lastCci > cciThresh){
-        const slope = (p2.price-p1.price)/(p2.index-p1.index);
-        const projIndex = p2.index + projMult*(p2.index-p1.index);
-        const tp = p2.price + slope*(projIndex-p2.index);
-        const sl = p2.price - slBufMult*lastAtr;
-        if(tp > lastClose) signal = {dir:'BUY',entry:lastClose,sl,tp,p1,p2,projIndex};
+      const pivotDist=Math.abs(p1.price-p2.price);
+      if(pivotDist>lastAtr*0.35 && p2.price>p1.price && lastClose>p2.price && lastCci!=null && lastCci>baseCci){
+        const slope=(p2.price-p1.price)/(p2.index-p1.index);
+        const projIndex=p2.index+projMult*(p2.index-p1.index);
+        const tp=p2.price+slope*(projIndex-p2.index);
+        const sl=p2.price-slBuf*lastAtr;
+        if(tp>lastClose && (prefer==='BUY' || lastCci>baseCci*1.35)){
+          const rr=(tp-lastClose)/(lastClose-sl||1e-9);
+          if(rr>0.8) signal={dir:'BUY',entry:lastClose,sl,tp,p1,p2,projIndex,rr,cci:lastCci};
+        }
       }
     }
-    s.signal = signal;
+
+    // strength score
+    let strength=0;
+    if(signal){
+      const cciScore=Math.min(40, Math.abs(signal.cci)/baseCci*22);
+      const rrScore=Math.min(30, signal.rr*12);
+      const slopeScore=15;
+      strength=Math.round(Math.min(100, cciScore+rrScore+slopeScore+(prefer===signal.dir?15:0)));
+      if(strength<minStr) signal=null;
+    }
+
+    const prevHad = !!s.signal;
+    s.signal=signal;
+    s.strength=strength;
+    if(signal && !prevHad){
+      s.lastSignal=Date.now();
+      if(strength>=55) notify(sym,signal,strength);
+    }
     render(sym);
-  }catch(e){console.error(e);}
+    updateDash();
+  }catch(e){console.error(e)}
 }
 
-function fmt(n){return (n==null||!isFinite(n))?'—':n.toFixed(n>100?2:4);}
+function notify(sym,sig,str){
+  if(soundOnEl.checked && Date.now()-lastBeep>4000){
+    lastBeep=Date.now();
+    try{
+      const ctx=new (window.AudioContext||window.webkitAudioContext)();
+      const o=ctx.createOscillator(); const g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=str>70?880:660; o.type='sine';
+      g.gain.setValueAtTime(0.08,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.35);
+      o.start(); o.stop(ctx.currentTime+0.35);
+    }catch(e){}
+  }
+  if(Notification.permission==='granted'){
+    new Notification(`${sym} ${sig.dir}`,{body:`Strength ${str} · Entry ${fmt(sig.entry)}`,silent:true});
+  } else if(Notification.permission!=='denied'){
+    Notification.requestPermission();
+  }
+}
+
+function fmt(n){return (n==null||!isFinite(n))?'—':(+n).toFixed(n>50?2:4)}
 function render(sym){
   try{
-    const s = state[sym];
-    if(!s || !s.candles.length) return;
-    const last = s.candles[s.candles.length-1];
-    const badge = document.getElementById('badge-'+sym);
-    const card = document.getElementById('card-'+sym);
-    document.getElementById('price-'+sym).textContent = fmt(last.close);
-    document.getElementById('cci-'+sym).textContent = s.cci[s.cci.length-1]!=null ? s.cci[s.cci.length-1].toFixed(2) : '—';
+    const s=state[sym];
+    if(!s?.candles.length) return;
+    const last=s.candles[s.candles.length-1];
+    const badge=document.getElementById('badge-'+sym);
+    const card=document.getElementById('card-'+sym);
+    document.getElementById('price-'+sym).textContent=fmt(last.close);
+    document.getElementById('cci-'+sym).textContent=s.cci[s.cci.length-1]!=null?s.cci[s.cci.length-1].toFixed(1):'—';
     card.classList.remove('signal-sell','signal-buy');
     if(s.signal){
-      badge.textContent = s.signal.dir;
-      badge.className = 'badge '+(s.signal.dir==='SELL'?'sell':'buy');
+      badge.textContent=s.signal.dir;
+      badge.className='badge '+(s.signal.dir==='SELL'?'sell':'buy');
       card.classList.add(s.signal.dir==='SELL'?'signal-sell':'signal-buy');
-      document.getElementById('entry-'+sym).textContent = fmt(s.signal.entry);
-      document.getElementById('sl-'+sym).textContent = fmt(s.signal.sl);
-      document.getElementById('tp-'+sym).textContent = fmt(s.signal.tp);
-    }else{
-      badge.textContent = 'WAIT';
-      badge.className = 'badge wait';
-      document.getElementById('entry-'+sym).textContent = '—';
-      document.getElementById('sl-'+sym).textContent = '—';
-      document.getElementById('tp-'+sym).textContent = '—';
+      document.getElementById('entry-'+sym).textContent=fmt(s.signal.entry);
+      document.getElementById('sl-'+sym).textContent=fmt(s.signal.sl);
+      document.getElementById('tp-'+sym).textContent=fmt(s.signal.tp);
+      document.getElementById('rr-'+sym).textContent=s.signal.rr.toFixed(2);
+      document.getElementById('strtxt-'+sym).textContent=s.strength;
+      const bar=document.getElementById('str-'+sym);
+      bar.style.width=s.strength+'%';
+      bar.className='strength-bar '+(s.strength>=70?'high':s.strength>=50?'med':'low');
+      if(s.lastSignal){
+        const sec=Math.floor((Date.now()-s.lastSignal)/1000);
+        document.getElementById('age-'+sym).textContent=sec<60?sec+'s ago':Math.floor(sec/60)+'m ago';
+      }
+    } else {
+      badge.textContent='WAIT';
+      badge.className='badge wait';
+      document.getElementById('entry-'+sym).textContent='—';
+      document.getElementById('sl-'+sym).textContent='—';
+      document.getElementById('tp-'+sym).textContent='—';
+      document.getElementById('rr-'+sym).textContent='—';
+      document.getElementById('strtxt-'+sym).textContent='0';
+      document.getElementById('str-'+sym).style.width='0%';
+      document.getElementById('age-'+sym).textContent='—';
     }
-    card.style.display = (signalsOnlyEl.checked && !s.signal) ? 'none' : '';
+    card.style.display=(signalsOnlyEl.checked && !s.signal)?'none':'';
     drawChart(sym);
-  }catch(e){console.error(e);}
+  }catch(e){console.error(e)}
 }
-signalsOnlyEl.onchange = () => SYMBOLS.forEach(s => render(s.code));
+
+function updateDash(){
+  let cnt=0, sell=0, buy=0;
+  SYMBOLS.forEach(s=>{
+    if(state[s.code].signal){cnt++; if(state[s.code].signal.dir==='SELL') sell++; else buy++}
+  });
+  document.getElementById('sigCount').textContent=cnt;
+  document.getElementById('biasText').textContent=cnt===0?'—':sell>buy?'SELL heavy':buy>sell?'BUY heavy':'Mixed';
+}
+
+signalsOnlyEl.onchange=()=>SYMBOLS.forEach(s=>render(s.code));
 
 function drawChart(sym){
   try{
-    const s = state[sym];
-    const canvas = document.getElementById('canvas-'+sym);
+    const s=state[sym];
+    const canvas=document.getElementById('canvas-'+sym);
     if(!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width, H=canvas.height;
     ctx.clearRect(0,0,W,H);
-    const candles = s.candles, emaArr = s.ema;
-    if(!emaArr || emaArr.length < 2) return;
-    const visible = 70;
-    const start = Math.max(0, emaArr.length - visible);
-    const sliceEma = emaArr.slice(start);
-    const sliceCandles = candles.slice(start);
-    const projIndex = (s.signal && isFinite(s.signal.projIndex)) ? s.signal.projIndex : null;
-    const maxIndex = projIndex !== null ? Math.max(emaArr.length-1, projIndex) : emaArr.length-1;
-    const spanCount = Math.max(1, maxIndex - start);
-    let lo = Math.min(...sliceCandles.map(c=>c.low), ...sliceEma);
-    let hi = Math.max(...sliceCandles.map(c=>c.high), ...sliceEma);
-    if(s.signal && isFinite(s.signal.tp) && isFinite(s.signal.sl)){
-      lo = Math.min(lo, s.signal.tp, s.signal.sl);
-      hi = Math.max(hi, s.signal.tp, s.signal.sl);
+    const candles=s.candles, emaArr=s.ema;
+    if(!emaArr||emaArr.length<2) return;
+    const visible=75;
+    const start=Math.max(0,emaArr.length-visible);
+    const sliceEma=emaArr.slice(start);
+    const sliceCandles=candles.slice(start);
+    const projIndex=(s.signal&&isFinite(s.signal.projIndex))?s.signal.projIndex:null;
+    const maxIndex=projIndex!==null?Math.max(emaArr.length-1,projIndex):emaArr.length-1;
+    const spanCount=Math.max(1,maxIndex-start);
+    let lo=Math.min(...sliceCandles.map(c=>c.low),...sliceEma.filter(x=>x!=null));
+    let hi=Math.max(...sliceCandles.map(c=>c.high),...sliceEma.filter(x=>x!=null));
+    if(s.signal&&isFinite(s.signal.tp)&&isFinite(s.signal.sl)){
+      lo=Math.min(lo,s.signal.tp,s.signal.sl,s.signal.entry);
+      hi=Math.max(hi,s.signal.tp,s.signal.sl,s.signal.entry);
     }
-    if(!isFinite(lo)||!isFinite(hi)) return;
-    let pad = (hi-lo)*0.12;
-    if(!isFinite(pad)||pad<=0) pad = Math.max(Math.abs(hi)*0.01,1);
-    lo -= pad; hi += pad;
-    const range = (hi-lo)||1;
-    const x = i => ((i-start)/spanCount)*(W-12)+6;
-    const y = v => H-((v-lo)/range)*(H-12)-6;
-    const finite = (...v) => v.every(n => typeof n==='number' && isFinite(n));
-    const candleW = Math.max(2,(W/spanCount)*0.55);
+    if(!isFinite(lo)||!isFinite(hi)||hi===lo) return;
+    const pad=(hi-lo)*0.14||Math.abs(hi)*0.01||1;
+    lo-=pad; hi+=pad;
+    const range=hi-lo||1;
+    const x=i=>((i-start)/spanCount)*(W-16)+8;
+    const y=v=>H-((v-lo)/range)*(H-16)-8;
+    const finite=(...v)=>v.every(n=>typeof n==='number'&&isFinite(n));
+
+    // subtle grid
+    ctx.strokeStyle='rgba(255,255,255,0.04)';
+    ctx.lineWidth=1;
+    for(let i=1;i<4;i++){const gy=H*i/4;ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke()}
+
+    const candleW=Math.max(2,(W/spanCount)*0.55);
     sliceCandles.forEach((c,i)=>{
       const idx=start+i, cx=x(idx);
       const openY=y(c.open), closeY=y(c.close), highY=y(c.high), lowY=y(c.low);
-      const up = c.close >= c.open;
-      ctx.strokeStyle = up?'#22c55e':'#ef4444';
-      ctx.fillStyle = up?'#22c55e':'#ef4444';
-      ctx.beginPath(); ctx.moveTo(cx,highY); ctx.lineTo(cx,lowY); ctx.stroke();
-      ctx.fillRect(cx-candleW/2, Math.min(openY,closeY), candleW, Math.max(1,Math.abs(closeY-openY)));
+      const up=c.close>=c.open;
+      ctx.strokeStyle=up?'#22c55e':'#ef4444';
+      ctx.fillStyle=up?'#22c55e':'#ef4444';
+      ctx.beginPath();ctx.moveTo(cx,highY);ctx.lineTo(cx,lowY);ctx.stroke();
+      ctx.fillRect(cx-candleW/2,Math.min(openY,closeY),candleW,Math.max(1,Math.abs(closeY-openY)));
     });
-    ctx.strokeStyle='#e8e9f0'; ctx.lineWidth=1.6; ctx.beginPath();
-    sliceEma.forEach((v,i)=>{const idx=start+i; if(i===0) ctx.moveTo(x(idx),y(v)); else ctx.lineTo(x(idx),y(v));});
+
+    // EMA
+    ctx.strokeStyle='#e8e9f0'; ctx.lineWidth=1.7; ctx.beginPath();
+    sliceEma.forEach((v,i)=>{const idx=start+i; if(i===0) ctx.moveTo(x(idx),y(v)); else ctx.lineTo(x(idx),y(v))});
     ctx.stroke();
-    if(s.signal && projIndex!==null && finite(s.signal.tp,s.signal.sl,s.signal.entry,s.signal.p1.price,s.signal.p2.price)){
-      const {p1,p2,tp,sl,entry,dir} = s.signal;
-      const color = dir==='SELL'?'#3b82f6':'#22d3ee';
+
+    // current price line
+    const py=y(sliceCandles[sliceCandles.length-1].close);
+    ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.setLineDash([4,4]); ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke(); ctx.setLineDash([]);
+
+    if(s.signal&&projIndex!==null&&finite(s.signal.tp,s.signal.sl,s.signal.entry,s.signal.p1.price,s.signal.p2.price)){
+      const {p1,p2,tp,sl,entry,dir}=s.signal;
+      const color=dir==='SELL'?'#3b82f6':'#22d3ee';
       [p1,p2].forEach(p=>{
         const px=x(p.index), py=y(p.price);
         if(!finite(px,py)) return;
-        ctx.fillStyle=color; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+        ctx.fillStyle=color; ctx.beginPath();ctx.arc(px,py,4.5,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#fff';ctx.lineWidth=1.2;ctx.stroke();
       });
       const tpX=x(projIndex), tpY=y(tp);
       if(finite(tpX,tpY)){
-        ctx.strokeStyle=color; ctx.lineWidth=1.4;
-        ctx.beginPath(); ctx.moveTo(x(p1.index),y(p1.price)); ctx.lineTo(tpX,tpY); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(x(p2.index),y(p2.price)); ctx.lineTo(tpX,tpY); ctx.stroke();
-        ctx.fillStyle='#22d3ee'; ctx.beginPath(); ctx.arc(tpX,tpY,5,0,Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+        ctx.strokeStyle=color; ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(x(p1.index),y(p1.price));ctx.lineTo(tpX,tpY);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x(p2.index),y(p2.price));ctx.lineTo(tpX,tpY);ctx.stroke();
+        ctx.fillStyle='#22d3ee';ctx.beginPath();ctx.arc(tpX,tpY,5.5,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#fff';ctx.lineWidth=1.2;ctx.stroke();
       }
-      function hLine(val,col){
+      function hLine(val,col,dash=true){
         const vy=y(val); if(!finite(vy)) return;
-        ctx.strokeStyle=col; ctx.setLineDash([5,3]); ctx.lineWidth=1.2;
-        ctx.beginPath(); ctx.moveTo(0,vy); ctx.lineTo(W,vy); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle=col; ctx.setLineDash(dash?[5,3]:[]); ctx.lineWidth=1.3;
+        ctx.beginPath();ctx.moveTo(0,vy);ctx.lineTo(W,vy);ctx.stroke(); ctx.setLineDash([]);
       }
-      hLine(entry,'#ef4444'); hLine(sl,'#ef4444'); hLine(tp,'#22d3ee');
+      hLine(entry,'#f87171'); hLine(sl,'#ef4444'); hLine(tp,'#22d3ee',false);
     }
-  }catch(e){console.error(e);}
+  }catch(e){console.error(e)}
 }
+
+// live UTC clock + peak hint
+function tickClock(){
+  const now=new Date();
+  const h=now.getUTCHours().toString().padStart(2,'0');
+  const m=now.getUTCMinutes().toString().padStart(2,'0');
+  const peak=[9,11,14,21].includes(+h);
+  document.getElementById('utcClock').innerHTML=`UTC ${h}:${m}${peak?' <span class="peak">· peak window</span>':''}`;
+}
+setInterval(tickClock,1000); tickClock();
 
 connect();
 </script>
