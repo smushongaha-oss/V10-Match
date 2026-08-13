@@ -3,58 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>US Tech 100 • R_100 + 1HZ100V</title>
+<title>Volatility Indices • Live Signal + Terminal</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#05070a;font-family:'Inter',sans-serif;color:#e6edf3;min-height:100vh;padding:20px;display:flex;flex-direction:column;align-items:center;gap:24px}
-  .container{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;width:100%;max-width:1100px}
-  .card{background:#161b22;border-radius:20px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.6);border:1px solid #30363d}
-  .header{background:linear-gradient(90deg,#0d1117,#161b22);padding:22px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #30363d}
-  .title{font-size:20px;font-weight:700}
-  .badge{background:#238636;color:#fff;font-weight:700;font-size:13px;padding:6px 14px;border-radius:50px;animation:pulse 2s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(35,134,54,.7)}70%{box-shadow:0 0 0 10px rgba(35,134,54,0)}100%{box-shadow:0 0 0 0 rgba(35,134,54,0)}}
-  .body{padding:24px}
-  .meta{display:flex;justify-content:space-between;font-size:13px;color:#8b949e;margin-bottom:16px}
-  .selector{margin-bottom:20px;text-align:center}
-  select{background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:8px;padding:8px 14px;font-size:14px;font-family:inherit;outline:none;cursor:pointer}
-  .price-section{text-align:center;margin-bottom:28px}
-  .live-price{font-size:36px;font-weight:700;color:#58a6ff;letter-spacing:-1px}
-  .price-change{font-size:14px;margin-top:4px}
-  .up{color:#3fb950}.down{color:#f85149}
-  .countdown{background:#0d1117;border-radius:12px;padding:12px;text-align:center;margin-bottom:24px;border:1px solid #30363d}
-  .countdown span{font-size:18px;font-weight:600;color:#ffa657}
-  .levels{display:flex;flex-direction:column;gap:10px}
-  .row{display:flex;justify-content:space-between;align-items:center;background:#0d1117;padding:14px 18px;border-radius:12px;border-left:5px solid}
-  .entry{border-color:#238636}.sl{border-color:#da3633}.tp1{border-color:#d29922}.tp2{border-color:#bf8700}.tp3{border-color:#9e6a03}
-  .label{font-size:13px;font-weight:500;color:#8b949e}
-  .value{font-size:16px;font-weight:700}
-  .entry .value{color:#3fb950}.sl .value{color:#f85149}.tp1 .value{color:#d29922}.tp2 .value{color:#bf8700}.tp3 .value{color:#9e6a03}
-  .footer{margin-top:24px;text-align:center;font-size:12px;color:#6e7681;line-height:1.6}
-  .rr{display:inline-block;background:#21262d;color:#58a6ff;padding:4px 12px;border-radius:20px;margin-top:8px;font-weight:600}
-  .terminal{background:#0a0c10;border-radius:16px;width:100%;max-width:560px;border:1px solid #1f2937;box-shadow:0 0 40px rgba(0,255,150,.05);overflow:hidden;font-family:'JetBrains Mono',monospace}
-  .term-header{background:#111827;padding:12px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1f2937}
-  .dot{width:12px;height:12px;border-radius:50%}
-  .dot.red{background:#ef4444}.dot.yellow{background:#eab308}.dot.green{background:#22c55e}
-  .term-title{margin-left:12px;font-size:13px;color:#9ca3af}
-  .term-body{height:480px;overflow-y:auto;padding:16px;font-size:13px;line-height:1.6;color:#86efac}
-  .term-body::-webkit-scrollbar{width:6px}
-  .term-body::-webkit-scrollbar-track{background:#0a0c10}
-  .term-body::-webkit-scrollbar-thumb{background:#1f2937;border-radius:3px}
-  .log{margin-bottom:6px;opacity:0;animation:fadeIn .4s forwards}
-  .log.info{color:#67e8f9}.log.success{color:#4ade80}.log.warn{color:#fbbf24}.log.error{color:#f87171}.log.process{color:#a5b4fc}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-  .status-bar{background:#0f172a;padding:10px 16px;display:flex;justify-content:space-between;font-size:11px;color:#64748b;border-top:1px solid #1e293b}
-  .status-item span{color:#94a3b8}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #05070a;
+    font-family: 'Inter', sans-serif;
+    color: #e6edf3;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  .card {
+    background: #161b22;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 440px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
+    border: 1px solid #30363d;
+  }
+
+  .header {
+    background: linear-gradient(90deg, #0d1117, #161b22);
+    padding: 22px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+  }
+
+  .title { font-size: 20px; font-weight: 700; }
+
+  .badge {
+    background: #238636;
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 50px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(35, 134, 54, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0); }
+  }
+
+  .body { padding: 24px; }
+
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #8b949e;
+    margin-bottom: 16px;
+  }
+
+  .selector {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  select {
+    background: #0d1117;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .price-section { text-align: center; margin-bottom: 28px; }
+
+  .live-price {
+    font-size: 36px;
+    font-weight: 700;
+    color: #58a6ff;
+    letter-spacing: -1px;
+  }
+
+  .price-change { font-size: 14px; margin-top: 4px; }
+  .up { color: #3fb950; }
+  .down { color: #f85149; }
+
+  .countdown {
+    background: #0d1117;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    margin-bottom: 24px;
+    border: 1px solid #30363d;
+  }
+
+  .countdown span {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffa657;
+  }
+
+  .levels { display: flex; flex-direction: column; gap: 10px; }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0d1117;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border-left: 5px solid;
+  }
+
+  .entry { border-color: #238636; }
+  .sl   { border-color: #da3633; }
+  .tp1  { border-color: #d29922; }
+  .tp2  { border-color: #bf8700; }
+  .tp3  { border-color: #9e6a03; }
+
+  .label { font-size: 13px; font-weight: 500; color: #8b949e; }
+  .value { font-size: 16px; font-weight: 700; }
+
+  .entry .value { color: #3fb950; }
+  .sl .value   { color: #f85149; }
+  .tp1 .value  { color: #d29922; }
+  .tp2 .value  { color: #bf8700; }
+  .tp3 .value  { color: #9e6a03; }
+
+  .footer {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 12px;
+    color: #6e7681;
+    line-height: 1.6;
+  }
+
+  .rr {
+    display: inline-block;
+    background: #21262d;
+    color: #58a6ff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-top: 8px;
+    font-weight: 600;
+  }
+
+  .terminal {
+    background: #0a0c10;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    border: 1px solid #1f2937;
+    box-shadow: 0 0 40px rgba(0, 255, 150, 0.05);
+    overflow: hidden;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .term-header {
+    background: #111827;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #1f2937;
+  }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.red { background: #ef4444; }
+  .dot.yellow { background: #eab308; }
+  .dot.green { background: #22c55e; }
+
+  .term-title {
+    margin-left: 12px;
+    font-size: 13px;
+    color: #9ca3af;
+  }
+
+  .term-body {
+    height: 480px;
+    overflow-y: auto;
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #86efac;
+  }
+
+  .term-body::-webkit-scrollbar { width: 6px; }
+  .term-body::-webkit-scrollbar-track { background: #0a0c10; }
+  .term-body::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
+
+  .log { margin-bottom: 6px; opacity: 0; animation: fadeIn 0.4s forwards; }
+  .log.info { color: #67e8f9; }
+  .log.success { color: #4ade80; }
+  .log.warn { color: #fbbf24; }
+  .log.error { color: #f87171; }
+  .log.process { color: #a5b4fc; }
+
+  .prompt { color: #22d3ee; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .status-bar {
+    background: #0f172a;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #64748b;
+    border-top: 1px solid #1e293b;
+  }
+
+  .status-item span { color: #94a3b8; }
 </style>
 </head>
 <body>
+
 <div class="container">
+
   <div class="card">
     <div class="header">
-      <div class="title">US Tech 100</div>
-      <div class="badge">BUY</div>
+      <div class="title">Volatility Index</div>
+      <div class="badge" id="badge">BUY</div>
     </div>
+
     <div class="body">
       <div class="meta">
         <span id="symbolLabel">M15 • R_100</span>
@@ -65,6 +256,10 @@
         <select id="symbolSelect">
           <option value="R_100">Volatility 100 (R_100)</option>
           <option value="1HZ100V">Volatility 100 1s (1HZ100V)</option>
+          <option value="R_75">Volatility 75 (R_75)</option>
+          <option value="R_50">Volatility 50 (R_50)</option>
+          <option value="BOOM1000">Boom 1000</option>
+          <option value="CRASH1000">Crash 1000</option>
         </select>
       </div>
 
@@ -72,20 +267,38 @@
         <div class="live-price" id="livePrice">—</div>
         <div class="price-change" id="priceChange">connecting…</div>
       </div>
+
       <div class="countdown">
         Next M15 candle in: <span id="timer">--:--</span>
       </div>
+
       <div class="levels">
-        <div class="row entry"><span class="label">ENTRY ZONE</span><span class="value">29,770 – 29,790</span></div>
-        <div class="row sl"><span class="label">STOP LOSS</span><span class="value">29,680</span></div>
-        <div class="row tp1"><span class="label">TAKE PROFIT 1</span><span class="value">29,850</span></div>
-        <div class="row tp2"><span class="label">TAKE PROFIT 2</span><span class="value">29,900</span></div>
-        <div class="row tp3"><span class="label">TAKE PROFIT 3</span><span class="value">29,950+</span></div>
+        <div class="row entry">
+          <span class="label">ENTRY ZONE</span>
+          <span class="value" id="entry">—</span>
+        </div>
+        <div class="row sl">
+          <span class="label">STOP LOSS</span>
+          <span class="value" id="sl">—</span>
+        </div>
+        <div class="row tp1">
+          <span class="label">TAKE PROFIT 1</span>
+          <span class="value" id="tp1">—</span>
+        </div>
+        <div class="row tp2">
+          <span class="label">TAKE PROFIT 2</span>
+          <span class="value" id="tp2">—</span>
+        </div>
+        <div class="row tp3">
+          <span class="label">TAKE PROFIT 3</span>
+          <span class="value" id="tp3">—</span>
+        </div>
       </div>
+
       <div class="footer">
         Risk : Reward ≈ 1 : 2.5 – 3<br>
         <div class="rr">Wait for pullback into entry zone</div><br>
-        Live data via Deriv public feed
+        Live data via Deriv public WebSocket
       </div>
     </div>
   </div>
@@ -95,60 +308,70 @@
       <div class="dot red"></div>
       <div class="dot yellow"></div>
       <div class="dot green"></div>
-      <div class="term-title">DERIV PUBLIC FEED</div>
+      <div class="term-title">GROK_SIGNAL_ENGINE // VOLATILITY</div>
     </div>
+
     <div class="term-body" id="terminal"></div>
+
     <div class="status-bar">
       <div class="status-item">STATUS: <span id="status">CONNECTING</span></div>
       <div class="status-item">LATENCY: <span id="latency">--</span></div>
       <div class="status-item">FEED: <span>Deriv Public</span></div>
     </div>
   </div>
+
 </div>
 
 <script>
 const WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public";
-
 let currentSymbol = "R_100";
 let price = null, basePrice = null, ws = null, lastTickTime = Date.now(), reqId = 1;
 
 const terminal = document.getElementById('terminal');
 const statusEl = document.getElementById('status');
 const latencyEl = document.getElementById('latency');
-const symbolSelect = document.getElementById('symbolSelect');
-const symbolLabel = document.getElementById('symbolLabel');
 
-function log(msg, type="info") {
+function log(msg, type = "info") {
   const div = document.createElement("div");
   div.className = `log ${type}`;
   div.innerHTML = msg;
   terminal.appendChild(div);
   terminal.scrollTop = terminal.scrollHeight;
-  while (terminal.children.length > 50) terminal.removeChild(terminal.firstChild);
+  while (terminal.children.length > 55) terminal.removeChild(terminal.firstChild);
 }
 
 function updateLivePrice(p) {
   if (!basePrice) basePrice = p;
   price = p;
   document.getElementById('livePrice').textContent = p.toFixed(2);
+
   const pct = ((p - basePrice) / basePrice * 100).toFixed(2);
   const el = document.getElementById('priceChange');
   el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
   el.className = 'price-change ' + (pct >= 0 ? 'up' : 'down');
+
+  // Simple dynamic levels (example)
+  const entryLow = (p * 0.9985).toFixed(2);
+  const entryHigh = (p * 0.9995).toFixed(2);
+  document.getElementById('entry').textContent = `${entryLow} – ${entryHigh}`;
+  document.getElementById('sl').textContent = (p * 0.995).toFixed(2);
+  document.getElementById('tp1').textContent = (p * 1.003).toFixed(2);
+  document.getElementById('tp2').textContent = (p * 1.006).toFixed(2);
+  document.getElementById('tp3').textContent = (p * 1.01).toFixed(2) + "+";
 }
 
 function connect() {
   if (ws) try { ws.close(); } catch(e){}
+  basePrice = null;
 
   log(`root@grok:~$ connecting to ${currentSymbol}…`, "process");
   statusEl.textContent = "CONNECTING";
   statusEl.style.color = "#fbbf24";
-  basePrice = null;
 
   ws = new WebSocket(WS_URL);
 
   ws.onopen = () => {
-    log("[OK] Connected to public feed", "success");
+    log("[OK] WebSocket connected to Deriv public feed", "success");
     statusEl.textContent = "LIVE";
     statusEl.style.color = "#4ade80";
 
@@ -156,7 +379,7 @@ function connect() {
     ws.send(JSON.stringify({
       ticks_history: currentSymbol,
       adjust_start_time: 1,
-      count: 80,
+      count: 100,
       end: "latest",
       style: "candles",
       granularity: 900,
@@ -170,7 +393,7 @@ function connect() {
     try {
       const data = JSON.parse(e.data);
       if (data.error) {
-        log(`[ERROR] ${data.error.message || data.error.code}`, "error");
+        log(`[ERROR] ${data.error.message || JSON.stringify(data.error)}`, "error");
         return;
       }
 
@@ -179,7 +402,7 @@ function connect() {
         if (candles.length) {
           const last = candles[candles.length - 1];
           updateLivePrice(+last.close);
-          log(`[DATA] ${candles.length} candles • last: ${(+last.close).toFixed(2)}`, "success");
+          log(`[DATA] ${candles.length} candles loaded • last close: ${(+last.close).toFixed(2)}`, "success");
         }
       }
 
@@ -189,45 +412,47 @@ function connect() {
         const now = Date.now();
         latencyEl.textContent = (now - lastTickTime) + "ms";
         lastTickTime = now;
-        log(`[LIVE] ${(+c.close).toFixed(2)}  O:${(+c.open).toFixed(2)} H:${(+c.high).toFixed(2)} L:${(+c.low).toFixed(2)}`, "info");
+        log(`[TICK] ${(+c.close).toFixed(2)}  O:${(+c.open).toFixed(2)} H:${(+c.high).toFixed(2)} L:${(+c.low).toFixed(2)}`, "info");
       }
     } catch (err) {}
   };
 
   ws.onclose = () => {
-    log("[WARN] Disconnected – reconnecting…", "warn");
+    log("[WARN] Connection closed – reconnecting in 4s…", "warn");
     statusEl.textContent = "RECONNECTING";
     statusEl.style.color = "#fbbf24";
     setTimeout(connect, 4000);
   };
 
   ws.onerror = () => {
-    log("[ERROR] Connection error", "error");
+    log("[ERROR] WebSocket error", "error");
     statusEl.textContent = "ERROR";
     statusEl.style.color = "#f87171";
   };
 }
 
 // Symbol switcher
-symbolSelect.addEventListener("change", () => {
-  currentSymbol = symbolSelect.value;
-  symbolLabel.textContent = `M15 • ${currentSymbol}`;
+document.getElementById('symbolSelect').addEventListener('change', function() {
+  currentSymbol = this.value;
+  document.getElementById('symbolLabel').textContent = `M15 • ${currentSymbol}`;
   log(`Switching to ${currentSymbol}…`, "process");
   connect();
 });
 
 function updateTimer() {
   const now = new Date();
-  const m = 14 - (now.getMinutes() % 15);
-  const s = 59 - now.getSeconds();
-  document.getElementById('timer').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  const minsLeft = 14 - (now.getMinutes() % 15);
+  const secsLeft = 59 - now.getSeconds();
+  document.getElementById('timer').textContent = 
+    String(minsLeft).padStart(2,'0') + ':' + String(secsLeft).padStart(2,'0');
 }
 
 document.getElementById('datetime').textContent = new Date().toLocaleString('en-GB', {
-  day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+  day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
 });
 
-log("root@grok:~$ Both R_100 + 1HZ100V version ready", "info");
+log("root@grok:~$ Volatility Indices Signal Engine starting…", "info");
+log("Supporting R_100, 1HZ100V, Boom & Crash", "process");
 connect();
 setInterval(updateTimer, 1000);
 updateTimer();
