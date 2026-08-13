@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>US Tech 100 • Live Signal (R_100)</title>
+<title>US Tech 100 • R_100 + 1HZ100V</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -15,7 +15,9 @@
   .badge{background:#238636;color:#fff;font-weight:700;font-size:13px;padding:6px 14px;border-radius:50px;animation:pulse 2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(35,134,54,.7)}70%{box-shadow:0 0 0 10px rgba(35,134,54,0)}100%{box-shadow:0 0 0 0 rgba(35,134,54,0)}}
   .body{padding:24px}
-  .meta{display:flex;justify-content:space-between;font-size:13px;color:#8b949e;margin-bottom:20px}
+  .meta{display:flex;justify-content:space-between;font-size:13px;color:#8b949e;margin-bottom:16px}
+  .selector{margin-bottom:20px;text-align:center}
+  select{background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:8px;padding:8px 14px;font-size:14px;font-family:inherit;outline:none;cursor:pointer}
   .price-section{text-align:center;margin-bottom:28px}
   .live-price{font-size:36px;font-weight:700;color:#58a6ff;letter-spacing:-1px}
   .price-change{font-size:14px;margin-top:4px}
@@ -55,9 +57,17 @@
     </div>
     <div class="body">
       <div class="meta">
-        <span>M15 • Deriv R_100</span>
+        <span id="symbolLabel">M15 • R_100</span>
         <span id="datetime"></span>
       </div>
+
+      <div class="selector">
+        <select id="symbolSelect">
+          <option value="R_100">Volatility 100 (R_100)</option>
+          <option value="1HZ100V">Volatility 100 1s (1HZ100V)</option>
+        </select>
+      </div>
+
       <div class="price-section">
         <div class="live-price" id="livePrice">—</div>
         <div class="price-change" id="priceChange">connecting…</div>
@@ -75,7 +85,7 @@
       <div class="footer">
         Risk : Reward ≈ 1 : 2.5 – 3<br>
         <div class="rr">Wait for pullback into entry zone</div><br>
-        Live data via Deriv public feed (R_100)
+        Live data via Deriv public feed
       </div>
     </div>
   </div>
@@ -85,7 +95,7 @@
       <div class="dot red"></div>
       <div class="dot yellow"></div>
       <div class="dot green"></div>
-      <div class="term-title">DERIV PUBLIC // R_100</div>
+      <div class="term-title">DERIV PUBLIC FEED</div>
     </div>
     <div class="term-body" id="terminal"></div>
     <div class="status-bar">
@@ -98,13 +108,15 @@
 
 <script>
 const WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public";
-const SYMBOL = "R_100";          // Volatility 100 Index
 
+let currentSymbol = "R_100";
 let price = null, basePrice = null, ws = null, lastTickTime = Date.now(), reqId = 1;
 
 const terminal = document.getElementById('terminal');
 const statusEl = document.getElementById('status');
 const latencyEl = document.getElementById('latency');
+const symbolSelect = document.getElementById('symbolSelect');
+const symbolLabel = document.getElementById('symbolLabel');
 
 function log(msg, type="info") {
   const div = document.createElement("div");
@@ -126,9 +138,12 @@ function updateLivePrice(p) {
 }
 
 function connect() {
-  log("root@grok:~$ connecting to Deriv public WebSocket…", "process");
+  if (ws) try { ws.close(); } catch(e){}
+
+  log(`root@grok:~$ connecting to ${currentSymbol}…`, "process");
   statusEl.textContent = "CONNECTING";
   statusEl.style.color = "#fbbf24";
+  basePrice = null;
 
   ws = new WebSocket(WS_URL);
 
@@ -139,16 +154,16 @@ function connect() {
 
     const id = reqId++;
     ws.send(JSON.stringify({
-      ticks_history: SYMBOL,
+      ticks_history: currentSymbol,
       adjust_start_time: 1,
-      count: 100,
+      count: 80,
       end: "latest",
       style: "candles",
-      granularity: 900,      // M15
+      granularity: 900,
       subscribe: 1,
       req_id: id
     }));
-    log(`root@grok:~$ subscribed to ${SYMBOL} (M15 + live)`, "info");
+    log(`root@grok:~$ subscribed to ${currentSymbol} (M15 + live)`, "info");
   };
 
   ws.onmessage = (e) => {
@@ -164,7 +179,7 @@ function connect() {
         if (candles.length) {
           const last = candles[candles.length - 1];
           updateLivePrice(+last.close);
-          log(`[DATA] ${candles.length} candles loaded • last: ${(+last.close).toFixed(2)}`, "success");
+          log(`[DATA] ${candles.length} candles • last: ${(+last.close).toFixed(2)}`, "success");
         }
       }
 
@@ -180,7 +195,7 @@ function connect() {
   };
 
   ws.onclose = () => {
-    log("[WARN] Disconnected – reconnecting in 4s…", "warn");
+    log("[WARN] Disconnected – reconnecting…", "warn");
     statusEl.textContent = "RECONNECTING";
     statusEl.style.color = "#fbbf24";
     setTimeout(connect, 4000);
@@ -193,6 +208,14 @@ function connect() {
   };
 }
 
+// Symbol switcher
+symbolSelect.addEventListener("change", () => {
+  currentSymbol = symbolSelect.value;
+  symbolLabel.textContent = `M15 • ${currentSymbol}`;
+  log(`Switching to ${currentSymbol}…`, "process");
+  connect();
+});
+
 function updateTimer() {
   const now = new Date();
   const m = 14 - (now.getMinutes() % 15);
@@ -204,8 +227,7 @@ document.getElementById('datetime').textContent = new Date().toLocaleString('en-
   day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
 });
 
-log("root@grok:~$ Best version starting…", "info");
-log("Using Deriv public feed + Volatility 100 (R_100)", "process");
+log("root@grok:~$ Both R_100 + 1HZ100V version ready", "info");
 connect();
 setInterval(updateTimer, 1000);
 updateTimer();
