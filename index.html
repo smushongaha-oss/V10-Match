@@ -30,7 +30,6 @@
     max-width: 1100px;
   }
 
-  /* ===== SIGNAL CARD ===== */
   .card {
     background: #161b22;
     border-radius: 20px;
@@ -151,7 +150,6 @@
     font-weight: 600;
   }
 
-  /* ===== TERMINAL ===== */
   .terminal {
     background: #0a0c10;
     border-radius: 16px;
@@ -204,19 +202,6 @@
   .log.process { color: #a5b4fc; }
 
   .prompt { color: #22d3ee; }
-  .cursor {
-    display: inline-block;
-    width: 8px;
-    height: 14px;
-    background: #22d3ee;
-    margin-left: 2px;
-    animation: blink 1s infinite;
-  }
-
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-  }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
@@ -240,7 +225,6 @@
 
 <div class="container">
 
-  <!-- SIGNAL CARD -->
   <div class="card">
     <div class="header">
       <div class="title">US Tech 100</div>
@@ -249,17 +233,17 @@
 
     <div class="body">
       <div class="meta">
-        <span>M15 • Deriv CFD</span>
+        <span>M15 • Live (R_100 proxy)</span>
         <span id="datetime">13 Aug 2026</span>
       </div>
 
       <div class="price-section">
-        <div class="live-price" id="livePrice">29,790.60</div>
-        <div class="price-change up" id="priceChange">+0.18%</div>
+        <div class="live-price" id="livePrice">—</div>
+        <div class="price-change up" id="priceChange">connecting…</div>
       </div>
 
       <div class="countdown">
-        Next M15 candle in: <span id="timer">14:37</span>
+        Next M15 candle in: <span id="timer">--:--</span>
       </div>
 
       <div class="levels">
@@ -288,18 +272,18 @@
       <div class="footer">
         Risk : Reward ≈ 1 : 2.5 – 3<br>
         <div class="rr">Wait for pullback into entry zone</div><br>
-        ⚠️ Leveraged CFD – High risk of loss
+        ⚠️ Live data via Deriv public feed (R_100 proxy)<br>
+        Real Nasdaq-100 is not available on this public endpoint
       </div>
     </div>
   </div>
 
-  <!-- TERMINAL -->
   <div class="terminal">
     <div class="term-header">
       <div class="dot red"></div>
       <div class="dot yellow"></div>
       <div class="dot green"></div>
-      <div class="term-title">GROK_SIGNAL_ENGINE // US_TECH_100</div>
+      <div class="term-title">GROK_SIGNAL_ENGINE // LIVE</div>
     </div>
 
     <div class="term-body" id="terminal"></div>
@@ -307,27 +291,22 @@
     <div class="status-bar">
       <div class="status-item">STATUS: <span id="status">CONNECTING</span></div>
       <div class="status-item">LATENCY: <span id="latency">--</span></div>
-      <div class="status-item">FEED: <span id="feedType">WebSocket</span></div>
+      <div class="status-item">FEED: <span id="feedType">Deriv Public</span></div>
     </div>
   </div>
 
 </div>
 
 <script>
-  // ====================== CONFIG ======================
-  // Replace this with your real WebSocket endpoint
-  // Examples:
-  // Deriv:     wss://ws.derivws.com/websockets/v3?app_id=YOUR_APP_ID
-  // Or any other market data provider
-  const WS_URL = "wss://echo.websocket.events";   // ← PLACEHOLDER (change this)
+  // ====================== REAL DERIV PUBLIC WEBSOCKET ======================
+  const WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public";
+  const SYMBOL = "R_100";          // Volatility 100 – best high-vol proxy available on public feed
 
-  // ====================================================
-
-  let price = 29790.60;
-  const basePrice = 29790.60;
+  let price = null;
+  let basePrice = null;
   let ws = null;
-  let useSimulation = true;
   let lastTickTime = Date.now();
+  let reqId = 1;
 
   const terminal = document.getElementById('terminal');
   const statusEl = document.getElementById('status');
@@ -340,88 +319,15 @@
     div.innerHTML = msg;
     terminal.appendChild(div);
     terminal.scrollTop = terminal.scrollHeight;
-
-    // Keep only last 50 lines
-    while (terminal.children.length > 50) {
+    while (terminal.children.length > 60) {
       terminal.removeChild(terminal.firstChild);
     }
   }
 
-  // ====================== WEBSOCKET ======================
-  function connectWebSocket() {
-    log(`root@grok:~$ connecting to WebSocket → ${WS_URL}`, "process");
-    statusEl.textContent = "CONNECTING";
-    statusEl.style.color = "#fbbf24";
-
-    try {
-      ws = new WebSocket(WS_URL);
-
-      ws.onopen = () => {
-        log("[OK] WebSocket connection established", "success");
-        statusEl.textContent = "LIVE";
-        statusEl.style.color = "#4ade80";
-        feedTypeEl.textContent = "WebSocket";
-        useSimulation = false;
-
-        // Example: subscribe to US Tech 100 (Deriv format example)
-        // ws.send(JSON.stringify({
-        //   ticks: "R_100",          // or the correct symbol for US Tech 100
-        //   subscribe: 1
-        // }));
-
-        log("root@grok:~$ subscribed to US Tech 100 ticks", "info");
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-
-          // === ADAPT THIS PART TO YOUR PROVIDER ===
-          // Example for a generic tick:
-          // if (data.tick && data.tick.quote) {
-          //   updateLivePrice(data.tick.quote);
-          // }
-
-          // For demo with echo server we just show the message
-          log(`[WS] ${event.data.substring(0, 80)}...`, "info");
-        } catch (e) {
-          // plain text message
-          log(`[WS] ${event.data}`, "info");
-        }
-
-        // Calculate latency
-        const now = Date.now();
-        latencyEl.textContent = (now - lastTickTime) + "ms";
-        lastTickTime = now;
-      };
-
-      ws.onerror = () => {
-        log("[ERROR] WebSocket error – falling back to simulation", "error");
-        fallbackToSimulation();
-      };
-
-      ws.onclose = () => {
-        log("[WARN] WebSocket closed – switching to simulation", "warn");
-        fallbackToSimulation();
-      };
-
-    } catch (err) {
-      log(`[ERROR] Failed to create WebSocket: ${err.message}`, "error");
-      fallbackToSimulation();
-    }
-  }
-
-  function fallbackToSimulation() {
-    useSimulation = true;
-    statusEl.textContent = "SIMULATION";
-    statusEl.style.color = "#fbbf24";
-    feedTypeEl.textContent = "Simulated";
-    log("root@grok:~$ running high-quality price simulation...", "process");
-  }
-
-  // ====================== PRICE UPDATE ======================
   function updateLivePrice(newPrice) {
+    if (!basePrice) basePrice = newPrice;
     price = newPrice;
+
     document.getElementById('livePrice').textContent = price.toFixed(2);
 
     const pct = ((price - basePrice) / basePrice * 100).toFixed(2);
@@ -430,47 +336,107 @@
     el.className = 'price-change ' + (pct >= 0 ? 'up' : 'down');
   }
 
-  function simulateTick() {
-    if (!useSimulation) return;
+  function connect() {
+    log(`root@grok:~$ connecting to Deriv public feed…`, "process");
+    statusEl.textContent = "CONNECTING";
+    statusEl.style.color = "#fbbf24";
 
-    const change = (Math.random() - 0.48) * 8;
-    price = Math.max(29750, Math.min(29850, price + change));
-    updateLivePrice(price);
+    ws = new WebSocket(WS_URL);
 
-    const dir = change >= 0 ? "+" : "";
-    log(`[TICK] ${price.toFixed(2)} ${dir}${change.toFixed(2)} • sim feed`, "info");
-    latencyEl.textContent = (30 + Math.floor(Math.random() * 40)) + "ms";
+    ws.onopen = () => {
+      log("[OK] Connected to wss://api.derivws.com/…/public", "success");
+      statusEl.textContent = "LIVE";
+      statusEl.style.color = "#4ade80";
+      feedTypeEl.textContent = "Deriv Public";
+
+      // Request last 100 M15 candles + subscribe to live updates
+      const id = reqId++;
+      ws.send(JSON.stringify({
+        ticks_history: SYMBOL,
+        adjust_start_time: 1,
+        count: 100,
+        end: "latest",
+        style: "candles",
+        granularity: 900,        // M15
+        subscribe: 1,
+        req_id: id
+      }));
+
+      log(`root@grok:~$ subscribed to ${SYMBOL} (M15 candles + live)`, "info");
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.error) {
+          log(`[ERROR] ${data.error.message || data.error.code}`, "error");
+          return;
+        }
+
+        // Historical candles
+        if (data.msg_type === "candles" || (data.candles && data.candles.length)) {
+          const candles = data.candles || [];
+          if (candles.length > 0) {
+            const last = candles[candles.length - 1];
+            updateLivePrice(+last.close);
+            log(`[DATA] Received ${candles.length} candles • last close: ${(+last.close).toFixed(2)}`, "success");
+          }
+        }
+
+        // Live OHLC update
+        if (data.msg_type === "ohlc" && data.ohlc) {
+          const c = data.ohlc;
+          updateLivePrice(+c.close);
+
+          const now = Date.now();
+          latencyEl.textContent = (now - lastTickTime) + "ms";
+          lastTickTime = now;
+
+          log(`[TICK] ${(+c.close).toFixed(2)}  O:${(+c.open).toFixed(2)} H:${(+c.high).toFixed(2)} L:${(+c.low).toFixed(2)}`, "info");
+        }
+
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    ws.onerror = () => {
+      log("[ERROR] WebSocket error", "error");
+      statusEl.textContent = "ERROR";
+      statusEl.style.color = "#f87171";
+    };
+
+    ws.onclose = () => {
+      log("[WARN] Connection closed – reconnecting in 4s…", "warn");
+      statusEl.textContent = "RECONNECTING";
+      statusEl.style.color = "#fbbf24";
+      setTimeout(connect, 4000);
+    };
   }
 
-  // ====================== TIMER ======================
+  // Timer
   function updateTimer() {
     const now = new Date();
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
     const minsLeft = 14 - (minutes % 15);
     const secsLeft = 59 - seconds;
-    
-    document.getElementById('timer').textContent = 
+    document.getElementById('timer').textContent =
       String(minsLeft).padStart(2, '0') + ':' + String(secsLeft).padStart(2, '0');
   }
 
-  // ====================== BOOT ======================
+  // Boot
   document.getElementById('datetime').textContent = new Date().toLocaleString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
 
-  log("root@grok:~$ Grok Signal Engine v2.4 booting...", "info");
-  log("root@grok:~$ loading signal parameters...", "process");
-  log("Signal: BUY | Entry 29770-29790 | SL 29680 | TP1 29850", "success");
+  log("root@grok:~$ Grok Signal Engine starting…", "info");
+  log("root@grok:~$ using real Deriv public WebSocket", "process");
+  log("Note: Real US Tech 100 / NAS100 is not on public feed → using R_100 as live proxy", "warn");
 
-  // Start WebSocket
-  setTimeout(connectWebSocket, 800);
-
-  // Simulation fallback ticks
-  setInterval(simulateTick, 2200);
-
-  // Timer
+  connect();
   setInterval(updateTimer, 1000);
   updateTimer();
 </script>
