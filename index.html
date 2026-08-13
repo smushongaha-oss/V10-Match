@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>US Tech 100 • Live Signal + Terminal Dashboard</title>
+<title>US Tech 100 • Finnhub Live Signal</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -201,8 +201,6 @@
   .log.error { color: #f87171; }
   .log.process { color: #a5b4fc; }
 
-  .prompt { color: #22d3ee; }
-
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
@@ -225,6 +223,7 @@
 
 <div class="container">
 
+  <!-- SIGNAL CARD -->
   <div class="card">
     <div class="header">
       <div class="title">US Tech 100</div>
@@ -233,13 +232,13 @@
 
     <div class="body">
       <div class="meta">
-        <span>M15 • Live (R_100 proxy)</span>
+        <span>M15 • Finnhub (QQQ)</span>
         <span id="datetime">13 Aug 2026</span>
       </div>
 
       <div class="price-section">
         <div class="live-price" id="livePrice">—</div>
-        <div class="price-change up" id="priceChange">connecting…</div>
+        <div class="price-change" id="priceChange">connecting…</div>
       </div>
 
       <div class="countdown">
@@ -272,18 +271,18 @@
       <div class="footer">
         Risk : Reward ≈ 1 : 2.5 – 3<br>
         <div class="rr">Wait for pullback into entry zone</div><br>
-        ⚠️ Live data via Deriv public feed (R_100 proxy)<br>
-        Real Nasdaq-100 is not available on this public endpoint
+        Live data via Finnhub (QQQ proxy for Nasdaq-100)
       </div>
     </div>
   </div>
 
+  <!-- TERMINAL -->
   <div class="terminal">
     <div class="term-header">
       <div class="dot red"></div>
       <div class="dot yellow"></div>
       <div class="dot green"></div>
-      <div class="term-title">GROK_SIGNAL_ENGINE // LIVE</div>
+      <div class="term-title">FINNHUB LIVE FEED // QQQ</div>
     </div>
 
     <div class="term-body" id="terminal"></div>
@@ -291,27 +290,26 @@
     <div class="status-bar">
       <div class="status-item">STATUS: <span id="status">CONNECTING</span></div>
       <div class="status-item">LATENCY: <span id="latency">--</span></div>
-      <div class="status-item">FEED: <span id="feedType">Deriv Public</span></div>
+      <div class="status-item">FEED: <span id="feedType">Finnhub</span></div>
     </div>
   </div>
 
 </div>
 
 <script>
-  // ====================== REAL DERIV PUBLIC WEBSOCKET ======================
-  const WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public";
-  const SYMBOL = "R_100";          // Volatility 100 – best high-vol proxy available on public feed
+  // ====================== FINNHUB CONFIG ======================
+  const API_KEY = "YOUR_FINNHUB_API_KEY";   // ←←← PASTE YOUR KEY HERE
+  const SYMBOL = "QQQ";                     // Best proxy for Nasdaq-100
+  // ============================================================
 
   let price = null;
   let basePrice = null;
   let ws = null;
   let lastTickTime = Date.now();
-  let reqId = 1;
 
   const terminal = document.getElementById('terminal');
   const statusEl = document.getElementById('status');
   const latencyEl = document.getElementById('latency');
-  const feedTypeEl = document.getElementById('feedType');
 
   function log(msg, type = "info") {
     const div = document.createElement("div");
@@ -319,7 +317,7 @@
     div.innerHTML = msg;
     terminal.appendChild(div);
     terminal.scrollTop = terminal.scrollHeight;
-    while (terminal.children.length > 60) {
+    while (terminal.children.length > 55) {
       terminal.removeChild(terminal.firstChild);
     }
   }
@@ -337,81 +335,62 @@
   }
 
   function connect() {
-    log(`root@grok:~$ connecting to Deriv public feed…`, "process");
+    log("root@grok:~$ connecting to Finnhub WebSocket…", "process");
     statusEl.textContent = "CONNECTING";
     statusEl.style.color = "#fbbf24";
 
-    ws = new WebSocket(WS_URL);
+    // Finnhub WebSocket URL includes the token
+    ws = new WebSocket(`wss://ws.finnhub.io?token=${API_KEY}`);
 
     ws.onopen = () => {
-      log("[OK] Connected to wss://api.derivws.com/…/public", "success");
+      log("[OK] Connected to Finnhub", "success");
       statusEl.textContent = "LIVE";
       statusEl.style.color = "#4ade80";
-      feedTypeEl.textContent = "Deriv Public";
 
-      // Request last 100 M15 candles + subscribe to live updates
-      const id = reqId++;
+      // Subscribe to trade updates
       ws.send(JSON.stringify({
-        ticks_history: SYMBOL,
-        adjust_start_time: 1,
-        count: 100,
-        end: "latest",
-        style: "candles",
-        granularity: 900,        // M15
-        subscribe: 1,
-        req_id: id
+        type: "subscribe",
+        symbol: SYMBOL
       }));
 
-      log(`root@grok:~$ subscribed to ${SYMBOL} (M15 candles + live)`, "info");
+      log(`root@grok:~$ subscribed to ${SYMBOL} trades`, "info");
     };
 
     ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+      const data = JSON.parse(event.data);
 
-        if (data.error) {
-          log(`[ERROR] ${data.error.message || data.error.code}`, "error");
-          return;
-        }
+      // Trade data
+      if (data.type === "trade" && data.data && data.data.length > 0) {
+        data.data.forEach(trade => {
+          if (trade.s === SYMBOL) {
+            updateLivePrice(trade.p);   // p = price
 
-        // Historical candles
-        if (data.msg_type === "candles" || (data.candles && data.candles.length)) {
-          const candles = data.candles || [];
-          if (candles.length > 0) {
-            const last = candles[candles.length - 1];
-            updateLivePrice(+last.close);
-            log(`[DATA] Received ${candles.length} candles • last close: ${(+last.close).toFixed(2)}`, "success");
+            const now = Date.now();
+            latencyEl.textContent = (now - lastTickTime) + "ms";
+            lastTickTime = now;
+
+            log(`[TRADE] ${trade.s}  $${trade.p.toFixed(2)}  vol:${trade.v}  ${new Date(trade.t).toLocaleTimeString()}`, "info");
           }
-        }
+        });
+      }
 
-        // Live OHLC update
-        if (data.msg_type === "ohlc" && data.ohlc) {
-          const c = data.ohlc;
-          updateLivePrice(+c.close);
-
-          const now = Date.now();
-          latencyEl.textContent = (now - lastTickTime) + "ms";
-          lastTickTime = now;
-
-          log(`[TICK] ${(+c.close).toFixed(2)}  O:${(+c.open).toFixed(2)} H:${(+c.high).toFixed(2)} L:${(+c.low).toFixed(2)}`, "info");
-        }
-
-      } catch (e) {
-        console.error(e);
+      // Ping / other messages
+      if (data.type === "ping") {
+        // optional: respond if needed
       }
     };
 
     ws.onerror = () => {
-      log("[ERROR] WebSocket error", "error");
+      log("[ERROR] WebSocket error – check your API key", "error");
       statusEl.textContent = "ERROR";
       statusEl.style.color = "#f87171";
     };
 
     ws.onclose = () => {
-      log("[WARN] Connection closed – reconnecting in 4s…", "warn");
+      log("[WARN] Connection closed – reconnecting in 5s…", "warn");
       statusEl.textContent = "RECONNECTING";
       statusEl.style.color = "#fbbf24";
-      setTimeout(connect, 4000);
+      setTimeout(connect, 5000);
     };
   }
 
@@ -432,11 +411,15 @@
     hour: '2-digit', minute: '2-digit'
   });
 
-  log("root@grok:~$ Grok Signal Engine starting…", "info");
-  log("root@grok:~$ using real Deriv public WebSocket", "process");
-  log("Note: Real US Tech 100 / NAS100 is not on public feed → using R_100 as live proxy", "warn");
+  log("root@grok:~$ Grok Signal Engine + Finnhub starting…", "info");
+  log("Using QQQ as live proxy for US Tech 100 / Nasdaq-100", "process");
 
-  connect();
+  if (API_KEY === "YOUR_FINNHUB_API_KEY") {
+    log("[WARN] Please replace YOUR_FINNHUB_API_KEY with your real key", "warn");
+  } else {
+    connect();
+  }
+
   setInterval(updateTimer, 1000);
   updateTimer();
 </script>
