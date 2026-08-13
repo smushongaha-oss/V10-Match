@@ -151,7 +151,7 @@
     font-weight: 600;
   }
 
-  /* ===== TERMINAL DASHBOARD ===== */
+  /* ===== TERMINAL ===== */
   .terminal {
     background: #0a0c10;
     border-radius: 16px;
@@ -223,37 +223,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .progress {
-    height: 6px;
-    background: #1f2937;
-    border-radius: 3px;
-    margin: 8px 0;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #22c55e, #4ade80);
-    width: 0%;
-    transition: width 0.6s ease;
-  }
-
-  .scan-line {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #22c55e, transparent);
-    animation: scan 3s linear infinite;
-    opacity: 0.4;
-  }
-
-  @keyframes scan {
-    0% { top: 0; }
-    100% { top: 100%; }
-  }
-
   .status-bar {
     background: #0f172a;
     padding: 10px 16px;
@@ -296,7 +265,7 @@
       <div class="levels">
         <div class="row entry">
           <span class="label">ENTRY ZONE</span>
-          <span class="value">29,770 – 29,785</span>
+          <span class="value">29,770 – 29,790</span>
         </div>
         <div class="row sl">
           <span class="label">STOP LOSS</span>
@@ -324,7 +293,7 @@
     </div>
   </div>
 
-  <!-- TERMINAL DASHBOARD -->
+  <!-- TERMINAL -->
   <div class="terminal">
     <div class="term-header">
       <div class="dot red"></div>
@@ -333,42 +302,151 @@
       <div class="term-title">GROK_SIGNAL_ENGINE // US_TECH_100</div>
     </div>
 
-    <div class="term-body" id="terminal">
-      <div class="log info"><span class="prompt">root@grok:~$</span> initializing market data pipeline...</div>
-    </div>
+    <div class="term-body" id="terminal"></div>
 
     <div class="status-bar">
-      <div class="status-item">STATUS: <span id="status">SCANNING</span></div>
-      <div class="status-item">LATENCY: <span id="latency">42ms</span></div>
-      <div class="status-item">FEED: <span>LIVE</span></div>
+      <div class="status-item">STATUS: <span id="status">CONNECTING</span></div>
+      <div class="status-item">LATENCY: <span id="latency">--</span></div>
+      <div class="status-item">FEED: <span id="feedType">WebSocket</span></div>
     </div>
   </div>
 
 </div>
 
 <script>
-  // ========== LIVE PRICE ==========
+  // ====================== CONFIG ======================
+  // Replace this with your real WebSocket endpoint
+  // Examples:
+  // Deriv:     wss://ws.derivws.com/websockets/v3?app_id=YOUR_APP_ID
+  // Or any other market data provider
+  const WS_URL = "wss://echo.websocket.events";   // ← PLACEHOLDER (change this)
+
+  // ====================================================
+
   let price = 29790.60;
   const basePrice = 29790.60;
+  let ws = null;
+  let useSimulation = true;
+  let lastTickTime = Date.now();
 
-  function updatePrice() {
-    const change = (Math.random() - 0.48) * 8;
-    price = Math.max(29750, Math.min(29850, price + change));
-    
+  const terminal = document.getElementById('terminal');
+  const statusEl = document.getElementById('status');
+  const latencyEl = document.getElementById('latency');
+  const feedTypeEl = document.getElementById('feedType');
+
+  function log(msg, type = "info") {
+    const div = document.createElement("div");
+    div.className = `log ${type}`;
+    div.innerHTML = msg;
+    terminal.appendChild(div);
+    terminal.scrollTop = terminal.scrollHeight;
+
+    // Keep only last 50 lines
+    while (terminal.children.length > 50) {
+      terminal.removeChild(terminal.firstChild);
+    }
+  }
+
+  // ====================== WEBSOCKET ======================
+  function connectWebSocket() {
+    log(`root@grok:~$ connecting to WebSocket → ${WS_URL}`, "process");
+    statusEl.textContent = "CONNECTING";
+    statusEl.style.color = "#fbbf24";
+
+    try {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        log("[OK] WebSocket connection established", "success");
+        statusEl.textContent = "LIVE";
+        statusEl.style.color = "#4ade80";
+        feedTypeEl.textContent = "WebSocket";
+        useSimulation = false;
+
+        // Example: subscribe to US Tech 100 (Deriv format example)
+        // ws.send(JSON.stringify({
+        //   ticks: "R_100",          // or the correct symbol for US Tech 100
+        //   subscribe: 1
+        // }));
+
+        log("root@grok:~$ subscribed to US Tech 100 ticks", "info");
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          // === ADAPT THIS PART TO YOUR PROVIDER ===
+          // Example for a generic tick:
+          // if (data.tick && data.tick.quote) {
+          //   updateLivePrice(data.tick.quote);
+          // }
+
+          // For demo with echo server we just show the message
+          log(`[WS] ${event.data.substring(0, 80)}...`, "info");
+        } catch (e) {
+          // plain text message
+          log(`[WS] ${event.data}`, "info");
+        }
+
+        // Calculate latency
+        const now = Date.now();
+        latencyEl.textContent = (now - lastTickTime) + "ms";
+        lastTickTime = now;
+      };
+
+      ws.onerror = () => {
+        log("[ERROR] WebSocket error – falling back to simulation", "error");
+        fallbackToSimulation();
+      };
+
+      ws.onclose = () => {
+        log("[WARN] WebSocket closed – switching to simulation", "warn");
+        fallbackToSimulation();
+      };
+
+    } catch (err) {
+      log(`[ERROR] Failed to create WebSocket: ${err.message}`, "error");
+      fallbackToSimulation();
+    }
+  }
+
+  function fallbackToSimulation() {
+    useSimulation = true;
+    statusEl.textContent = "SIMULATION";
+    statusEl.style.color = "#fbbf24";
+    feedTypeEl.textContent = "Simulated";
+    log("root@grok:~$ running high-quality price simulation...", "process");
+  }
+
+  // ====================== PRICE UPDATE ======================
+  function updateLivePrice(newPrice) {
+    price = newPrice;
     document.getElementById('livePrice').textContent = price.toFixed(2);
-    
+
     const pct = ((price - basePrice) / basePrice * 100).toFixed(2);
     const el = document.getElementById('priceChange');
     el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
     el.className = 'price-change ' + (pct >= 0 ? 'up' : 'down');
   }
 
-  // ========== TIMER ==========
+  function simulateTick() {
+    if (!useSimulation) return;
+
+    const change = (Math.random() - 0.48) * 8;
+    price = Math.max(29750, Math.min(29850, price + change));
+    updateLivePrice(price);
+
+    const dir = change >= 0 ? "+" : "";
+    log(`[TICK] ${price.toFixed(2)} ${dir}${change.toFixed(2)} • sim feed`, "info");
+    latencyEl.textContent = (30 + Math.floor(Math.random() * 40)) + "ms";
+  }
+
+  // ====================== TIMER ======================
   function updateTimer() {
     const now = new Date();
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
-    
     const minsLeft = 14 - (minutes % 15);
     const secsLeft = 59 - seconds;
     
@@ -376,89 +454,25 @@
       String(minsLeft).padStart(2, '0') + ':' + String(secsLeft).padStart(2, '0');
   }
 
+  // ====================== BOOT ======================
   document.getElementById('datetime').textContent = new Date().toLocaleString('en-GB', {
-    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
   });
 
-  setInterval(updatePrice, 1800);
+  log("root@grok:~$ Grok Signal Engine v2.4 booting...", "info");
+  log("root@grok:~$ loading signal parameters...", "process");
+  log("Signal: BUY | Entry 29770-29790 | SL 29680 | TP1 29850", "success");
+
+  // Start WebSocket
+  setTimeout(connectWebSocket, 800);
+
+  // Simulation fallback ticks
+  setInterval(simulateTick, 2200);
+
+  // Timer
   setInterval(updateTimer, 1000);
   updateTimer();
-
-  // ========== TERMINAL SIMULATION ==========
-  const terminal = document.getElementById('terminal');
-  const statusEl = document.getElementById('status');
-  const latencyEl = document.getElementById('latency');
-
-  const logs = [
-    { text: "root@grok:~$ connecting to Deriv market feed...", type: "info", delay: 600 },
-    { text: "[OK] WebSocket handshake successful • latency 38ms", type: "success", delay: 900 },
-    { text: "root@grok:~$ fetching M15 OHLC candles (last 120 bars)...", type: "process", delay: 700 },
-    { text: "████████████████████████████████ 100%", type: "success", delay: 1100 },
-    { text: "[DATA] 120 candles loaded • period: 12 Aug 06:00 → 13 Aug 07:00", type: "info", delay: 500 },
-    { text: "root@grok:~$ calculating CCI(14)...", type: "process", delay: 800 },
-    { text: "CCI(14) = 101.37  →  OVERBOUGHT zone detected", type: "warn", delay: 900 },
-    { text: "root@grok:~$ running pattern recognition engine...", type: "process", delay: 700 },
-    { text: "→ Detecting pivot points...", type: "info", delay: 600 },
-    { text: "→ Higher lows confirmed (3 points)", type: "success", delay: 500 },
-    { text: "→ Ascending triangle / rising channel structure found", type: "success", delay: 700 },
-    { text: "root@grok:~$ evaluating moving averages...", type: "process", delay: 600 },
-    { text: "Price > Orange MA (support holding)", type: "success", delay: 500 },
-    { text: "root@grok:~$ computing risk parameters...", type: "process", delay: 800 },
-    { text: "Stop distance: 110 pts (within 150 min stop level)", type: "info", delay: 500 },
-    { text: "R:R ratio calculated → 1 : 2.7", type: "success", delay: 600 },
-    { text: "root@grok:~$ generating final signal...", type: "process", delay: 900 },
-    { text: "╔══════════════════════════════════════╗", type: "success", delay: 300 },
-    { text: "║  SIGNAL: BUY                         ║", type: "success", delay: 200 },
-    { text: "║  ENTRY : 29,770 – 29,790             ║", type: "success", delay: 200 },
-    { text: "║  SL    : 29,680                      ║", type: "success", delay: 200 },
-    { text: "║  TP1   : 29,850                      ║", type: "success", delay: 200 },
-    { text: "║  TP2   : 29,900                      ║", type: "success", delay: 200 },
-    { text: "║  TP3   : 29,950+                     ║", type: "success", delay: 200 },
-    { text: "╚══════════════════════════════════════╝", type: "success", delay: 400 },
-    { text: "[READY] Signal published to dashboard", type: "success", delay: 600 },
-    { text: "root@grok:~$ monitoring live price feed...", type: "info", delay: 800 },
-    { text: "<span class='cursor'></span>", type: "info", delay: 0 }
-  ];
-
-  let i = 0;
-
-  function addLog() {
-    if (i >= logs.length) {
-      statusEl.textContent = "MONITORING";
-      statusEl.style.color = "#4ade80";
-      // keep adding live ticks
-      setInterval(() => {
-        const tick = (Math.random() * 4 - 1.5).toFixed(2);
-        const dir = tick >= 0 ? "+" : "";
-        const log = document.createElement("div");
-        log.className = "log info";
-        log.innerHTML = `[TICK] ${price.toFixed(2)} ${dir}${tick} • feed healthy`;
-        terminal.appendChild(log);
-        terminal.scrollTop = terminal.scrollHeight;
-        // keep only last 40 lines
-        while (terminal.children.length > 45) {
-          terminal.removeChild(terminal.firstChild);
-        }
-      }, 3200);
-      return;
-    }
-
-    const item = logs[i];
-    const log = document.createElement("div");
-    log.className = `log ${item.type}`;
-    log.innerHTML = item.text;
-    terminal.appendChild(log);
-    terminal.scrollTop = terminal.scrollHeight;
-
-    // random latency fluctuation
-    latencyEl.textContent = (30 + Math.floor(Math.random() * 40)) + "ms";
-
-    i++;
-    setTimeout(addLog, item.delay);
-  }
-
-  // start terminal after short delay
-  setTimeout(addLog, 800);
 </script>
 </body>
 </html>
