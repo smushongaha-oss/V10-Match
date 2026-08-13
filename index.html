@@ -3,425 +3,212 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>US Tech 100 • Finnhub Live Signal</title>
+<title>US Tech 100 • Live Signal (R_100)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: #05070a;
-    font-family: 'Inter', sans-serif;
-    color: #e6edf3;
-    min-height: 100vh;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-  }
-
-  .container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    justify-content: center;
-    width: 100%;
-    max-width: 1100px;
-  }
-
-  .card {
-    background: #161b22;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 440px;
-    overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
-    border: 1px solid #30363d;
-  }
-
-  .header {
-    background: linear-gradient(90deg, #0d1117, #161b22);
-    padding: 22px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #30363d;
-  }
-
-  .title { font-size: 20px; font-weight: 700; }
-
-  .badge {
-    background: #238636;
-    color: white;
-    font-weight: 700;
-    font-size: 13px;
-    padding: 6px 14px;
-    border-radius: 50px;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(35, 134, 54, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0); }
-  }
-
-  .body { padding: 24px; }
-
-  .meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: #8b949e;
-    margin-bottom: 20px;
-  }
-
-  .price-section { text-align: center; margin-bottom: 28px; }
-
-  .live-price {
-    font-size: 36px;
-    font-weight: 700;
-    color: #58a6ff;
-    letter-spacing: -1px;
-  }
-
-  .price-change { font-size: 14px; margin-top: 4px; }
-  .up { color: #3fb950; }
-  .down { color: #f85149; }
-
-  .countdown {
-    background: #0d1117;
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
-    margin-bottom: 24px;
-    border: 1px solid #30363d;
-  }
-
-  .countdown span {
-    font-size: 18px;
-    font-weight: 600;
-    color: #ffa657;
-  }
-
-  .levels { display: flex; flex-direction: column; gap: 10px; }
-
-  .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #0d1117;
-    padding: 14px 18px;
-    border-radius: 12px;
-    border-left: 5px solid;
-  }
-
-  .entry { border-color: #238636; }
-  .sl   { border-color: #da3633; }
-  .tp1  { border-color: #d29922; }
-  .tp2  { border-color: #bf8700; }
-  .tp3  { border-color: #9e6a03; }
-
-  .label { font-size: 13px; font-weight: 500; color: #8b949e; }
-  .value { font-size: 16px; font-weight: 700; }
-
-  .entry .value { color: #3fb950; }
-  .sl .value   { color: #f85149; }
-  .tp1 .value  { color: #d29922; }
-  .tp2 .value  { color: #bf8700; }
-  .tp3 .value  { color: #9e6a03; }
-
-  .footer {
-    margin-top: 24px;
-    text-align: center;
-    font-size: 12px;
-    color: #6e7681;
-    line-height: 1.6;
-  }
-
-  .rr {
-    display: inline-block;
-    background: #21262d;
-    color: #58a6ff;
-    padding: 4px 12px;
-    border-radius: 20px;
-    margin-top: 8px;
-    font-weight: 600;
-  }
-
-  .terminal {
-    background: #0a0c10;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 560px;
-    border: 1px solid #1f2937;
-    box-shadow: 0 0 40px rgba(0, 255, 150, 0.05);
-    overflow: hidden;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .term-header {
-    background: #111827;
-    padding: 12px 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-bottom: 1px solid #1f2937;
-  }
-
-  .dot { width: 12px; height: 12px; border-radius: 50%; }
-  .dot.red { background: #ef4444; }
-  .dot.yellow { background: #eab308; }
-  .dot.green { background: #22c55e; }
-
-  .term-title {
-    margin-left: 12px;
-    font-size: 13px;
-    color: #9ca3af;
-  }
-
-  .term-body {
-    height: 480px;
-    overflow-y: auto;
-    padding: 16px;
-    font-size: 13px;
-    line-height: 1.6;
-    color: #86efac;
-  }
-
-  .term-body::-webkit-scrollbar { width: 6px; }
-  .term-body::-webkit-scrollbar-track { background: #0a0c10; }
-  .term-body::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
-
-  .log { margin-bottom: 6px; opacity: 0; animation: fadeIn 0.4s forwards; }
-  .log.info { color: #67e8f9; }
-  .log.success { color: #4ade80; }
-  .log.warn { color: #fbbf24; }
-  .log.error { color: #f87171; }
-  .log.process { color: #a5b4fc; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .status-bar {
-    background: #0f172a;
-    padding: 10px 16px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #64748b;
-    border-top: 1px solid #1e293b;
-  }
-
-  .status-item span { color: #94a3b8; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#05070a;font-family:'Inter',sans-serif;color:#e6edf3;min-height:100vh;padding:20px;display:flex;flex-direction:column;align-items:center;gap:24px}
+  .container{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;width:100%;max-width:1100px}
+  .card{background:#161b22;border-radius:20px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.6);border:1px solid #30363d}
+  .header{background:linear-gradient(90deg,#0d1117,#161b22);padding:22px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #30363d}
+  .title{font-size:20px;font-weight:700}
+  .badge{background:#238636;color:#fff;font-weight:700;font-size:13px;padding:6px 14px;border-radius:50px;animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(35,134,54,.7)}70%{box-shadow:0 0 0 10px rgba(35,134,54,0)}100%{box-shadow:0 0 0 0 rgba(35,134,54,0)}}
+  .body{padding:24px}
+  .meta{display:flex;justify-content:space-between;font-size:13px;color:#8b949e;margin-bottom:20px}
+  .price-section{text-align:center;margin-bottom:28px}
+  .live-price{font-size:36px;font-weight:700;color:#58a6ff;letter-spacing:-1px}
+  .price-change{font-size:14px;margin-top:4px}
+  .up{color:#3fb950}.down{color:#f85149}
+  .countdown{background:#0d1117;border-radius:12px;padding:12px;text-align:center;margin-bottom:24px;border:1px solid #30363d}
+  .countdown span{font-size:18px;font-weight:600;color:#ffa657}
+  .levels{display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;justify-content:space-between;align-items:center;background:#0d1117;padding:14px 18px;border-radius:12px;border-left:5px solid}
+  .entry{border-color:#238636}.sl{border-color:#da3633}.tp1{border-color:#d29922}.tp2{border-color:#bf8700}.tp3{border-color:#9e6a03}
+  .label{font-size:13px;font-weight:500;color:#8b949e}
+  .value{font-size:16px;font-weight:700}
+  .entry .value{color:#3fb950}.sl .value{color:#f85149}.tp1 .value{color:#d29922}.tp2 .value{color:#bf8700}.tp3 .value{color:#9e6a03}
+  .footer{margin-top:24px;text-align:center;font-size:12px;color:#6e7681;line-height:1.6}
+  .rr{display:inline-block;background:#21262d;color:#58a6ff;padding:4px 12px;border-radius:20px;margin-top:8px;font-weight:600}
+  .terminal{background:#0a0c10;border-radius:16px;width:100%;max-width:560px;border:1px solid #1f2937;box-shadow:0 0 40px rgba(0,255,150,.05);overflow:hidden;font-family:'JetBrains Mono',monospace}
+  .term-header{background:#111827;padding:12px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1f2937}
+  .dot{width:12px;height:12px;border-radius:50%}
+  .dot.red{background:#ef4444}.dot.yellow{background:#eab308}.dot.green{background:#22c55e}
+  .term-title{margin-left:12px;font-size:13px;color:#9ca3af}
+  .term-body{height:480px;overflow-y:auto;padding:16px;font-size:13px;line-height:1.6;color:#86efac}
+  .term-body::-webkit-scrollbar{width:6px}
+  .term-body::-webkit-scrollbar-track{background:#0a0c10}
+  .term-body::-webkit-scrollbar-thumb{background:#1f2937;border-radius:3px}
+  .log{margin-bottom:6px;opacity:0;animation:fadeIn .4s forwards}
+  .log.info{color:#67e8f9}.log.success{color:#4ade80}.log.warn{color:#fbbf24}.log.error{color:#f87171}.log.process{color:#a5b4fc}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  .status-bar{background:#0f172a;padding:10px 16px;display:flex;justify-content:space-between;font-size:11px;color:#64748b;border-top:1px solid #1e293b}
+  .status-item span{color:#94a3b8}
 </style>
 </head>
 <body>
-
 <div class="container">
-
-  <!-- SIGNAL CARD -->
   <div class="card">
     <div class="header">
       <div class="title">US Tech 100</div>
       <div class="badge">BUY</div>
     </div>
-
     <div class="body">
       <div class="meta">
-        <span>M15 • Finnhub (QQQ)</span>
-        <span id="datetime">13 Aug 2026</span>
+        <span>M15 • Deriv R_100</span>
+        <span id="datetime"></span>
       </div>
-
       <div class="price-section">
         <div class="live-price" id="livePrice">—</div>
         <div class="price-change" id="priceChange">connecting…</div>
       </div>
-
       <div class="countdown">
         Next M15 candle in: <span id="timer">--:--</span>
       </div>
-
       <div class="levels">
-        <div class="row entry">
-          <span class="label">ENTRY ZONE</span>
-          <span class="value">29,770 – 29,790</span>
-        </div>
-        <div class="row sl">
-          <span class="label">STOP LOSS</span>
-          <span class="value">29,680</span>
-        </div>
-        <div class="row tp1">
-          <span class="label">TAKE PROFIT 1</span>
-          <span class="value">29,850</span>
-        </div>
-        <div class="row tp2">
-          <span class="label">TAKE PROFIT 2</span>
-          <span class="value">29,900</span>
-        </div>
-        <div class="row tp3">
-          <span class="label">TAKE PROFIT 3</span>
-          <span class="value">29,950+</span>
-        </div>
+        <div class="row entry"><span class="label">ENTRY ZONE</span><span class="value">29,770 – 29,790</span></div>
+        <div class="row sl"><span class="label">STOP LOSS</span><span class="value">29,680</span></div>
+        <div class="row tp1"><span class="label">TAKE PROFIT 1</span><span class="value">29,850</span></div>
+        <div class="row tp2"><span class="label">TAKE PROFIT 2</span><span class="value">29,900</span></div>
+        <div class="row tp3"><span class="label">TAKE PROFIT 3</span><span class="value">29,950+</span></div>
       </div>
-
       <div class="footer">
         Risk : Reward ≈ 1 : 2.5 – 3<br>
         <div class="rr">Wait for pullback into entry zone</div><br>
-        Live data via Finnhub (QQQ proxy for Nasdaq-100)
+        Live data via Deriv public feed (R_100)
       </div>
     </div>
   </div>
 
-  <!-- TERMINAL -->
   <div class="terminal">
     <div class="term-header">
       <div class="dot red"></div>
       <div class="dot yellow"></div>
       <div class="dot green"></div>
-      <div class="term-title">FINNHUB LIVE FEED // QQQ</div>
+      <div class="term-title">DERIV PUBLIC // R_100</div>
     </div>
-
     <div class="term-body" id="terminal"></div>
-
     <div class="status-bar">
       <div class="status-item">STATUS: <span id="status">CONNECTING</span></div>
       <div class="status-item">LATENCY: <span id="latency">--</span></div>
-      <div class="status-item">FEED: <span id="feedType">Finnhub</span></div>
+      <div class="status-item">FEED: <span>Deriv Public</span></div>
     </div>
   </div>
-
 </div>
 
 <script>
-  // ====================== FINNHUB CONFIG ======================
-  const API_KEY = "YOUR_FINNHUB_API_KEY";   // ←←← PASTE YOUR KEY HERE
-  const SYMBOL = "QQQ";                     // Best proxy for Nasdaq-100
-  // ============================================================
+const WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public";
+const SYMBOL = "R_100";          // Volatility 100 Index
 
-  let price = null;
-  let basePrice = null;
-  let ws = null;
-  let lastTickTime = Date.now();
+let price = null, basePrice = null, ws = null, lastTickTime = Date.now(), reqId = 1;
 
-  const terminal = document.getElementById('terminal');
-  const statusEl = document.getElementById('status');
-  const latencyEl = document.getElementById('latency');
+const terminal = document.getElementById('terminal');
+const statusEl = document.getElementById('status');
+const latencyEl = document.getElementById('latency');
 
-  function log(msg, type = "info") {
-    const div = document.createElement("div");
-    div.className = `log ${type}`;
-    div.innerHTML = msg;
-    terminal.appendChild(div);
-    terminal.scrollTop = terminal.scrollHeight;
-    while (terminal.children.length > 55) {
-      terminal.removeChild(terminal.firstChild);
-    }
-  }
+function log(msg, type="info") {
+  const div = document.createElement("div");
+  div.className = `log ${type}`;
+  div.innerHTML = msg;
+  terminal.appendChild(div);
+  terminal.scrollTop = terminal.scrollHeight;
+  while (terminal.children.length > 50) terminal.removeChild(terminal.firstChild);
+}
 
-  function updateLivePrice(newPrice) {
-    if (!basePrice) basePrice = newPrice;
-    price = newPrice;
+function updateLivePrice(p) {
+  if (!basePrice) basePrice = p;
+  price = p;
+  document.getElementById('livePrice').textContent = p.toFixed(2);
+  const pct = ((p - basePrice) / basePrice * 100).toFixed(2);
+  const el = document.getElementById('priceChange');
+  el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+  el.className = 'price-change ' + (pct >= 0 ? 'up' : 'down');
+}
 
-    document.getElementById('livePrice').textContent = price.toFixed(2);
+function connect() {
+  log("root@grok:~$ connecting to Deriv public WebSocket…", "process");
+  statusEl.textContent = "CONNECTING";
+  statusEl.style.color = "#fbbf24";
 
-    const pct = ((price - basePrice) / basePrice * 100).toFixed(2);
-    const el = document.getElementById('priceChange');
-    el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
-    el.className = 'price-change ' + (pct >= 0 ? 'up' : 'down');
-  }
+  ws = new WebSocket(WS_URL);
 
-  function connect() {
-    log("root@grok:~$ connecting to Finnhub WebSocket…", "process");
-    statusEl.textContent = "CONNECTING";
+  ws.onopen = () => {
+    log("[OK] Connected to public feed", "success");
+    statusEl.textContent = "LIVE";
+    statusEl.style.color = "#4ade80";
+
+    const id = reqId++;
+    ws.send(JSON.stringify({
+      ticks_history: SYMBOL,
+      adjust_start_time: 1,
+      count: 100,
+      end: "latest",
+      style: "candles",
+      granularity: 900,      // M15
+      subscribe: 1,
+      req_id: id
+    }));
+    log(`root@grok:~$ subscribed to ${SYMBOL} (M15 + live)`, "info");
+  };
+
+  ws.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (data.error) {
+        log(`[ERROR] ${data.error.message || data.error.code}`, "error");
+        return;
+      }
+
+      if (data.msg_type === "candles" || data.candles) {
+        const candles = data.candles || [];
+        if (candles.length) {
+          const last = candles[candles.length - 1];
+          updateLivePrice(+last.close);
+          log(`[DATA] ${candles.length} candles loaded • last: ${(+last.close).toFixed(2)}`, "success");
+        }
+      }
+
+      if (data.msg_type === "ohlc" && data.ohlc) {
+        const c = data.ohlc;
+        updateLivePrice(+c.close);
+        const now = Date.now();
+        latencyEl.textContent = (now - lastTickTime) + "ms";
+        lastTickTime = now;
+        log(`[LIVE] ${(+c.close).toFixed(2)}  O:${(+c.open).toFixed(2)} H:${(+c.high).toFixed(2)} L:${(+c.low).toFixed(2)}`, "info");
+      }
+    } catch (err) {}
+  };
+
+  ws.onclose = () => {
+    log("[WARN] Disconnected – reconnecting in 4s…", "warn");
+    statusEl.textContent = "RECONNECTING";
     statusEl.style.color = "#fbbf24";
+    setTimeout(connect, 4000);
+  };
 
-    // Finnhub WebSocket URL includes the token
-    ws = new WebSocket(`wss://ws.finnhub.io?token=${API_KEY}`);
+  ws.onerror = () => {
+    log("[ERROR] Connection error", "error");
+    statusEl.textContent = "ERROR";
+    statusEl.style.color = "#f87171";
+  };
+}
 
-    ws.onopen = () => {
-      log("[OK] Connected to Finnhub", "success");
-      statusEl.textContent = "LIVE";
-      statusEl.style.color = "#4ade80";
+function updateTimer() {
+  const now = new Date();
+  const m = 14 - (now.getMinutes() % 15);
+  const s = 59 - now.getSeconds();
+  document.getElementById('timer').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
 
-      // Subscribe to trade updates
-      ws.send(JSON.stringify({
-        type: "subscribe",
-        symbol: SYMBOL
-      }));
+document.getElementById('datetime').textContent = new Date().toLocaleString('en-GB', {
+  day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+});
 
-      log(`root@grok:~$ subscribed to ${SYMBOL} trades`, "info");
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      // Trade data
-      if (data.type === "trade" && data.data && data.data.length > 0) {
-        data.data.forEach(trade => {
-          if (trade.s === SYMBOL) {
-            updateLivePrice(trade.p);   // p = price
-
-            const now = Date.now();
-            latencyEl.textContent = (now - lastTickTime) + "ms";
-            lastTickTime = now;
-
-            log(`[TRADE] ${trade.s}  $${trade.p.toFixed(2)}  vol:${trade.v}  ${new Date(trade.t).toLocaleTimeString()}`, "info");
-          }
-        });
-      }
-
-      // Ping / other messages
-      if (data.type === "ping") {
-        // optional: respond if needed
-      }
-    };
-
-    ws.onerror = () => {
-      log("[ERROR] WebSocket error – check your API key", "error");
-      statusEl.textContent = "ERROR";
-      statusEl.style.color = "#f87171";
-    };
-
-    ws.onclose = () => {
-      log("[WARN] Connection closed – reconnecting in 5s…", "warn");
-      statusEl.textContent = "RECONNECTING";
-      statusEl.style.color = "#fbbf24";
-      setTimeout(connect, 5000);
-    };
-  }
-
-  // Timer
-  function updateTimer() {
-    const now = new Date();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
-    const minsLeft = 14 - (minutes % 15);
-    const secsLeft = 59 - seconds;
-    document.getElementById('timer').textContent =
-      String(minsLeft).padStart(2, '0') + ':' + String(secsLeft).padStart(2, '0');
-  }
-
-  // Boot
-  document.getElementById('datetime').textContent = new Date().toLocaleString('en-GB', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
-
-  log("root@grok:~$ Grok Signal Engine + Finnhub starting…", "info");
-  log("Using QQQ as live proxy for US Tech 100 / Nasdaq-100", "process");
-
-  if (API_KEY === "YOUR_FINNHUB_API_KEY") {
-    log("[WARN] Please replace YOUR_FINNHUB_API_KEY with your real key", "warn");
-  } else {
-    connect();
-  }
-
-  setInterval(updateTimer, 1000);
-  updateTimer();
+log("root@grok:~$ Best version starting…", "info");
+log("Using Deriv public feed + Volatility 100 (R_100)", "process");
+connect();
+setInterval(updateTimer, 1000);
+updateTimer();
 </script>
 </body>
 </html>
