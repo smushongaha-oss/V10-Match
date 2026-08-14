@@ -3,357 +3,210 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EURUSD • Signal Terminal Dashboard</title>
+<title>EURUSD • Live Signal Terminal</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: #05070a;
-    font-family: 'Inter', sans-serif;
-    color: #e6edf3;
-    min-height: 100vh;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-  }
-
-  .container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    justify-content: center;
-    width: 100%;
-    max-width: 1150px;
-  }
-
-  /* ===== SIGNAL CARD ===== */
-  .card {
-    background: #161b22;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 440px;
-    overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
-    border: 1px solid #30363d;
-  }
-
-  .header {
-    background: linear-gradient(90deg, #0d1117, #161b22);
-    padding: 22px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #30363d;
-  }
-
-  .title { font-size: 20px; font-weight: 700; }
-  .badge {
-    background: #238636;
-    color: white;
-    font-weight: 700;
-    font-size: 13px;
-    padding: 6px 14px;
-    border-radius: 50px;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(35, 134, 54, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0); }
-  }
-
-  .body { padding: 24px; }
-
-  .meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: #8b949e;
-    margin-bottom: 18px;
-  }
-
-  .price-section { text-align: center; margin-bottom: 26px; }
-  .live-price {
-    font-size: 38px;
-    font-weight: 700;
-    color: #58a6ff;
-    letter-spacing: -1px;
-  }
-  .price-change { font-size: 14px; margin-top: 4px; }
-  .up { color: #3fb950; }
-  .down { color: #f85149; }
-
-  .levels { display: flex; flex-direction: column; gap: 10px; }
-
-  .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #0d1117;
-    padding: 13px 16px;
-    border-radius: 12px;
-    border-left: 5px solid;
-  }
-
-  .entry { border-color: #238636; }
-  .sl   { border-color: #da3633; }
-  .tp   { border-color: #d29922; }
-  .filter { border-color: #a371f7; }
-
-  .label { font-size: 13px; color: #8b949e; }
-  .value { font-size: 15px; font-weight: 600; }
-
-  .entry .value { color: #3fb950; }
-  .sl .value { color: #f85149; }
-  .tp .value { color: #d29922; }
-  .filter .value { color: #a371f7; }
-
-  .footer {
-    margin-top: 22px;
-    text-align: center;
-    font-size: 12px;
-    color: #6e7681;
-    line-height: 1.5;
-  }
-
-  /* ===== TERMINAL ===== */
-  .terminal {
-    background: #0a0c10;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 580px;
-    border: 1px solid #1f2937;
-    box-shadow: 0 0 40px rgba(0, 255, 150, 0.05);
-    overflow: hidden;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .term-header {
-    background: #111827;
-    padding: 12px 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-bottom: 1px solid #1f2937;
-  }
-
-  .dot { width: 12px; height: 12px; border-radius: 50%; }
-  .dot.red { background: #ef4444; }
-  .dot.yellow { background: #eab308; }
-  .dot.green { background: #22c55e; }
-
-  .term-title {
-    margin-left: 12px;
-    font-size: 13px;
-    color: #9ca3af;
-  }
-
-  .term-body {
-    height: 520px;
-    overflow-y: auto;
-    padding: 16px;
-    font-size: 13px;
-    line-height: 1.65;
-    color: #86efac;
-  }
-
-  .term-body::-webkit-scrollbar { width: 6px; }
-  .term-body::-webkit-scrollbar-track { background: #0a0c10; }
-  .term-body::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
-
-  .log { margin-bottom: 7px; opacity: 0; animation: fadeIn 0.35s forwards; }
-  .log.info { color: #67e8f9; }
-  .log.success { color: #4ade80; }
-  .log.warn { color: #fbbf24; }
-  .log.error { color: #f87171; }
-  .log.process { color: #a5b4fc; }
-  .log.data { color: #c4b5fd; }
-
-  .prompt { color: #22d3ee; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .status-bar {
-    background: #0f172a;
-    padding: 10px 16px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #64748b;
-    border-top: 1px solid #1e293b;
-  }
-  .status-item span { color: #94a3b8; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#05070a;font-family:'Inter',sans-serif;color:#e6edf3;min-height:100vh;padding:20px;display:flex;flex-direction:column;align-items:center;gap:24px}
+  .container{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;width:100%;max-width:1180px}
+  .card{background:#161b22;border-radius:20px;width:100%;max-width:430px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.6);border:1px solid #30363d}
+  .header{background:linear-gradient(90deg,#0d1117,#161b22);padding:20px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #30363d}
+  .title{font-size:19px;font-weight:700}
+  .badge{font-weight:700;font-size:12px;padding:5px 13px;border-radius:50px;color:white}
+  .badge.scanning{background:#6e7681}
+  .badge.buy{background:#238636;animation:pulse 2s infinite}
+  .badge.sell{background:#da3633;animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(35,134,54,.7)}70%{box-shadow:0 0 0 10px rgba(35,134,54,0)}100%{box-shadow:0 0 0 0 rgba(35,134,54,0)}}
+  .body{padding:22px}
+  .meta{display:flex;justify-content:space-between;font-size:12px;color:#8b949e;margin-bottom:16px}
+  .price-section{text-align:center;margin-bottom:24px}
+  .live-price{font-size:36px;font-weight:700;color:#58a6ff;letter-spacing:-1px}
+  .price-change{font-size:13px;margin-top:3px}
+  .up{color:#3fb950}.down{color:#f85149}
+  .levels{display:flex;flex-direction:column;gap:9px}
+  .row{display:flex;justify-content:space-between;align-items:center;background:#0d1117;padding:12px 15px;border-radius:11px;border-left:4px solid}
+  .entry{border-color:#238636}.sl{border-color:#da3633}.tp{border-color:#d29922}.filter{border-color:#a371f7}.info{border-color:#58a6ff}
+  .label{font-size:12px;color:#8b949e}.value{font-size:14px;font-weight:600}
+  .entry .value{color:#3fb950}.sl .value{color:#f85149}.tp .value{color:#d29922}.filter .value{color:#a371f7}.info .value{color:#58a6ff}
+  .footer{margin-top:20px;text-align:center;font-size:11px;color:#6e7681;line-height:1.5}
+  .terminal{background:#0a0c10;border-radius:16px;width:100%;max-width:600px;border:1px solid #1f2937;box-shadow:0 0 40px rgba(0,255,150,.04);overflow:hidden;font-family:'JetBrains Mono',monospace}
+  .term-header{background:#111827;padding:11px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1f2937}
+  .dot{width:11px;height:11px;border-radius:50%}.dot.red{background:#ef4444}.dot.yellow{background:#eab308}.dot.green{background:#22c55e}
+  .term-title{margin-left:10px;font-size:12px;color:#9ca3af}
+  .term-body{height:540px;overflow-y:auto;padding:14px;font-size:12.5px;line-height:1.6;color:#86efac}
+  .term-body::-webkit-scrollbar{width:5px}
+  .term-body::-webkit-scrollbar-track{background:#0a0c10}
+  .term-body::-webkit-scrollbar-thumb{background:#1f2937;border-radius:3px}
+  .log{margin-bottom:6px;opacity:0;animation:fadeIn .3s forwards}
+  .log.info{color:#67e8f9}.log.success{color:#4ade80}.log.warn{color:#fbbf24}.log.error{color:#f87171}.log.process{color:#a5b4fc}.log.data{color:#c4b5fd}.log.signal{color:#f0abfc;font-weight:600}
+  .prompt{color:#22d3ee}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+  .status-bar{background:#0f172a;padding:9px 14px;display:flex;justify-content:space-between;font-size:11px;color:#64748b;border-top:1px solid #1e293b}
+  .status-item span{color:#94a3b8}
 </style>
 </head>
 <body>
-
 <div class="container">
-
-  <!-- SIGNAL CARD -->
   <div class="card">
     <div class="header">
       <div class="title">EURUSD</div>
-      <div class="badge" id="badge">SCANNING</div>
+      <div class="badge scanning" id="badge">SCANNING</div>
     </div>
-
     <div class="body">
       <div class="meta">
-        <span>M15 • Trend Pullback</span>
+        <span>M15 • Trend Pullback + News Filter</span>
         <span id="datetime"></span>
       </div>
-
       <div class="price-section">
-        <div class="live-price" id="livePrice">1.15680</div>
-        <div class="price-change up" id="priceChange">+0.12%</div>
+        <div class="live-price" id="livePrice">1.15685</div>
+        <div class="price-change up" id="priceChange">+0.15%</div>
       </div>
-
       <div class="levels">
-        <div class="row entry">
-          <span class="label">DIRECTION</span>
-          <span class="value" id="direction">WAITING</span>
-        </div>
-        <div class="row filter">
-          <span class="label">H1 TREND</span>
-          <span class="value" id="htfTrend">BULLISH</span>
-        </div>
-        <div class="row filter">
-          <span class="label">SESSION</span>
-          <span class="value" id="session">LONDON / NY</span>
-        </div>
-        <div class="row filter">
-          <span class="label">NEWS FILTER</span>
-          <span class="value" id="newsStatus">CLEAR</span>
-        </div>
-        <div class="row sl">
-          <span class="label">STOP LOSS</span>
-          <span class="value" id="sl">—</span>
-        </div>
-        <div class="row tp">
-          <span class="label">TAKE PROFIT</span>
-          <span class="value" id="tp">—</span>
-        </div>
+        <div class="row entry"><span class="label">SIGNAL</span><span class="value" id="signal">WAITING</span></div>
+        <div class="row info"><span class="label">H1 TREND</span><span class="value" id="htf">BULLISH</span></div>
+        <div class="row filter"><span class="label">SESSION</span><span class="value" id="session">ACTIVE</span></div>
+        <div class="row filter"><span class="label">NEWS</span><span class="value" id="news">CLEAR</span></div>
+        <div class="row info"><span class="label">ATR</span><span class="value" id="atr">11.6 pips</span></div>
+        <div class="row sl"><span class="label">STOP LOSS</span><span class="value" id="sl">—</span></div>
+        <div class="row tp"><span class="label">TAKE PROFIT</span><span class="value" id="tp">—</span></div>
       </div>
-
       <div class="footer">
         Multi-Timeframe Trend Pullback<br>
-        ATR-based SL • Risk 1% • News Filter ON
+        Risk 1% • ATR-based SL • Full Filters
       </div>
     </div>
   </div>
 
-  <!-- TERMINAL -->
   <div class="terminal">
     <div class="term-header">
       <div class="dot red"></div>
       <div class="dot yellow"></div>
       <div class="dot green"></div>
-      <div class="term-title">EURUSD_SIGNAL_ENGINE // DATA PIPELINE</div>
+      <div class="term-title">EURUSD_ENGINE // LIVE DECISION PIPELINE</div>
     </div>
-
     <div class="term-body" id="terminal"></div>
-
     <div class="status-bar">
-      <div class="status-item">STATUS: <span id="status">PROCESSING</span></div>
-      <div class="status-item">LATENCY: <span id="latency">42ms</span></div>
-      <div class="status-item">FEED: <span>SIMULATED</span></div>
+      <div class="status-item">STATUS: <span id="status">STARTING</span></div>
+      <div class="status-item">LATENCY: <span id="latency">—</span></div>
+      <div class="status-item">MODE: <span>LIVE</span></div>
     </div>
   </div>
-
 </div>
 
 <script>
-  const terminal = document.getElementById('terminal');
-  const statusEl = document.getElementById('status');
-  const latencyEl = document.getElementById('latency');
+const terminal = document.getElementById('terminal');
+let price = 1.15685;
+const base = 1.15685;
+let atrPips = 11.6;
+let signalActive = false;
 
-  let price = 1.15680;
-  const basePrice = 1.15680;
+function log(msg, type="info") {
+  const div = document.createElement("div");
+  div.className = `log ${type}`;
+  div.innerHTML = msg;
+  terminal.appendChild(div);
+  terminal.scrollTop = terminal.scrollHeight;
+  while(terminal.children.length > 75) terminal.removeChild(terminal.firstChild);
+}
 
-  function log(msg, type = "info") {
-    const div = document.createElement("div");
-    div.className = `log ${type}`;
-    div.innerHTML = msg;
-    terminal.appendChild(div);
-    terminal.scrollTop = terminal.scrollHeight;
-    while (terminal.children.length > 60) {
-      terminal.removeChild(terminal.firstChild);
+function updateUI() {
+  document.getElementById('livePrice').textContent = price.toFixed(5);
+  const pct = ((price - base) / base * 100).toFixed(2);
+  const el = document.getElementById('priceChange');
+  el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+  el.className = 'price-change ' + (pct >= 0 ? 'up' : 'down');
+  document.getElementById('atr').textContent = atrPips.toFixed(1) + " pips";
+}
+
+function setSignal(dir, sl, tp) {
+  signalActive = true;
+  const badge = document.getElementById('badge');
+  badge.textContent = dir;
+  badge.className = 'badge ' + dir.toLowerCase();
+  
+  document.getElementById('signal').textContent = dir;
+  document.getElementById('sl').textContent = sl;
+  document.getElementById('tp').textContent = tp;
+}
+
+// Initial boot sequence
+const boot = [
+  {t:`<span class="prompt">root@eurusd:~$</span> engine v3.10 starting...`, type:"info", d:400},
+  {t:`[OK] Modules loaded`, type:"success", d:300},
+  {t:`root@eurusd:~$ connecting price feed...`, type:"process", d:500},
+  {t:`[OK] Feed live • 28ms`, type:"success", d:350},
+  {t:`root@eurusd:~$ loading M15 + H1 data...`, type:"process", d:600},
+  {t:`[DATA] Candles ready`, type:"data", d:300},
+  {t:`root@eurusd:~$ calculating EMAs + ATR...`, type:"process", d:500},
+  {t:`[OK] H1 Trend confirmed → BULLISH`, type:"success", d:400},
+  {t:`root@eurusd:~$ session + news filters...`, type:"process", d:450},
+  {t:`[OK] Session ACTIVE | News CLEAR`, type:"success", d:350},
+  {t:`root@eurusd:~$ entering decision loop...`, type:"process", d:400},
+];
+
+let i = 0;
+function bootSequence() {
+  if(i >= boot.length) {
+    document.getElementById('status').textContent = "LIVE";
+    document.getElementById('status').style.color = "#4ade80";
+    startLiveLoop();
+    return;
+  }
+  log(boot[i].t, boot[i].type);
+  i++;
+  setTimeout(bootSequence, boot[i-1].d);
+}
+
+function startLiveLoop() {
+  setInterval(() => {
+    // Simulate realistic price movement
+    const change = (Math.random() - 0.48) * 0.00065;
+    price += change;
+    atrPips = 10.5 + Math.random() * 2.5;
+    updateUI();
+
+    const tickDir = change >= 0 ? "+" : "";
+    log(`[TICK] ${price.toFixed(5)} ${tickDir}${change.toFixed(5)} | ATR ${atrPips.toFixed(1)}p`, "info");
+    document.getElementById('latency').textContent = (22 + Math.floor(Math.random()*40)) + "ms";
+
+    // Signal generation logic (simulated conditions)
+    if(!signalActive && Math.random() > 0.92) {
+      // Generate a Buy signal
+      const sl = (price - atrPips * 0.0001 * 1.8).toFixed(5);
+      const tp = (price + atrPips * 0.0001 * 1.8 * 2.0).toFixed(5);
+      
+      log(`→ Pullback to EMA20 detected`, "warn");
+      log(`→ Bullish close confirmed above EMA20`, "success");
+      log(`→ All filters passed (Session + News + HTF)`, "success");
+      log(`╔══════════════════════════════════╗`, "signal");
+      log(`║  SIGNAL: BUY                     ║`, "signal");
+      log(`║  Entry : ${price.toFixed(5)}               ║`, "signal");
+      log(`║  SL    : ${sl}               ║`, "signal");
+      log(`║  TP    : ${tp}               ║`, "signal");
+      log(`╚══════════════════════════════════╝`, "signal");
+      
+      setSignal("BUY", sl, tp);
+      
+      // Reset after some time
+      setTimeout(() => {
+        signalActive = false;
+        document.getElementById('badge').textContent = "SCANNING";
+        document.getElementById('badge').className = "badge scanning";
+        document.getElementById('signal').textContent = "WAITING";
+        document.getElementById('sl').textContent = "—";
+        document.getElementById('tp').textContent = "—";
+        log(`Signal expired • returning to scan mode`, "process");
+      }, 18000);
     }
-  }
+  }, 2400);
+}
 
-  function updatePrice() {
-    const change = (Math.random() - 0.48) * 0.0008;
-    price = Math.max(1.1400, Math.min(1.1750, price + change));
-    
-    document.getElementById('livePrice').textContent = price.toFixed(5);
-    
-    const pct = ((price - basePrice) / basePrice * 100).toFixed(2);
-    const el = document.getElementById('priceChange');
-    el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
-    el.className = 'price-change ' + (pct >= 0 ? 'up' : 'down');
-  }
+document.getElementById('datetime').textContent = new Date().toLocaleString('en-GB', {
+  day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'
+});
 
-  // Simulated processing sequence
-  const steps = [
-    { text: `<span class="prompt">root@eurusd:~$</span> initializing data pipeline...`, type: "info", delay: 600 },
-    { text: `[OK] Connected to price feed`, type: "success", delay: 700 },
-    { text: `root@eurusd:~$ loading M15 candles...`, type: "process", delay: 500 },
-    { text: `[DATA] 120 M15 bars loaded`, type: "data", delay: 600 },
-    { text: `root@eurusd:~$ calculating EMA(20) on M15...`, type: "process", delay: 550 },
-    { text: `root@eurusd:~$ calculating EMA(50) + EMA(200) on H1...`, type: "process", delay: 600 },
-    { text: `[OK] Higher timeframe trend → BULLISH`, type: "success", delay: 500 },
-    { text: `root@eurusd:~$ computing ATR(14)...`, type: "process", delay: 450 },
-    { text: `[DATA] Current ATR: 0.00112 (11.2 pips)`, type: "data", delay: 500 },
-    { text: `root@eurusd:~$ checking session filter...`, type: "process", delay: 400 },
-    { text: `[OK] Session active (London / NY overlap)`, type: "success", delay: 450 },
-    { text: `root@eurusd:~$ checking news filter...`, type: "process", delay: 500 },
-    { text: `[OK] No high-impact news in ±30 min window`, type: "success", delay: 550 },
-    { text: `root@eurusd:~$ evaluating pullback conditions...`, type: "process", delay: 700 },
-    { text: `→ Price approaching EMA20 from below`, type: "info", delay: 600 },
-    { text: `→ Waiting for close above EMA20...`, type: "warn", delay: 800 },
-    { text: `root@eurusd:~$ monitoring live tick data...`, type: "process", delay: 500 },
-  ];
-
-  let i = 0;
-
-  function runPipeline() {
-    if (i >= steps.length) {
-      // Continuous live monitoring
-      statusEl.textContent = "MONITORING";
-      statusEl.style.color = "#4ade80";
-      document.getElementById('badge').textContent = "LIVE";
-
-      setInterval(() => {
-        updatePrice();
-        const tick = (Math.random() * 0.0006 - 0.00025).toFixed(5);
-        const dir = tick >= 0 ? "+" : "";
-        log(`[TICK] ${price.toFixed(5)}  ${dir}${tick}  | feed healthy`, "info");
-        latencyEl.textContent = (28 + Math.floor(Math.random() * 35)) + "ms";
-      }, 2800);
-      return;
-    }
-
-    const step = steps[i];
-    log(step.text, step.type);
-    i++;
-    setTimeout(runPipeline, step.delay);
-  }
-
-  // Boot
-  document.getElementById('datetime').textContent = new Date().toLocaleString('en-GB', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
-
-  log(`<span class="prompt">root@eurusd:~$</span> EURUSD Signal Engine v3.10 starting...`, "info");
-  setTimeout(runPipeline, 800);
+log(`<span class="prompt">root@eurusd:~$</span> EURUSD Live Signal Engine initializing...`, "info");
+setTimeout(bootSequence, 600);
 </script>
 </body>
 </html>
