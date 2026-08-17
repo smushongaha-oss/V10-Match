@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EURUSD // 2036 MATRIX SIGNAL // LIVE DERIV</title>
+<title>EURUSD // 2036 MATRIX SIGNAL // LIVE</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
   :root {
@@ -90,18 +91,18 @@
 <div class="overlay">
   <header>
     <h1>EURUSD // MATRIX SIGNAL</h1>
-    <div class="sub">2036 DERIV LIVE FEED • M15</div>
+    <div class="sub">2036 LIVE FEED • REAL DATA</div>
     <div class="status-bar">
       <div class="dot" id="dot"></div>
-      <span id="statusText">Connecting to Deriv...</span>
+      <span id="statusText">Connecting...</span>
     </div>
   </header>
 
   <div class="grid">
     <div class="card">
-      <h2>Live Price (Deriv)</h2>
+      <h2>Live Price</h2>
       <div class="price" id="livePrice">—</div>
-      <div style="margin-top:8px;font-size:0.85rem;color:#94a3b8;" id="changeText">Waiting for data...</div>
+      <div style="margin-top:8px;font-size:0.85rem;color:#94a3b8;" id="changeText">Waiting for live data...</div>
     </div>
 
     <div class="card">
@@ -131,7 +132,7 @@
   </div>
 
   <footer>
-    Real live data from Deriv WebSocket • Educational use only
+    Real live EURUSD data • Educational use only
   </footer>
 </div>
 
@@ -159,19 +160,9 @@
   setInterval(drawMatrix, 45);
   window.addEventListener('resize', ()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
 
-  // ========== DERIV WEBSOCKET ==========
-  // Reliable public endpoint
-  const PUBLIC_WS = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
-
-  // Possible symbols for EURUSD on Deriv
-  const SYMBOLS_TO_TRY = ['frxEURUSD', 'EURUSD', 'frxEURUSD', 'EUR/USD'];
-  let currentSymbolIndex = 0;
-  let activeSymbol = null;
-
-  let ws = null;
-  let candles = [];
+  // ========== LIVE DATA ==========
   let lastPrice = null;
-  let reqId = 1;
+  const prices = []; // store recent prices for bias calculation
 
   const logEl = document.getElementById('liveLog');
   function addLog(msg) {
@@ -180,116 +171,8 @@
     div.className = 'log-entry';
     div.innerHTML = `<span class="t">[${time}]</span> ${msg}`;
     logEl.appendChild(div);
-    while(logEl.children.length > 20) logEl.removeChild(logEl.firstChild);
+    while(logEl.children.length > 18) logEl.removeChild(logEl.firstChild);
     logEl.scrollTop = logEl.scrollHeight;
-  }
-
-  function connect() {
-    if(ws) try{ ws.close(); }catch(e){}
-    ws = new WebSocket(PUBLIC_WS);
-
-    ws.onopen = () => {
-      document.getElementById('dot').classList.add('on');
-      document.getElementById('statusText').textContent = 'Connected to Deriv';
-      addLog('Connected to Deriv WebSocket');
-      tryNextSymbol();
-    };
-
-    ws.onclose = () => {
-      document.getElementById('dot').classList.remove('on');
-      document.getElementById('statusText').textContent = 'Disconnected – reconnecting...';
-      addLog('Connection lost – retrying in 5s');
-      setTimeout(connect, 5000);
-    };
-
-    ws.onerror = () => {
-      document.getElementById('statusText').textContent = 'Connection error';
-      addLog('WebSocket error occurred');
-    };
-
-    ws.onmessage = (msg) => {
-      try {
-        const data = JSON.parse(msg.data);
-
-        if(data.error) {
-          const errMsg = data.error.message || data.error.code || 'Unknown error';
-          addLog('Error: ' + errMsg);
-
-          // If symbol is invalid → try next one
-          if(errMsg.toLowerCase().includes('invalid') || errMsg.toLowerCase().includes('symbol')) {
-            currentSymbolIndex++;
-            if(currentSymbolIndex < SYMBOLS_TO_TRY.length) {
-              addLog('Trying next symbol...');
-              setTimeout(tryNextSymbol, 800);
-            } else {
-              addLog('All symbols failed. Please check Deriv availability.');
-              document.getElementById('statusText').textContent = 'Symbol not available';
-            }
-          }
-          return;
-        }
-
-        // Success - we got candles
-        if(data.msg_type === 'candles' || data.candles) {
-          const raw = data.candles || [];
-          candles = raw.map(c => ({
-            epoch: c.epoch,
-            open: +c.open,
-            high: +c.high,
-            low: +c.low,
-            close: +c.close
-          }));
-
-          if(candles.length > 0) {
-            activeSymbol = SYMBOLS_TO_TRY[currentSymbolIndex];
-            document.getElementById('statusText').textContent = `Live • ${activeSymbol}`;
-            updateUI(candles[candles.length-1].close);
-            addLog(`Success! Loaded ${candles.length} M15 candles (${activeSymbol})`);
-            calculateBias();
-          }
-        }
-
-        // Live updates
-        if(data.msg_type === 'ohlc' && data.ohlc) {
-          const c = {
-            epoch: data.ohlc.open_time || data.ohlc.epoch,
-            open: +data.ohlc.open,
-            high: +data.ohlc.high,
-            low: +data.ohlc.low,
-            close: +data.ohlc.close
-          };
-          const last = candles[candles.length-1];
-          if(last && last.epoch === c.epoch) {
-            candles[candles.length-1] = c;
-          } else {
-            candles.push(c);
-            if(candles.length > 150) candles.shift();
-          }
-          updateUI(c.close);
-          calculateBias();
-        }
-      } catch(e) {
-        console.error(e);
-      }
-    };
-  }
-
-  function tryNextSymbol() {
-    if(currentSymbolIndex >= SYMBOLS_TO_TRY.length) return;
-
-    const symbol = SYMBOLS_TO_TRY[currentSymbolIndex];
-    addLog(`Subscribing to ${symbol} M15...`);
-
-    ws.send(JSON.stringify({
-      ticks_history: symbol,
-      adjust_start_time: 1,
-      count: 100,
-      end: 'latest',
-      style: 'candles',
-      granularity: 900, // M15
-      subscribe: 1,
-      req_id: reqId++
-    }));
   }
 
   function updateUI(price) {
@@ -300,68 +183,98 @@
       const diff = price - lastPrice;
       el.className = 'price ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : '');
       document.getElementById('changeText').textContent = 
-        (diff >= 0 ? '+' : '') + diff.toFixed(5) + ' from last update';
+        (diff >= 0 ? '+' : '') + diff.toFixed(5) + ' from last tick';
     } else {
       document.getElementById('changeText').textContent = 'Live data received';
     }
     lastPrice = price;
+
+    // Keep last 60 prices for simple bias
+    prices.push(price);
+    if(prices.length > 60) prices.shift();
+    calculateBias();
   }
 
   function calculateBias() {
-    if(candles.length < 55) return;
+    if(prices.length < 30) return;
 
-    const closes = candles.map(c => c.close);
-
-    // EMA calculation
-    function calcEMA(period) {
-      const k = 2 / (period + 1);
-      let ema = closes[0];
-      for(let i = 1; i < closes.length; i++) {
-        ema = closes[i] * k + ema * (1 - k);
-      }
-      return ema;
-    }
-
-    const ema20 = calcEMA(20);
-    const ema50 = calcEMA(50);
-    const lastClose = closes[closes.length - 1];
-
-    // Simple RSI
-    let gains = 0, losses = 0;
-    for(let i = closes.length - 14; i < closes.length; i++) {
-      const change = closes[i] - closes[i-1];
-      if(change >= 0) gains += change;
-      else losses -= change;
-    }
-    const rs = losses === 0 ? 100 : gains / losses;
-    const rsi = 100 - (100 / (1 + rs));
+    const current = prices[prices.length-1];
+    const avg = prices.reduce((a,b)=>a+b,0) / prices.length;
+    const shortAvg = prices.slice(-10).reduce((a,b)=>a+b,0) / 10;
 
     const biasEl = document.getElementById('biasCore');
     const descEl = document.getElementById('biasDesc');
 
-    if(ema20 > ema50 && rsi > 42 && rsi < 75) {
+    if(shortAvg > avg && current > shortAvg) {
       biasEl.textContent = 'MILD BUY';
       biasEl.style.borderColor = '#10b981';
       biasEl.style.color = '#34d399';
-      descEl.innerHTML = `EMA20 > EMA50<br>RSI: ${rsi.toFixed(1)} • Upside bias`;
+      descEl.textContent = 'Short-term strength • Upside bias';
     } 
-    else if(ema20 < ema50 && rsi < 58 && rsi > 25) {
+    else if(shortAvg < avg && current < shortAvg) {
       biasEl.textContent = 'MILD SELL';
       biasEl.style.borderColor = '#ef4444';
       biasEl.style.color = '#f87171';
-      descEl.innerHTML = `EMA20 < EMA50<br>RSI: ${rsi.toFixed(1)} • Downside bias`;
+      descEl.textContent = 'Short-term weakness • Downside bias';
     } 
     else {
       biasEl.textContent = 'NEUTRAL';
       biasEl.style.borderColor = '#64748b';
       biasEl.style.color = '#94a3b8';
-      descEl.innerHTML = `RSI: ${rsi.toFixed(1)}<br>Waiting for clearer signal`;
+      descEl.textContent = 'Price consolidating';
     }
   }
 
-  // Start connection
+  // ========== CONNECT TO BIQUOTE ==========
+  async function startLive() {
+    try {
+      addLog('Connecting to live feed...');
+      document.getElementById('statusText').textContent = 'Connecting...';
+
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl('https://biquote.io/hubs/tick')
+        .withAutomaticReconnect()
+        .build();
+
+      connection.on('ReceiveTick', (tick) => {
+        if(tick && tick.symbol === 'EURUSD' && tick.mid) {
+          updateUI(parseFloat(tick.mid));
+        }
+      });
+
+      connection.onreconnecting(() => {
+        document.getElementById('dot').classList.remove('on');
+        document.getElementById('statusText').textContent = 'Reconnecting...';
+        addLog('Connection lost – reconnecting...');
+      });
+
+      connection.onreconnected(() => {
+        document.getElementById('dot').classList.add('on');
+        document.getElementById('statusText').textContent = 'Live • EURUSD';
+        addLog('Reconnected successfully');
+        connection.invoke('Subscribe', ['EURUSD']);
+      });
+
+      await connection.start();
+      document.getElementById('dot').classList.add('on');
+      document.getElementById('statusText').textContent = 'Live • EURUSD';
+      addLog('Connected to live feed');
+
+      await connection.invoke('Subscribe', ['EURUSD']);
+      addLog('Subscribed to EURUSD');
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('statusText').textContent = 'Connection failed';
+      addLog('Error: ' + err.message);
+      // Retry after 5 seconds
+      setTimeout(startLive, 5000);
+    }
+  }
+
+  // Start
   addLog('Matrix Signal starting...');
-  connect();
+  startLive();
 </script>
 </body>
 </html>
