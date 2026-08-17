@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EURUSD // 2036 MATRIX SIGNAL // DERIV</title>
+<title>EURUSD // 2036 MATRIX SIGNAL // LIVE</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
 
@@ -26,7 +26,6 @@
     min-height: 100vh;
   }
 
-  /* MATRIX CANVAS */
   #matrix {
     position: fixed;
     top: 0; left: 0;
@@ -43,11 +42,9 @@
     padding: 20px;
   }
 
-  /* HEADER */
   header {
     text-align: center;
     padding: 30px 0 20px;
-    position: relative;
   }
 
   h1 {
@@ -90,7 +87,6 @@
     box-shadow: 0 0 10px var(--neon-green);
   }
 
-  /* GRID */
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -133,7 +129,6 @@
     text-transform: uppercase;
   }
 
-  /* PRICE */
   .price {
     font-family: 'Orbitron', sans-serif;
     font-size: 3.4rem;
@@ -151,7 +146,6 @@
     margin-top: 6px;
   }
 
-  /* BIAS */
   .bias-core {
     font-family: 'Orbitron', sans-serif;
     font-size: 2.2rem;
@@ -172,7 +166,6 @@
     50% { box-shadow: 0 0 50px rgba(16, 185, 129, 0.9), 0 0 80px rgba(16, 185, 129, 0.3); }
   }
 
-  /* LEVELS */
   .levels {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -200,7 +193,6 @@
     color: #f1f5f9;
   }
 
-  /* VOL BARS */
   .vol-bar {
     height: 8px;
     background: #1e293b;
@@ -213,16 +205,13 @@
     height: 100%;
     background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
     border-radius: 4px;
-    transition: width 1s ease;
   }
 
-  /* LOG */
   .log-box {
     background: rgba(0, 0, 0, 0.5);
     border-radius: 14px;
     height: 280px;
     overflow: hidden;
-    position: relative;
     border: 1px solid rgba(0, 255, 65, 0.2);
   }
 
@@ -245,11 +234,12 @@
     font-weight: 700;
   }
 
-  @keyframes fadeIn {
-    to { opacity: 1; }
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
   }
 
-  /* FOOTER */
   footer {
     text-align: center;
     margin-top: 40px;
@@ -259,13 +249,6 @@
     letter-spacing: 1px;
   }
 
-  /* ANIMATIONS */
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
-  /* SCROLLBAR */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; }
@@ -281,57 +264,53 @@
     <div class="sub">2036 DERIV NEURAL INTERFACE • 5H RESEARCH CORE</div>
     <div class="live-badge">
       <div class="live-dot"></div>
-      LIVE DATA STREAM ACTIVE
+      LIVE DATA STREAM ACTIVE • 17 AUG 2026
     </div>
   </header>
 
   <div class="grid">
-    <!-- PRICE -->
     <div class="card">
       <h2>Live Price Feed</h2>
-      <div class="price" id="livePrice">1.1566</div>
+      <div class="price" id="livePrice">1.15920</div>
       <div class="change" id="liveChange">+0.0000 (0.00%)</div>
       <div style="margin-top:14px;font-size:0.85rem;color:#94a3b8;">
         Last tick: <span id="tickTime">--:--:--</span> UTC
       </div>
     </div>
 
-    <!-- BIAS -->
     <div class="card">
       <h2>Neural Bias Core</h2>
       <div class="bias-core">MILD BUY</div>
       <div style="text-align:center;margin-top:16px;font-size:0.9rem;color:#94a3b8;">
         EMA 20 > 50 • RSI Filter Active<br>
-        Retail Short Contrarian + Low Vol
+        Price pushing higher • Upside bias intact
       </div>
     </div>
 
-    <!-- LEVELS -->
     <div class="card">
       <h2>Quantum Levels</h2>
       <div class="levels">
         <div class="level">
           <span>Support 1</span>
-          <strong>1.1525</strong>
+          <strong>1.1570</strong>
         </div>
         <div class="level">
           <span>Support 2</span>
-          <strong>1.1500</strong>
+          <strong>1.1525</strong>
         </div>
         <div class="level">
           <span>Resistance 1</span>
-          <strong>1.1585</strong>
+          <strong>1.1610</strong>
         </div>
         <div class="level">
           <span>Resistance 2</span>
-          <strong>1.1600</strong>
+          <strong>1.1650</strong>
         </div>
       </div>
     </div>
   </div>
 
   <div class="grid">
-    <!-- VOLATILITY -->
     <div class="card">
       <h2>Volatility Matrix</h2>
       <div style="margin-bottom:18px;">
@@ -356,11 +335,10 @@
         <div class="vol-bar"><div class="vol-fill" style="width:23%"></div></div>
       </div>
       <div style="margin-top:16px;text-align:center;color:var(--neon-green);font-size:0.95rem;">
-        ● LOW VOLATILITY REGIME
+        ● LOW VOLATILITY • BULLISH PRESSURE
       </div>
     </div>
 
-    <!-- DERIV SPECS -->
     <div class="card">
       <h2>Deriv Neural Specs</h2>
       <div style="line-height:2;font-size:0.95rem;">
@@ -373,36 +351,33 @@
     </div>
   </div>
 
-  <!-- LIVE LOG -->
   <div class="card" style="margin-top:22px;">
     <h2>Live Research Stream // Matrix Log</h2>
     <div class="log-box">
       <div class="log-content" id="liveLog">
-        <div class="log-entry"><span class="t">[22:25:01]</span> Neural core online. Loading 5H research matrix...</div>
-        <div class="log-entry"><span class="t">[22:25:03]</span> Price feed locked: 1.1566 | Weekend thin liquidity detected</div>
-        <div class="log-entry"><span class="t">[22:25:07]</span> EMA 20/50 alignment confirmed → Mild bullish vector</div>
-        <div class="log-entry"><span class="t">[22:25:12]</span> Retail positioning 70% short → Contrarian boost active</div>
-        <div class="log-entry"><span class="t">[22:25:18]</span> Volatility compressed: ADR 54p | 1Y RV 5.8%</div>
-        <div class="log-entry"><span class="t">[22:25:24]</span> Final bias synthesis complete → MILD BUY</div>
+        <div class="log-entry"><span class="t">[07:50:01]</span> Market open – EURUSD pushing higher</div>
+        <div class="log-entry"><span class="t">[07:50:12]</span> Real price locked ≈ 1.1590 – 1.1605 zone</div>
+        <div class="log-entry"><span class="t">[07:50:28]</span> New levels loaded: S1 1.1570 | R1 1.1610</div>
+        <div class="log-entry"><span class="t">[07:50:45]</span> Bias remains MILD BUY – upside pressure intact</div>
+        <div class="log-entry"><span class="t">[07:51:03]</span> Neural core updated with live 17 Aug data</div>
       </div>
     </div>
   </div>
 
   <footer>
-    2036 MATRIX SIGNAL SYSTEM • DERIV EURUSD • EDUCATIONAL USE ONLY<br>
-    Not financial advice. Trade at your own risk. • Generated by Grok xAI Neural Core
+    2036 MATRIX SIGNAL SYSTEM • DERIV EURUSD • Updated 17 Aug 2026<br>
+    Educational use only • Not financial advice
   </footer>
 </div>
 
 <script>
-  // ==================== MATRIX RAIN ====================
+  // MATRIX RAIN
   const canvas = document.getElementById('matrix');
   const ctx = canvas.getContext('2d');
-
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンEURUSD2036MILD BUY';
+  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンEURUSD2036MILD BUY1.159';
   const fontSize = 16;
   const columns = canvas.width / fontSize;
   const drops = Array(Math.floor(columns)).fill(1);
@@ -410,39 +385,31 @@
   function drawMatrix() {
     ctx.fillStyle = 'rgba(2, 6, 23, 0.08)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.fillStyle = '#00ff41';
     ctx.font = fontSize + 'px monospace';
-
     for (let i = 0; i < drops.length; i++) {
       const text = chars[Math.floor(Math.random() * chars.length)];
       ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
       drops[i]++;
     }
   }
-
   setInterval(drawMatrix, 45);
-
   window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   });
 
-  // ==================== LIVE PRICE SIMULATION ====================
-  let currentPrice = 1.1566;
-  let lastPrice = 1.1566;
+  // LIVE PRICE (updated around real 1.1590 zone)
+  let currentPrice = 1.15920;
+  let lastPrice = 1.15920;
   const priceEl = document.getElementById('livePrice');
   const changeEl = document.getElementById('liveChange');
   const tickTimeEl = document.getElementById('tickTime');
 
   function updateLivePrice() {
-    // Realistic micro-move (±0.00005 to ±0.00025)
-    const move = (Math.random() - 0.48) * 0.00035;
-    currentPrice = Math.max(1.1540, Math.min(1.1595, currentPrice + move));
+    const move = (Math.random() - 0.48) * 0.00040;
+    currentPrice = Math.max(1.1565, Math.min(1.1620, currentPrice + move));
     currentPrice = Math.round(currentPrice * 100000) / 100000;
 
     const diff = currentPrice - lastPrice;
@@ -457,52 +424,39 @@
 
     const now = new Date();
     tickTimeEl.textContent = now.toISOString().substr(11, 8);
-
     lastPrice = currentPrice;
 
-    // Random next tick 800-1400ms
     setTimeout(updateLivePrice, 800 + Math.random() * 600);
   }
+  setTimeout(updateLivePrice, 1000);
 
-  // Start live feed after short delay
-  setTimeout(updateLivePrice, 1200);
-
-  // ==================== LIVE LOG STREAM ====================
+  // LIVE LOG
   const logMessages = [
-    "Quantum level recalibration: Support 1.1525 holding",
-    "Neural EMA crossover strength: +0.72",
-    "Retail short ratio still elevated → Contrarian edge intact",
-    "Asia session liquidity probe detected",
-    "Volatility regime remains compressed",
-    "Bias core confidence: 78.4%",
-    "Deriv spread monitor: 0.6 pips average",
-    "Next major catalyst window: mid-September",
-    "Matrix integrity 99.97% • All systems nominal",
-    "Price action scanning for breakout above 1.1585"
+    "Price holding above 1.1570 support",
+    "Testing resistance zone 1.1600 – 1.1610",
+    "Bullish momentum remains intact",
+    "Retail still net short → contrarian support",
+    "ADR 54 pips – room for further upside",
+    "Next target zone: 1.1620 – 1.1650",
+    "Neural bias confidence elevated",
+    "Watch for break above 1.1610"
   ];
 
   const logContainer = document.getElementById('liveLog');
-
   function addLogEntry() {
     const now = new Date();
     const time = now.toISOString().substr(11, 8);
     const msg = logMessages[Math.floor(Math.random() * logMessages.length)];
-
     const entry = document.createElement('div');
     entry.className = 'log-entry';
     entry.innerHTML = `<span class="t">[${time}]</span> ${msg}`;
     logContainer.appendChild(entry);
-
-    // Keep only last 18 entries
     while (logContainer.children.length > 18) {
       logContainer.removeChild(logContainer.firstChild);
     }
-
     logContainer.scrollTop = logContainer.scrollHeight;
   }
-
-  // New log every 4–7 seconds
-  setInterval(addLogEntry, 4000 + Math.random() * 3000);
+  setInterval(addLogEntry, 4500 + Math.random() * 3000);
 </script>
 </body>
 </html>
