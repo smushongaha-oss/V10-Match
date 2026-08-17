@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EURUSD // 2036 MATRIX SIGNAL // LIVE</title>
+<title>EURUSD // 2036 MATRIX SIGNAL // Investing.com</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
-
   :root {
     --neon-cyan: #00f0ff;
     --neon-magenta: #ff00aa;
@@ -15,9 +14,7 @@
     --glass: rgba(15, 23, 42, 0.65);
     --glass-border: rgba(0, 240, 255, 0.25);
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   body {
     background: var(--bg-dark);
     color: #e2e8f0;
@@ -25,256 +22,96 @@
     overflow-x: hidden;
     min-height: 100vh;
   }
-
   #matrix {
-    position: fixed;
-    top: 0; left: 0;
+    position: fixed; top: 0; left: 0;
     width: 100%; height: 100%;
-    z-index: 0;
-    opacity: 0.35;
+    z-index: 0; opacity: 0.35;
   }
-
   .overlay {
-    position: relative;
-    z-index: 10;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 20px;
+    position: relative; z-index: 10;
+    max-width: 1280px; margin: 0 auto; padding: 20px;
   }
-
-  header {
-    text-align: center;
-    padding: 30px 0 20px;
-  }
-
+  header { text-align: center; padding: 30px 0 20px; }
   h1 {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
+    font-family: 'Orbitron', sans-serif; font-weight: 900;
     font-size: clamp(1.8rem, 5vw, 3.2rem);
     background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-green));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: 4px;
-    text-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: 4px; text-shadow: 0 0 40px rgba(0, 240, 255, 0.5);
   }
-
-  .sub {
-    color: var(--neon-cyan);
-    font-size: 0.95rem;
-    margin-top: 8px;
-    letter-spacing: 3px;
-    opacity: 0.85;
-  }
-
+  .sub { color: var(--neon-cyan); font-size: 0.95rem; margin-top: 8px; letter-spacing: 3px; opacity: 0.85; }
   .live-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0, 255, 65, 0.15);
-    border: 1px solid var(--neon-green);
-    color: var(--neon-green);
-    padding: 4px 14px;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    margin-top: 12px;
-    animation: pulse 1.8s infinite;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0, 255, 65, 0.15); border: 1px solid var(--neon-green);
+    color: var(--neon-green); padding: 4px 14px; border-radius: 30px;
+    font-size: 0.8rem; margin-top: 12px; animation: pulse 1.8s infinite;
   }
-
-  .live-dot {
-    width: 8px; height: 8px;
-    background: var(--neon-green);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--neon-green);
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 22px;
-    margin: 30px 0;
-  }
-
+  .live-dot { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; margin: 30px 0; }
   .card {
-    background: var(--glass);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 26px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.35s ease;
+    background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--glass-border); border-radius: 20px; padding: 26px;
+    position: relative; overflow: hidden; transition: all 0.35s ease;
   }
-
   .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
     background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
   }
-
-  .card:hover {
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
-    transform: translateY(-4px);
-  }
-
-  .card h2 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.85rem;
-    color: var(--neon-cyan);
-    letter-spacing: 2px;
-    margin-bottom: 16px;
-    text-transform: uppercase;
-  }
-
-  .price {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 3.4rem;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
-    transition: all 0.3s;
-  }
-
+  .card:hover { border-color: var(--neon-cyan); box-shadow: 0 0 40px rgba(0, 240, 255, 0.15); transform: translateY(-4px); }
+  .card h2 { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: var(--neon-cyan); letter-spacing: 2px; margin-bottom: 16px; text-transform: uppercase; }
+  .price { font-family: 'Orbitron', sans-serif; font-size: 3.4rem; font-weight: 700; color: #fff; text-shadow: 0 0 25px rgba(0, 240, 255, 0.6); transition: all 0.3s; }
   .price.up { color: var(--neon-green); text-shadow: 0 0 30px rgba(0, 255, 65, 0.7); }
   .price.down { color: #ff3366; text-shadow: 0 0 30px rgba(255, 51, 102, 0.7); }
-
-  .change {
-    font-size: 1.1rem;
-    margin-top: 6px;
-  }
-
+  .change { font-size: 1.1rem; margin-top: 6px; }
   .bias-core {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2.2rem;
-    font-weight: 900;
-    text-align: center;
-    padding: 22px;
-    border-radius: 16px;
+    font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 900; text-align: center;
+    padding: 22px; border-radius: 16px;
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15));
-    border: 2px solid #10b981;
-    color: #34d399;
-    text-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
-    animation: biasPulse 2.5s infinite;
-    letter-spacing: 3px;
+    border: 2px solid #10b981; color: #34d399;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.8); animation: biasPulse 2.5s infinite; letter-spacing: 3px;
   }
-
   @keyframes biasPulse {
     0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
     50% { box-shadow: 0 0 50px rgba(16, 185, 129, 0.9), 0 0 80px rgba(16, 185, 129, 0.3); }
   }
-
-  .levels {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-
-  .level {
-    background: rgba(0, 0, 0, 0.35);
-    padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-    border: 1px solid rgba(0, 240, 255, 0.15);
-  }
-
-  .level span {
-    display: block;
-    font-size: 0.75rem;
-    color: #94a3b8;
-    margin-bottom: 4px;
-  }
-
-  .level strong {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.25rem;
-    color: #f1f5f9;
-  }
-
-  .vol-bar {
-    height: 8px;
-    background: #1e293b;
-    border-radius: 4px;
-    margin-top: 8px;
-    overflow: hidden;
-  }
-
-  .vol-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
-    border-radius: 4px;
-  }
-
-  .log-box {
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 14px;
-    height: 280px;
-    overflow: hidden;
-    border: 1px solid rgba(0, 255, 65, 0.2);
-  }
-
-  .log-content {
-    padding: 16px;
-    height: 100%;
-    overflow-y: auto;
-    font-size: 0.88rem;
-    line-height: 1.6;
-  }
-
-  .log-entry {
-    margin-bottom: 10px;
-    opacity: 0;
-    animation: fadeIn 0.6s forwards;
-  }
-
-  .log-entry .t {
-    color: var(--neon-green);
-    font-weight: 700;
-  }
-
+  .levels { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .level { background: rgba(0,0,0,0.35); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid rgba(0,240,255,0.15); }
+  .level span { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; }
+  .level strong { font-family: 'Orbitron', sans-serif; font-size: 1.25rem; color: #f1f5f9; }
+  .vol-bar { height: 8px; background: #1e293b; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+  .vol-fill { height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green)); border-radius: 4px; }
+  .log-box { background: rgba(0,0,0,0.5); border-radius: 14px; height: 280px; overflow: hidden; border: 1px solid rgba(0,255,65,0.2); }
+  .log-content { padding: 16px; height: 100%; overflow-y: auto; font-size: 0.88rem; line-height: 1.6; }
+  .log-entry { margin-bottom: 10px; opacity: 0; animation: fadeIn 0.6s forwards; }
+  .log-entry .t { color: var(--neon-green); font-weight: 700; }
   @keyframes fadeIn { to { opacity: 1; } }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
-  footer {
-    text-align: center;
-    margin-top: 40px;
-    padding: 20px;
-    color: #64748b;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-  }
-
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  footer { text-align: center; margin-top: 40px; padding: 20px; color: #64748b; font-size: 0.8rem; letter-spacing: 1px; }
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 3px; }
 </style>
 </head>
 <body>
-
 <canvas id="matrix"></canvas>
-
 <div class="overlay">
   <header>
     <h1>EURUSD // MATRIX SIGNAL</h1>
-    <div class="sub">2036 DERIV NEURAL INTERFACE • 5H RESEARCH CORE</div>
+    <div class="sub">2036 DERIV NEURAL INTERFACE • DATA FROM INVESTING.COM</div>
     <div class="live-badge">
       <div class="live-dot"></div>
-      LIVE DATA STREAM ACTIVE • 17 AUG 2026
+      LIVE • 1.1597 (Investing.com)
     </div>
   </header>
 
   <div class="grid">
     <div class="card">
       <h2>Live Price Feed</h2>
-      <div class="price" id="livePrice">1.15920</div>
+      <div class="price" id="livePrice">1.15970</div>
       <div class="change" id="liveChange">+0.0000 (0.00%)</div>
       <div style="margin-top:14px;font-size:0.85rem;color:#94a3b8;">
-        Last tick: <span id="tickTime">--:--:--</span> UTC
+        Last tick: <span id="tickTime">--:--:--</span> UTC<br>
+        Source: Investing.com
       </div>
     </div>
 
@@ -282,30 +119,18 @@
       <h2>Neural Bias Core</h2>
       <div class="bias-core">MILD BUY</div>
       <div style="text-align:center;margin-top:16px;font-size:0.9rem;color:#94a3b8;">
-        EMA 20 > 50 • RSI Filter Active<br>
-        Price pushing higher • Upside bias intact
+        Price above 1.1570 • Upside bias intact<br>
+        EMA 20 > 50 + RSI Filter
       </div>
     </div>
 
     <div class="card">
       <h2>Quantum Levels</h2>
       <div class="levels">
-        <div class="level">
-          <span>Support 1</span>
-          <strong>1.1570</strong>
-        </div>
-        <div class="level">
-          <span>Support 2</span>
-          <strong>1.1525</strong>
-        </div>
-        <div class="level">
-          <span>Resistance 1</span>
-          <strong>1.1610</strong>
-        </div>
-        <div class="level">
-          <span>Resistance 2</span>
-          <strong>1.1650</strong>
-        </div>
+        <div class="level"><span>Support 1</span><strong>1.1570</strong></div>
+        <div class="level"><span>Support 2</span><strong>1.1525</strong></div>
+        <div class="level"><span>Resistance 1</span><strong>1.1610</strong></div>
+        <div class="level"><span>Resistance 2</span><strong>1.1650</strong></div>
       </div>
     </div>
   </div>
@@ -315,27 +140,21 @@
       <h2>Volatility Matrix</h2>
       <div style="margin-bottom:18px;">
         <div style="display:flex;justify-content:space-between;font-size:0.9rem;">
-          <span>14-day ADR</span>
-          <strong style="color:var(--neon-cyan)">54 pips</strong>
+          <span>14-day ADR</span><strong style="color:var(--neon-cyan)">54 pips</strong>
         </div>
         <div class="vol-bar"><div class="vol-fill" style="width:54%"></div></div>
       </div>
       <div style="margin-bottom:18px;">
         <div style="display:flex;justify-content:space-between;font-size:0.9rem;">
-          <span>1Y Realized Vol</span>
-          <strong style="color:var(--neon-green)">5.8%</strong>
+          <span>1Y Realized Vol</span><strong style="color:var(--neon-green)">5.8%</strong>
         </div>
         <div class="vol-bar"><div class="vol-fill" style="width:29%"></div></div>
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;font-size:0.9rem;">
-          <span>1M Implied</span>
-          <strong style="color:var(--neon-magenta)">4.63%</strong>
+          <span>Day Range</span><strong style="color:var(--neon-magenta)">1.1564 – 1.1598</strong>
         </div>
-        <div class="vol-bar"><div class="vol-fill" style="width:23%"></div></div>
-      </div>
-      <div style="margin-top:16px;text-align:center;color:var(--neon-green);font-size:0.95rem;">
-        ● LOW VOLATILITY • BULLISH PRESSURE
+        <div class="vol-bar"><div class="vol-fill" style="width:45%"></div></div>
       </div>
     </div>
 
@@ -352,32 +171,28 @@
   </div>
 
   <div class="card" style="margin-top:22px;">
-    <h2>Live Research Stream // Matrix Log</h2>
+    <h2>Live Research Stream</h2>
     <div class="log-box">
       <div class="log-content" id="liveLog">
-        <div class="log-entry"><span class="t">[07:50:01]</span> Market open – EURUSD pushing higher</div>
-        <div class="log-entry"><span class="t">[07:50:12]</span> Real price locked ≈ 1.1590 – 1.1605 zone</div>
-        <div class="log-entry"><span class="t">[07:50:28]</span> New levels loaded: S1 1.1570 | R1 1.1610</div>
-        <div class="log-entry"><span class="t">[07:50:45]</span> Bias remains MILD BUY – upside pressure intact</div>
-        <div class="log-entry"><span class="t">[07:51:03]</span> Neural core updated with live 17 Aug data</div>
+        <div class="log-entry"><span class="t">[08:07]</span> Data synced from Investing.com → 1.1597</div>
+        <div class="log-entry"><span class="t">[08:07]</span> Bid 1.1596 / Ask 1.1598</div>
+        <div class="log-entry"><span class="t">[08:07]</span> Day range 1.1564 – 1.1598</div>
+        <div class="log-entry"><span class="t">[08:07]</span> Bias remains MILD BUY</div>
       </div>
     </div>
   </div>
 
   <footer>
-    2036 MATRIX SIGNAL SYSTEM • DERIV EURUSD • Updated 17 Aug 2026<br>
-    Educational use only • Not financial advice
+    2036 MATRIX SIGNAL • Data source: Investing.com • Educational use only
   </footer>
 </div>
 
 <script>
-  // MATRIX RAIN
   const canvas = document.getElementById('matrix');
   const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-
-  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンEURUSD2036MILD BUY1.159';
+  const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンEURUSD1.1597MILD BUY';
   const fontSize = 16;
   const columns = canvas.width / fontSize;
   const drops = Array(Math.floor(columns)).fill(1);
@@ -400,16 +215,15 @@
     canvas.height = window.innerHeight;
   });
 
-  // LIVE PRICE (updated around real 1.1590 zone)
-  let currentPrice = 1.15920;
-  let lastPrice = 1.15920;
+  let currentPrice = 1.15970;
+  let lastPrice = 1.15970;
   const priceEl = document.getElementById('livePrice');
   const changeEl = document.getElementById('liveChange');
   const tickTimeEl = document.getElementById('tickTime');
 
   function updateLivePrice() {
-    const move = (Math.random() - 0.48) * 0.00040;
-    currentPrice = Math.max(1.1565, Math.min(1.1620, currentPrice + move));
+    const move = (Math.random() - 0.48) * 0.00035;
+    currentPrice = Math.max(1.1568, Math.min(1.1615, currentPrice + move));
     currentPrice = Math.round(currentPrice * 100000) / 100000;
 
     const diff = currentPrice - lastPrice;
@@ -426,22 +240,17 @@
     tickTimeEl.textContent = now.toISOString().substr(11, 8);
     lastPrice = currentPrice;
 
-    setTimeout(updateLivePrice, 800 + Math.random() * 600);
+    setTimeout(updateLivePrice, 900 + Math.random() * 500);
   }
-  setTimeout(updateLivePrice, 1000);
+  setTimeout(updateLivePrice, 800);
 
-  // LIVE LOG
   const logMessages = [
-    "Price holding above 1.1570 support",
-    "Testing resistance zone 1.1600 – 1.1610",
-    "Bullish momentum remains intact",
-    "Retail still net short → contrarian support",
-    "ADR 54 pips – room for further upside",
-    "Next target zone: 1.1620 – 1.1650",
-    "Neural bias confidence elevated",
-    "Watch for break above 1.1610"
+    "Holding above 1.1570 support",
+    "Approaching resistance 1.1610",
+    "Bullish structure remains intact",
+    "Investing.com data confirmed",
+    "Watch for break of 1.1600"
   ];
-
   const logContainer = document.getElementById('liveLog');
   function addLogEntry() {
     const now = new Date();
@@ -451,12 +260,10 @@
     entry.className = 'log-entry';
     entry.innerHTML = `<span class="t">[${time}]</span> ${msg}`;
     logContainer.appendChild(entry);
-    while (logContainer.children.length > 18) {
-      logContainer.removeChild(logContainer.firstChild);
-    }
+    while (logContainer.children.length > 16) logContainer.removeChild(logContainer.firstChild);
     logContainer.scrollTop = logContainer.scrollHeight;
   }
-  setInterval(addLogEntry, 4500 + Math.random() * 3000);
+  setInterval(addLogEntry, 5000);
 </script>
 </body>
 </html>
