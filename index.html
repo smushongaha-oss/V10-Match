@@ -229,7 +229,7 @@
         document.getElementById('dot').classList.add('on');
         document.getElementById('statusText').textContent = 'Live • EURUSD';
         updateUI(parseFloat(data.rate));
-        addLog('Price updated: ' + data.rate.toFixed(5));
+        addLog('Price updated: ' + parseFloat(data.rate).toFixed(5));
       }
     } catch (err) {
       document.getElementById('dot').classList.remove('on');
@@ -241,7 +241,7 @@
   // Start
   addLog('Matrix Signal starting...');
   fetchPrice();
-  setInterval(fetchPrice, 8000); // update every 8 seconds
+  setInterval(fetchPrice, 8000);
 </script>
 </body>
 </html>
