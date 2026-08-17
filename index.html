@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EURUSD // 2036 MATRIX SIGNAL // LIVE</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
   :root {
@@ -102,7 +101,7 @@
     <div class="card">
       <h2>Live Price</h2>
       <div class="price" id="livePrice">—</div>
-      <div style="margin-top:8px;font-size:0.85rem;color:#94a3b8;" id="changeText">Waiting for live data...</div>
+      <div style="margin-top:8px;font-size:0.85rem;color:#94a3b8;" id="changeText">Waiting for data...</div>
     </div>
 
     <div class="card">
@@ -132,12 +131,12 @@
   </div>
 
   <footer>
-    Real live EURUSD data • Educational use only
+    Real EURUSD data • Educational use only
   </footer>
 </div>
 
 <script>
-  // ========== MATRIX RAIN ==========
+  // Matrix Rain
   const canvas = document.getElementById('matrix');
   const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth;
@@ -160,9 +159,9 @@
   setInterval(drawMatrix, 45);
   window.addEventListener('resize', ()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
 
-  // ========== LIVE DATA ==========
+  // Live Data
   let lastPrice = null;
-  const prices = []; // store recent prices for bias calculation
+  const prices = [];
 
   const logEl = document.getElementById('liveLog');
   function addLog(msg) {
@@ -183,24 +182,22 @@
       const diff = price - lastPrice;
       el.className = 'price ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : '');
       document.getElementById('changeText').textContent = 
-        (diff >= 0 ? '+' : '') + diff.toFixed(5) + ' from last tick';
+        (diff >= 0 ? '+' : '') + diff.toFixed(5) + ' from last update';
     } else {
       document.getElementById('changeText').textContent = 'Live data received';
     }
     lastPrice = price;
 
-    // Keep last 60 prices for simple bias
     prices.push(price);
-    if(prices.length > 60) prices.shift();
+    if(prices.length > 40) prices.shift();
     calculateBias();
   }
 
   function calculateBias() {
-    if(prices.length < 30) return;
-
+    if(prices.length < 15) return;
     const current = prices[prices.length-1];
     const avg = prices.reduce((a,b)=>a+b,0) / prices.length;
-    const shortAvg = prices.slice(-10).reduce((a,b)=>a+b,0) / 10;
+    const shortAvg = prices.slice(-8).reduce((a,b)=>a+b,0) / 8;
 
     const biasEl = document.getElementById('biasCore');
     const descEl = document.getElementById('biasDesc');
@@ -210,14 +207,12 @@
       biasEl.style.borderColor = '#10b981';
       biasEl.style.color = '#34d399';
       descEl.textContent = 'Short-term strength • Upside bias';
-    } 
-    else if(shortAvg < avg && current < shortAvg) {
+    } else if(shortAvg < avg && current < shortAvg) {
       biasEl.textContent = 'MILD SELL';
       biasEl.style.borderColor = '#ef4444';
       biasEl.style.color = '#f87171';
       descEl.textContent = 'Short-term weakness • Downside bias';
-    } 
-    else {
+    } else {
       biasEl.textContent = 'NEUTRAL';
       biasEl.style.borderColor = '#64748b';
       biasEl.style.color = '#94a3b8';
@@ -225,56 +220,28 @@
     }
   }
 
-  // ========== CONNECT TO BIQUOTE ==========
-  async function startLive() {
+  async function fetchPrice() {
     try {
-      addLog('Connecting to live feed...');
-      document.getElementById('statusText').textContent = 'Connecting...';
-
-      const connection = new signalR.HubConnectionBuilder()
-        .withUrl('https://biquote.io/hubs/tick')
-        .withAutomaticReconnect()
-        .build();
-
-      connection.on('ReceiveTick', (tick) => {
-        if(tick && tick.symbol === 'EURUSD' && tick.mid) {
-          updateUI(parseFloat(tick.mid));
-        }
-      });
-
-      connection.onreconnecting(() => {
-        document.getElementById('dot').classList.remove('on');
-        document.getElementById('statusText').textContent = 'Reconnecting...';
-        addLog('Connection lost – reconnecting...');
-      });
-
-      connection.onreconnected(() => {
+      const res = await fetch('https://api.frankfurter.dev/v2/rate/EUR/USD');
+      const data = await res.json();
+      
+      if(data && data.rate) {
         document.getElementById('dot').classList.add('on');
         document.getElementById('statusText').textContent = 'Live • EURUSD';
-        addLog('Reconnected successfully');
-        connection.invoke('Subscribe', ['EURUSD']);
-      });
-
-      await connection.start();
-      document.getElementById('dot').classList.add('on');
-      document.getElementById('statusText').textContent = 'Live • EURUSD';
-      addLog('Connected to live feed');
-
-      await connection.invoke('Subscribe', ['EURUSD']);
-      addLog('Subscribed to EURUSD');
-
+        updateUI(parseFloat(data.rate));
+        addLog('Price updated: ' + data.rate.toFixed(5));
+      }
     } catch (err) {
-      console.error(err);
-      document.getElementById('statusText').textContent = 'Connection failed';
-      addLog('Error: ' + err.message);
-      // Retry after 5 seconds
-      setTimeout(startLive, 5000);
+      document.getElementById('dot').classList.remove('on');
+      document.getElementById('statusText').textContent = 'Connection issue';
+      addLog('Fetch error – retrying...');
     }
   }
 
   // Start
   addLog('Matrix Signal starting...');
-  startLive();
+  fetchPrice();
+  setInterval(fetchPrice, 8000); // update every 8 seconds
 </script>
 </body>
 </html>
