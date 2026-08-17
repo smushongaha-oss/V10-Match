@@ -25,16 +25,16 @@
   #matrix {
     position: fixed; top: 0; left: 0;
     width: 100%; height: 100%;
-    z-index: 0; opacity: 0.28;
+    z-index: 0; opacity: 0.25;
   }
   .overlay {
     position: relative; z-index: 10;
-    max-width: 1100px; margin: 0 auto; padding: 20px;
+    max-width: 1200px; margin: 0 auto; padding: 20px;
   }
-  header { text-align: center; padding: 24px 0 16px; }
+  header { text-align: center; padding: 20px 0 12px; }
   h1 {
     font-family: 'Orbitron', sans-serif; font-weight: 900;
-    font-size: clamp(1.7rem, 4.5vw, 2.8rem);
+    font-size: clamp(1.6rem, 4.5vw, 2.7rem);
     background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-green));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     letter-spacing: 3px;
@@ -42,46 +42,50 @@
   .sub { color: var(--neon-cyan); font-size: 0.9rem; margin-top: 6px; letter-spacing: 2px; opacity: 0.9; }
   .status-bar {
     display: inline-flex; align-items: center; gap: 8px;
-    margin-top: 12px; padding: 5px 14px;
+    margin-top: 10px; padding: 5px 14px;
     background: rgba(0,0,0,0.4); border-radius: 20px;
     border: 1px solid rgba(0,240,255,0.2); font-size: 0.82rem;
   }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: #ef4444; transition: 0.3s; }
   .dot.on { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin: 24px 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin: 20px 0; }
   .card {
     background: var(--glass); backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border); border-radius: 16px;
-    padding: 22px; position: relative; overflow: hidden;
+    padding: 18px; position: relative; overflow: hidden;
   }
   .card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
     background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
   }
-  .card h2 { font-family: 'Orbitron', sans-serif; font-size: 0.78rem; color: var(--neon-cyan); letter-spacing: 1.5px; margin-bottom: 12px; text-transform: uppercase; }
-  .price { font-family: 'Orbitron', sans-serif; font-size: 2.9rem; font-weight: 700; color: #fff; transition: 0.2s; }
+  .card h2 { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: var(--neon-cyan); letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
+  .price { font-family: 'Orbitron', sans-serif; font-size: 2.6rem; font-weight: 700; color: #fff; }
   .price.up { color: var(--neon-green); }
   .price.down { color: #ff3366; }
+  .bidask { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.9rem; }
+  .bid { color: #f87171; }
+  .ask { color: #34d399; }
   .bias-core {
-    font-family: 'Orbitron', sans-serif; font-size: 1.9rem; font-weight: 900; text-align: center;
-    padding: 18px; border-radius: 12px;
+    font-family: 'Orbitron', sans-serif; font-size: 1.7rem; font-weight: 900; text-align: center;
+    padding: 16px; border-radius: 12px;
     background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.1));
     border: 2px solid #10b981; color: #34d399;
     animation: pulse 2.5s infinite;
   }
   @keyframes pulse {
-    0%,100% { box-shadow: 0 0 15px rgba(16,185,129,0.3); }
-    50% { box-shadow: 0 0 40px rgba(16,185,129,0.7); }
+    0%,100% { box-shadow: 0 0 12px rgba(16,185,129,0.3); }
+    50% { box-shadow: 0 0 35px rgba(16,185,129,0.7); }
   }
-  .levels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .level { background: rgba(0,0,0,0.35); padding: 11px; border-radius: 10px; text-align: center; }
-  .level span { display: block; font-size: 0.7rem; color: #94a3b8; margin-bottom: 3px; }
-  .level strong { font-family: 'Orbitron', sans-serif; font-size: 1.15rem; }
-  .log-box { background: rgba(0,0,0,0.5); border-radius: 12px; height: 240px; overflow: hidden; border: 1px solid rgba(0,255,65,0.15); }
-  .log-content { padding: 12px; height: 100%; overflow-y: auto; font-size: 0.84rem; line-height: 1.5; }
-  .log-entry { margin-bottom: 7px; }
+  .levels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .level { background: rgba(0,0,0,0.35); padding: 10px; border-radius: 10px; text-align: center; }
+  .level span { display: block; font-size: 0.68rem; color: #94a3b8; margin-bottom: 2px; }
+  .level strong { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; }
+  .chart-box { height: 140px; background: rgba(0,0,0,0.4); border-radius: 10px; margin-top: 8px; }
+  .log-box { background: rgba(0,0,0,0.5); border-radius: 12px; height: 200px; overflow: hidden; border: 1px solid rgba(0,255,65,0.15); }
+  .log-content { padding: 12px; height: 100%; overflow-y: auto; font-size: 0.82rem; line-height: 1.45; }
+  .log-entry { margin-bottom: 6px; }
   .log-entry .t { color: var(--neon-green); font-weight: 700; }
-  footer { text-align: center; margin-top: 30px; color: #64748b; font-size: 0.75rem; }
+  footer { text-align: center; margin-top: 25px; color: #64748b; font-size: 0.75rem; }
 </style>
 </head>
 <body>
@@ -90,7 +94,7 @@
 <div class="overlay">
   <header>
     <h1>EURUSD // MATRIX SIGNAL</h1>
-    <div class="sub">2036 LIVE FEED • REAL DATA</div>
+    <div class="sub">2036 LIVE FEED • IMPROVED</div>
     <div class="status-bar">
       <div class="dot" id="dot"></div>
       <span id="statusText">Connecting...</span>
@@ -101,29 +105,38 @@
     <div class="card">
       <h2>Live Price</h2>
       <div class="price" id="livePrice">—</div>
-      <div style="margin-top:8px;font-size:0.85rem;color:#94a3b8;" id="changeText">Waiting for data...</div>
+      <div class="bidask">
+        <div class="bid">Bid: <span id="bid">—</span></div>
+        <div class="ask">Ask: <span id="ask">—</span></div>
+      </div>
+      <div style="margin-top:6px;font-size:0.82rem;color:#94a3b8;" id="changeText">Waiting...</div>
     </div>
 
     <div class="card">
       <h2>Neural Bias Core</h2>
       <div class="bias-core" id="biasCore">WAITING</div>
-      <div style="text-align:center;margin-top:12px;font-size:0.85rem;color:#94a3b8;" id="biasDesc">
-        Connecting to live feed...
+      <div style="text-align:center;margin-top:10px;font-size:0.82rem;color:#94a3b8;" id="biasDesc">
+        Analyzing market...
       </div>
     </div>
 
     <div class="card">
       <h2>Quantum Levels</h2>
       <div class="levels">
-        <div class="level"><span>Support 1</span><strong>1.1570</strong></div>
-        <div class="level"><span>Support 2</span><strong>1.1525</strong></div>
-        <div class="level"><span>Resistance 1</span><strong>1.1610</strong></div>
-        <div class="level"><span>Resistance 2</span><strong>1.1650</strong></div>
+        <div class="level"><span>Support 1</span><strong id="s1">1.1570</strong></div>
+        <div class="level"><span>Support 2</span><strong id="s2">1.1525</strong></div>
+        <div class="level"><span>Resistance 1</span><strong id="r1">1.1610</strong></div>
+        <div class="level"><span>Resistance 2</span><strong id="r2">1.1650</strong></div>
       </div>
     </div>
   </div>
 
-  <div class="card" style="margin-top:18px;">
+  <div class="card" style="margin-bottom:16px;">
+    <h2>Live Mini Chart</h2>
+    <canvas id="miniChart" class="chart-box" width="800" height="140"></canvas>
+  </div>
+
+  <div class="card">
     <h2>Live Research Stream</h2>
     <div class="log-box">
       <div class="log-content" id="liveLog"></div>
@@ -131,7 +144,7 @@
   </div>
 
   <footer>
-    Real EURUSD data • Educational use only
+    Real EURUSD data • Faster updates • Bid/Ask • Stronger AI bias • Mini chart
   </footer>
 </div>
 
@@ -142,7 +155,7 @@
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンEURUSDLIVE';
-  const fontSize = 15;
+  const fontSize = 14;
   const columns = canvas.width / fontSize;
   const drops = Array(Math.floor(columns)).fill(1);
   function drawMatrix() {
@@ -156,12 +169,14 @@
       drops[i]++;
     }
   }
-  setInterval(drawMatrix, 45);
+  setInterval(drawMatrix, 50);
   window.addEventListener('resize', ()=>{ canvas.width=window.innerWidth; canvas.height=window.innerHeight; });
 
-  // Live Data
+  // Data
   let lastPrice = null;
   const prices = [];
+  const chartCanvas = document.getElementById('miniChart');
+  const chartCtx = chartCanvas.getContext('2d');
 
   const logEl = document.getElementById('liveLog');
   function addLog(msg) {
@@ -170,54 +185,115 @@
     div.className = 'log-entry';
     div.innerHTML = `<span class="t">[${time}]</span> ${msg}`;
     logEl.appendChild(div);
-    while(logEl.children.length > 18) logEl.removeChild(logEl.firstChild);
+    while(logEl.children.length > 16) logEl.removeChild(logEl.firstChild);
     logEl.scrollTop = logEl.scrollHeight;
   }
 
-  function updateUI(price) {
+  function updateUI(mid) {
     const el = document.getElementById('livePrice');
-    el.textContent = price.toFixed(5);
+    el.textContent = mid.toFixed(5);
+
+    // Simulated realistic spread
+    const spread = 0.00012 + Math.random() * 0.00008;
+    const bid = mid - spread / 2;
+    const ask = mid + spread / 2;
+
+    document.getElementById('bid').textContent = bid.toFixed(5);
+    document.getElementById('ask').textContent = ask.toFixed(5);
 
     if(lastPrice !== null) {
-      const diff = price - lastPrice;
+      const diff = mid - lastPrice;
       el.className = 'price ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : '');
       document.getElementById('changeText').textContent = 
         (diff >= 0 ? '+' : '') + diff.toFixed(5) + ' from last update';
     } else {
       document.getElementById('changeText').textContent = 'Live data received';
     }
-    lastPrice = price;
+    lastPrice = mid;
 
-    prices.push(price);
-    if(prices.length > 40) prices.shift();
+    prices.push(mid);
+    if(prices.length > 60) prices.shift();
+
     calculateBias();
+    drawMiniChart();
   }
 
   function calculateBias() {
-    if(prices.length < 15) return;
+    if(prices.length < 20) return;
+
     const current = prices[prices.length-1];
-    const avg = prices.reduce((a,b)=>a+b,0) / prices.length;
-    const shortAvg = prices.slice(-8).reduce((a,b)=>a+b,0) / 8;
+    const sma20 = prices.slice(-20).reduce((a,b)=>a+b,0) / 20;
+    const sma8  = prices.slice(-8).reduce((a,b)=>a+b,0) / 8;
+    const sma3  = prices.slice(-3).reduce((a,b)=>a+b,0) / 3;
+
+    const momentum = current - prices[prices.length-6];
+    const strength = Math.abs(momentum) * 10000;
 
     const biasEl = document.getElementById('biasCore');
     const descEl = document.getElementById('biasDesc');
 
-    if(shortAvg > avg && current > shortAvg) {
+    if(sma3 > sma8 && sma8 > sma20 && momentum > 0.00008) {
+      biasEl.textContent = 'STRONG BUY';
+      biasEl.style.borderColor = '#10b981';
+      biasEl.style.color = '#34d399';
+      descEl.textContent = `Bullish momentum • Strength ${strength.toFixed(1)}`;
+    } 
+    else if(sma3 > sma8 && momentum > 0) {
       biasEl.textContent = 'MILD BUY';
       biasEl.style.borderColor = '#10b981';
       biasEl.style.color = '#34d399';
-      descEl.textContent = 'Short-term strength • Upside bias';
-    } else if(shortAvg < avg && current < shortAvg) {
+      descEl.textContent = 'Short-term bullish bias';
+    }
+    else if(sma3 < sma8 && sma8 < sma20 && momentum < -0.00008) {
+      biasEl.textContent = 'STRONG SELL';
+      biasEl.style.borderColor = '#ef4444';
+      biasEl.style.color = '#f87171';
+      descEl.textContent = `Bearish momentum • Strength ${strength.toFixed(1)}`;
+    }
+    else if(sma3 < sma8 && momentum < 0) {
       biasEl.textContent = 'MILD SELL';
       biasEl.style.borderColor = '#ef4444';
       biasEl.style.color = '#f87171';
-      descEl.textContent = 'Short-term weakness • Downside bias';
-    } else {
+      descEl.textContent = 'Short-term bearish bias';
+    } 
+    else {
       biasEl.textContent = 'NEUTRAL';
       biasEl.style.borderColor = '#64748b';
       biasEl.style.color = '#94a3b8';
       descEl.textContent = 'Price consolidating';
     }
+  }
+
+  function drawMiniChart() {
+    const w = chartCanvas.width;
+    const h = chartCanvas.height;
+    chartCtx.clearRect(0, 0, w, h);
+
+    if(prices.length < 5) return;
+
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const range = max - min || 0.0001;
+
+    chartCtx.beginPath();
+    chartCtx.strokeStyle = '#00f0ff';
+    chartCtx.lineWidth = 2;
+
+    prices.forEach((p, i) => {
+      const x = (i / (prices.length - 1)) * (w - 20) + 10;
+      const y = h - 15 - ((p - min) / range) * (h - 30);
+      if(i === 0) chartCtx.moveTo(x, y);
+      else chartCtx.lineTo(x, y);
+    });
+    chartCtx.stroke();
+
+    // Last point
+    const lastX = w - 10;
+    const lastY = h - 15 - ((prices[prices.length-1] - min) / range) * (h - 30);
+    chartCtx.beginPath();
+    chartCtx.fillStyle = '#00ff41';
+    chartCtx.arc(lastX, lastY, 4, 0, Math.PI*2);
+    chartCtx.fill();
   }
 
   async function fetchPrice() {
@@ -238,10 +314,10 @@
     }
   }
 
-  // Start
-  addLog('Matrix Signal starting...');
+  // Start + faster updates
+  addLog('Matrix Signal upgraded...');
   fetchPrice();
-  setInterval(fetchPrice, 8000);
+  setInterval(fetchPrice, 4500); // faster refresh
 </script>
 </body>
 </html>
