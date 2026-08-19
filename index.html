@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPrime – Volatility 100 (15m / 1H)</title>
+  <title>ChartPrime – Volatility 100 (Live)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -175,8 +175,8 @@
 <div class="container">
   <div class="header">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div class="logo">CHART<span>PRIME</span> · V100</div>
-      <div class="live-badge" id="liveBadge">● LIVE</div>
+      <div class="logo">CHART<span>PRIME</span> · V100 LIVE</div>
+      <div class="live-badge" id="liveBadge">● CONNECTING</div>
       <div id="priceDisplay" style="font-size:14px;font-weight:600;color:#00ff9d;">—</div>
     </div>
 
@@ -186,7 +186,6 @@
         <span id="volValue">1.4×</span>
       </div>
 
-      <!-- Timeframe Switcher -->
       <button id="btn15m" class="active">15m</button>
       <button id="btn1h">1H</button>
 
@@ -208,8 +207,8 @@
   </div>
 
   <div class="footer">
-    <span>Market Dynamics • Order Blocks • Liquidity Zones • Volume Profile</span>
-    <span id="status">Timeframe: 15m | Recommended for structure & cleaner Order Blocks</span>
+    <span>Live Deriv R_100 • Order Blocks • Liquidity Zones • Volume Profile</span>
+    <span id="status">Connecting to Deriv…</span>
   </div>
 </div>
 
@@ -220,17 +219,20 @@
 
   // ========== STATE ==========
   let candles = [];
-  let currentPrice = 920 + Math.random() * 80;
-  let lastClose = currentPrice;
-  const MAX_CANDLES = 80;               // fewer candles for higher TFs
+  let currentPrice = 0;
+  let lastClose = 0;
+  const MAX_CANDLES = 80;
   let isPaused = false;
   let showZones = true;
   let showProfile = true;
   let showOB = true;
-  let volatilityMult = 1.4;
-  let currentTF = '15m';               // '15m' or '1H'
-  let candleInterval = 2500;           // visual update speed (not real time)
-  let intervalId = null;
+  let volatilityMult = 1.4;          // still used only for visual sensitivity of OB thresholds
+  let currentTF = '15m';
+  let ws = null;
+  let tickSubId = null;
+  let reconnectTimer = null;
+  let currentCandleStart = 0;
+  let granularity = 900;             // seconds
 
   // ========== CONTROLS ==========
   document.getElementById('volSlider').oninput = e => {
@@ -241,17 +243,19 @@
   document.getElementById('btn15m').onclick = function() {
     if (currentTF === '15m') return;
     currentTF = '15m';
+    granularity = 900;
     this.classList.add('active');
     document.getElementById('btn1h').classList.remove('active');
-    resetChart();
+    requestHistory();
   };
 
   document.getElementById('btn1h').onclick = function() {
     if (currentTF === '1H') return;
     currentTF = '1H';
+    granularity = 3600;
     this.classList.add('active');
     document.getElementById('btn15m').classList.remove('active');
-    resetChart();
+    requestHistory();
   };
 
   document.getElementById('btnZones').onclick = function() {
@@ -276,42 +280,137 @@
     document.getElementById('liveBadge').style.background = isPaused ? '#666' : '#ff1744';
   };
 
-  // ========== CANDLE GENERATION (tuned for 15m / 1H) ==========
-  function generateNextCandle() {
-    if (isPaused) return;
+  // ========== DERIV WEBSOCKET ==========
+  const APP_ID = 1089;   // public testing app_id – works for market data
+  const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
 
-    // Higher TF = larger moves
-    const baseVol = currentTF === '15m' ? 2.2 : 4.8;
-    const vol = baseVol * volatilityMult;
-    const bias = Math.random() > 0.48 ? 1 : -1;
-    const change = bias * (Math.random() * vol);
+  function connect() {
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
 
-    const open = lastClose;
-    const close = open + change;
-    const high = Math.max(open, close) + Math.random() * (currentTF === '15m' ? 1.4 : 2.8) * volatilityMult;
-    const low  = Math.min(open, close) - Math.random() * (currentTF === '15m' ? 1.4 : 2.8) * volatilityMult;
-    const volume = Math.floor(300 + Math.random() * 1800 + Math.abs(change) * 400);
+    document.getElementById('liveBadge').textContent = '● CONNECTING';
+    document.getElementById('liveBadge').style.background = '#ff9800';
+    document.getElementById('status').textContent = 'Connecting to Deriv…';
 
-    lastClose = close;
-    currentPrice = close;
+    ws = new WebSocket(WS_URL);
 
-    candles.push({ o: open, h: high, l: low, c: close, v: volume, t: Date.now() });
-    if (candles.length > MAX_CANDLES) candles.shift();
+    ws.onopen = () => {
+      document.getElementById('liveBadge').textContent = '● LIVE';
+      document.getElementById('liveBadge').style.background = '#ff1744';
+      document.getElementById('status').textContent = `Timeframe: ${currentTF} | Live R_100 from Deriv`;
+      requestHistory();
+      // keep-alive ping every 30s
+      setInterval(() => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ ping: 1 }));
+        }
+      }, 30000);
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.error) {
+        console.error('Deriv error:', data.error);
+        document.getElementById('status').textContent = 'Error: ' + (data.error.message || 'API error');
+        return;
+      }
+
+      // Historical candles
+      if (data.msg_type === 'candles' && data.candles) {
+        candles = data.candles.map(c => ({
+          o: parseFloat(c.open),
+          h: parseFloat(c.high),
+          l: parseFloat(c.low),
+          c: parseFloat(c.close),
+          v: Math.max(100, Math.abs(parseFloat(c.close) - parseFloat(c.open)) * 800), // proxy volume
+          t: c.epoch * 1000
+        }));
+        if (candles.length > MAX_CANDLES) candles = candles.slice(-MAX_CANDLES);
+
+        if (candles.length) {
+          lastClose = candles[candles.length - 1].c;
+          currentPrice = lastClose;
+          currentCandleStart = candles[candles.length - 1].t;
+        }
+        subscribeTicks();
+        draw();
+      }
+
+      // Live tick → update current candle
+      if (data.msg_type === 'tick' && data.tick && !isPaused) {
+        const price = data.tick.quote;
+        const epoch = data.tick.epoch * 1000;
+        currentPrice = price;
+        lastClose = price;
+
+        // New candle boundary?
+        const candleBoundary = Math.floor(epoch / 1000 / granularity) * granularity * 1000;
+
+        if (candles.length === 0 || candleBoundary > currentCandleStart) {
+          // start new candle
+          candles.push({
+            o: price, h: price, l: price, c: price,
+            v: 100, t: candleBoundary
+          });
+          currentCandleStart = candleBoundary;
+          if (candles.length > MAX_CANDLES) candles.shift();
+        } else {
+          // update last candle
+          const last = candles[candles.length - 1];
+          last.h = Math.max(last.h, price);
+          last.l = Math.min(last.l, price);
+          last.c = price;
+          last.v += Math.abs(price - last.o) * 50; // accumulate proxy volume
+        }
+        draw();
+      }
+    };
+
+    ws.onclose = () => {
+      document.getElementById('liveBadge').textContent = '● DISCONNECTED';
+      document.getElementById('liveBadge').style.background = '#666';
+      document.getElementById('status').textContent = 'Disconnected – reconnecting…';
+      clearTimeout(reconnectTimer);
+      reconnectTimer = setTimeout(connect, 3000);
+    };
+
+    ws.onerror = () => {
+      document.getElementById('status').textContent = 'WebSocket error – will retry';
+    };
   }
 
-  function resetChart() {
+  function requestHistory() {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+    // forget previous tick subscription
+    if (tickSubId) {
+      ws.send(JSON.stringify({ forget: tickSubId }));
+      tickSubId = null;
+    }
+
     candles = [];
-    // Pre-fill history
-    for (let i = 0; i < 55; i++) generateNextCandle();
-    document.getElementById('status').textContent =
-      `Timeframe: ${currentTF} | Recommended for structure & cleaner Order Blocks`;
-    draw();
+    document.getElementById('status').textContent = `Loading ${currentTF} history…`;
+
+    ws.send(JSON.stringify({
+      ticks_history: 'R_100',
+      end: 'latest',
+      count: MAX_CANDLES,
+      style: 'candles',
+      granularity: granularity,
+      req_id: 1
+    }));
   }
 
-  // Initial fill
-  resetChart();
+  function subscribeTicks() {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({
+      ticks: 'R_100',
+      subscribe: 1,
+      req_id: 2
+    }));
+  }
 
-  // ========== ORDER BLOCK DETECTION ==========
+  // ========== ORDER BLOCK DETECTION (unchanged logic) ==========
   function detectOrderBlocks() {
     const obs = [];
     if (candles.length < 15) return obs;
@@ -322,7 +421,6 @@
       const range = c.h - c.l || 0.001;
       const bodyRatio = body / range;
 
-      // Strong bullish impulse
       if (c.c > c.o && bodyRatio > 0.62 && body > (currentTF === '15m' ? 1.8 : 3.5) * volatilityMult) {
         for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
           if (candles[j].c < candles[j].o) {
@@ -338,7 +436,6 @@
         }
       }
 
-      // Strong bearish impulse
       if (c.c < c.o && bodyRatio > 0.62 && body > (currentTF === '15m' ? 1.8 : 3.5) * volatilityMult) {
         for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
           if (candles[j].c > candles[j].o) {
@@ -357,7 +454,7 @@
     return obs.slice(-4);
   }
 
-  // ========== DRAW ==========
+  // ========== DRAW (same as original, only minor tweaks) ==========
   function resize() {
     const dpr = window.devicePixelRatio || 1;
     const rect = wrapper.getBoundingClientRect();
@@ -487,7 +584,7 @@
       ctx.fillRect(x - candleW/2, top, candleW, h);
     });
 
-    // Structure
+    // Structure labels (kept for visual consistency)
     const len = candles.length;
     const peakIdx = Math.max(8, Math.floor(len * 0.40));
     const troughIdx = Math.max(peakIdx + 8, Math.floor(len * 0.72));
@@ -505,50 +602,15 @@
     }
 
     // Trendline
-    const sX = padding.left + peakIdx * xStep;
-    const bX = padding.left + troughIdx * xStep;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(sX, y(candles[peakIdx].h));
-    ctx.lineTo(bX, y(candles[troughIdx].l));
-    ctx.stroke();
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-    ctx.beginPath();
-    ctx.moveTo(sX, y(candles[peakIdx].h) + 20);
-    ctx.lineTo(bX + 12, y(candles[troughIdx].l) + 14);
-    ctx.stroke();
-
-    // Pattern Break
-    const breakX = padding.left + breakIdx * xStep;
-    const breakY = y(candles[breakIdx].c);
-    ctx.beginPath();
-    ctx.arc(breakX, breakY, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#00ff9d';
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Target
-    ctx.strokeStyle = '#00ff9d';
-    ctx.setLineDash([5, 4]);
-    ctx.beginPath();
-    ctx.moveTo(breakX, breakY);
-    ctx.lineTo(breakX, y(candles[len-1].h) - 6);
-    ctx.lineTo(width - padding.right - 4, y(candles[len-1].h) - 6);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Early Reversal
-    if (len > 12) {
-      const last3 = candles.slice(-3);
-      const strongReversal = last3[2].c > last3[0].h && last3[1].c < last3[0].c;
-      if (strongReversal) {
-        const rx = padding.left + (len-1) * xStep;
-        addLabel('REV', rx - 12, y(candles[len-1].h) - 22, 'label-reversal');
-      }
+    if (len > 20) {
+      const sX = padding.left + peakIdx * xStep;
+      const bX = padding.left + troughIdx * xStep;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(sX, y(candles[peakIdx].h));
+      ctx.lineTo(bX, y(candles[troughIdx].l));
+      ctx.stroke();
     }
 
     // Order Block labels
@@ -562,15 +624,10 @@
       });
     }
 
-    // Standard labels
-    addLabel('S', sX - 6, y(candles[peakIdx].h) - 20, 'label-s');
-    addLabel('B', bX - 6, y(candles[troughIdx].l) + 10, 'label-b');
-    addLabel('Target Hit', breakX + 8, y(candles[len-1].h) - 26, 'label-target');
-    addLabel('Pattern Break', breakX - 30, breakY + 12, 'label-pattern');
+    // Live price
+    document.getElementById('priceDisplay').textContent = currentPrice ? currentPrice.toFixed(2) : '—';
 
-    // Live stats
-    document.getElementById('priceDisplay').textContent = currentPrice.toFixed(2);
-
+    // Bull / Bear stats
     let bulls = 0, bears = 0, delta = 0;
     const look = Math.min(25, candles.length);
     for (let i = candles.length - look; i < candles.length; i++) {
@@ -585,17 +642,10 @@
     document.getElementById('delta').textContent = `Delta ${Math.round(delta).toLocaleString()}`;
   }
 
-  function restartLoop() {
-    if (intervalId) clearInterval(intervalId);
-    intervalId = setInterval(() => {
-      generateNextCandle();
-      draw();
-    }, candleInterval);
-  }
-
+  // Start
   window.addEventListener('resize', resize);
   resize();
-  restartLoop();
+  connect();
 </script>
 </body>
 </html>
