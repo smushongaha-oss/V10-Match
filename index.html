@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPrime – Volatility 100 (1s) Live</title>
+  <title>ChartPrime – Volatility 100 Live (Enhanced)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -14,47 +14,78 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 15px;
     }
     .container {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1150px;
       background: #111;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
       border: 1px solid #222;
     }
     .header {
-      padding: 14px 24px;
+      padding: 12px 20px;
       background: #0d0d0d;
       border-bottom: 1px solid #222;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .logo { font-weight: 700; font-size: 17px; letter-spacing: 0.5px; }
+    .logo { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
     .logo span { color: #00ff9d; }
     .live-badge {
       background: #ff1744;
       color: white;
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 3px 9px;
       border-radius: 4px;
-      animation: pulse 1.5s infinite;
+      animation: pulse 1.4s infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      font-size: 12px;
     }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1a1a1a;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #333;
+    }
+    input[type="range"] { width: 80px; accent-color: #00ff9d; }
+    button {
+      background: #222;
+      color: #eee;
+      border: 1px solid #444;
+      padding: 4px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    button:hover { background: #333; }
+    button.active { background: #00c853; color: #000; border-color: #00c853; }
+
     .chart-wrapper {
       position: relative;
       width: 100%;
-      height: 520px;
+      height: 540px;
       background: #0a0a0a;
     }
     canvas { width: 100%; height: 100%; display: block; }
+
     .label {
       position: absolute;
       font-size: 11px;
@@ -67,7 +98,7 @@
     .label-s { background: #ff3b3b; color: white; }
     .label-b { background: #00c853; color: white; }
     .label-target {
-      background: rgba(0, 200, 83, 0.15);
+      background: rgba(0,200,83,0.15);
       color: #00ff9d;
       border: 1px solid #00ff9d;
     }
@@ -76,9 +107,15 @@
       color: #aaa;
       border: 1px solid #444;
     }
+    .label-reversal {
+      background: #ff9800;
+      color: #000;
+      font-weight: 700;
+    }
+
     .volume-bar {
       display: flex;
-      height: 36px;
+      height: 34px;
       background: #111;
       border-top: 1px solid #222;
       font-size: 13px;
@@ -90,8 +127,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 16px;
-      min-width: 130px;
+      padding: 0 14px;
+      min-width: 120px;
     }
     .bull {
       background: #2e7d32;
@@ -107,18 +144,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 20px;
+      padding: 0 18px;
       border-left: 1px solid #333;
-      min-width: 140px;
+      min-width: 130px;
     }
     .footer {
-      padding: 10px 24px;
+      padding: 9px 20px;
       font-size: 12px;
       color: #666;
       background: #0d0d0d;
       border-top: 1px solid #1a1a1a;
       display: flex;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
     }
   </style>
 </head>
@@ -126,10 +165,24 @@
 
 <div class="container">
   <div class="header">
-    <div class="logo">CHART<span>PRIME</span> · Volatility 100 (1s)</div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <div class="live-badge">● LIVE 1s</div>
-      <div style="font-size:13px;color:#888;" id="priceDisplay">—</div>
+      <div class="logo">CHART<span>PRIME</span> · V100</div>
+      <div class="live-badge" id="liveBadge">● LIVE</div>
+      <div id="priceDisplay" style="font-size:14px;font-weight:600;color:#00ff9d;">—</div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        Vol <input type="range" id="volSlider" min="0.5" max="3" step="0.1" value="1.2">
+        <span id="volValue">1.2×</span>
+      </div>
+      <div class="control-group">
+        Speed <input type="range" id="speedSlider" min="200" max="2000" step="100" value="1000">
+        <span id="speedValue">1s</span>
+      </div>
+      <button id="btnZones" class="active">Liquidity Zones</button>
+      <button id="btnProfile" class="active">Volume Profile</button>
+      <button id="btnPause">Pause</button>
     </div>
   </div>
 
@@ -144,8 +197,8 @@
   </div>
 
   <div class="footer">
-    <span>Structure • Liquidity • Key Levels</span>
-    <span id="candleCount">Candles: 0</span>
+    <span>Market Dynamics • Liquidity Zones • Volume Profile • Structure</span>
+    <span id="status">Candles: 0 | 1s live | Recommended: start on 1m, then drop to 15s/5s</span>
   </div>
 </div>
 
@@ -154,36 +207,72 @@
   const ctx = canvas.getContext('2d');
   const wrapper = document.getElementById('chartWrapper');
 
-  // ========== LIVE V100 1s SIMULATION ==========
-  // Realistic high-volatility synthetic (matches real Deriv V100 behaviour)
+  // ========== STATE ==========
   let candles = [];
-  let currentPrice = 850 + Math.random() * 150; // typical V100 range
+  let currentPrice = 920 + Math.random() * 80;
   let lastClose = currentPrice;
-  const MAX_CANDLES = 120; // show last 2 minutes
+  const MAX_CANDLES = 140;
+  let isPaused = false;
+  let showZones = true;
+  let showProfile = true;
+  let volatilityMult = 1.2;
+  let candleInterval = 1000; // ms
+  let intervalId = null;
 
+  // ========== CONTROLS ==========
+  document.getElementById('volSlider').oninput = e => {
+    volatilityMult = parseFloat(e.target.value);
+    document.getElementById('volValue').textContent = volatilityMult.toFixed(1) + '×';
+  };
+  document.getElementById('speedSlider').oninput = e => {
+    candleInterval = parseInt(e.target.value);
+    const sec = (candleInterval / 1000).toFixed(1);
+    document.getElementById('speedValue').textContent = sec + 's';
+    restartLoop();
+  };
+  document.getElementById('btnZones').onclick = function() {
+    showZones = !showZones;
+    this.classList.toggle('active');
+    draw();
+  };
+  document.getElementById('btnProfile').onclick = function() {
+    showProfile = !showProfile;
+    this.classList.toggle('active');
+    draw();
+  };
+  document.getElementById('btnPause').onclick = function() {
+    isPaused = !isPaused;
+    this.textContent = isPaused ? 'Resume' : 'Pause';
+    document.getElementById('liveBadge').textContent = isPaused ? '● PAUSED' : '● LIVE';
+    document.getElementById('liveBadge').style.background = isPaused ? '#666' : '#ff1744';
+  };
+
+  // ========== CANDLE GENERATION (realistic V100) ==========
   function generateNextCandle() {
-    // High volatility 1s move (V100 is extremely noisy)
-    const volatility = 0.8 + Math.random() * 1.8;
-    const direction = Math.random() > 0.48 ? 1 : -1; // slight bullish bias
-    const change = direction * (Math.random() * volatility);
+    if (isPaused) return;
+
+    const baseVol = 0.9 + Math.random() * 1.6;
+    const vol = baseVol * volatilityMult;
+    const bias = Math.random() > 0.49 ? 1 : -1;
+    const change = bias * (Math.random() * vol);
 
     const open = lastClose;
     const close = open + change;
-    const high = Math.max(open, close) + Math.random() * 0.6;
-    const low  = Math.min(open, close) - Math.random() * 0.6;
+    const high = Math.max(open, close) + Math.random() * 0.7 * volatilityMult;
+    const low  = Math.min(open, close) - Math.random() * 0.7 * volatilityMult;
+    const volume = Math.floor(80 + Math.random() * 420 + Math.abs(change) * 180);
 
     lastClose = close;
     currentPrice = close;
 
-    candles.push({ o: open, h: high, l: low, c: close, t: Date.now() });
-
+    candles.push({ o: open, h: high, l: low, c: close, v: volume, t: Date.now() });
     if (candles.length > MAX_CANDLES) candles.shift();
   }
 
-  // Pre-fill with some history
-  for (let i = 0; i < 80; i++) generateNextCandle();
+  // Pre-fill history
+  for (let i = 0; i < 90; i++) generateNextCandle();
 
-  // ========== DRAWING ==========
+  // ========== DRAW ==========
   function resize() {
     const dpr = window.devicePixelRatio || 1;
     const rect = wrapper.getBoundingClientRect();
@@ -199,29 +288,26 @@
   function draw() {
     const width = wrapper.clientWidth;
     const height = wrapper.clientHeight;
-    const padding = { top: 35, right: 50, bottom: 30, left: 15 };
+    const padding = { top: 30, right: showProfile ? 70 : 40, bottom: 25, left: 12 };
     const chartW = width - padding.left - padding.right;
     const chartH = height - padding.top - padding.bottom;
 
     ctx.clearRect(0, 0, width, height);
+    if (candles.length < 5) return;
 
-    if (candles.length < 2) return;
-
+    // Price range
     let min = Infinity, max = -Infinity;
-    candles.forEach(c => {
-      min = Math.min(min, c.l);
-      max = Math.max(max, c.h);
-    });
+    candles.forEach(c => { min = Math.min(min, c.l); max = Math.max(max, c.h); });
     const range = max - min || 1;
-    min -= range * 0.08;
-    max += range * 0.12;
+    min -= range * 0.07;
+    max += range * 0.10;
 
     const xStep = chartW / (candles.length - 1);
     const yScale = chartH / (max - min);
     const y = p => padding.top + (max - p) * yScale;
 
     // Grid
-    ctx.strokeStyle = '#1a1a1a';
+    ctx.strokeStyle = '#161616';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 5; i++) {
       const yy = padding.top + (chartH / 5) * i;
@@ -231,8 +317,55 @@
       ctx.stroke();
     }
 
+    // ===== VOLUME PROFILE (right side) =====
+    if (showProfile) {
+      const levels = 28;
+      const volProfile = new Array(levels).fill(0);
+      const step = (max - min) / levels;
+      candles.forEach(c => {
+        const idx = Math.floor((c.c - min) / step);
+        if (idx >= 0 && idx < levels) volProfile[idx] += c.v;
+      });
+      const maxVol = Math.max(...volProfile) || 1;
+      const profileW = 55;
+
+      volProfile.forEach((v, i) => {
+        const barH = chartH / levels;
+        const barW = (v / maxVol) * profileW;
+        const yy = padding.top + (levels - 1 - i) * barH;
+        ctx.fillStyle = v > maxVol * 0.65 ? 'rgba(0,255,157,0.45)' : 'rgba(0,200,83,0.18)';
+        ctx.fillRect(width - padding.right + 8, yy, barW, barH - 1);
+      });
+    }
+
+    // ===== LIQUIDITY ZONES =====
+    if (showZones && candles.length > 30) {
+      // Simple swing-based liquidity zones
+      const zones = [];
+      for (let i = 8; i < candles.length - 8; i++) {
+        const isSwingHigh = candles[i].h > candles[i-1].h && candles[i].h > candles[i+1].h &&
+                            candles[i].h > candles[i-3].h && candles[i].h > candles[i+3].h;
+        const isSwingLow  = candles[i].l < candles[i-1].l && candles[i].l < candles[i+1].l &&
+                            candles[i].l < candles[i-3].l && candles[i].l < candles[i+3].l;
+        if (isSwingHigh) zones.push({ price: candles[i].h, type: 'supply' });
+        if (isSwingLow)  zones.push({ price: candles[i].l, type: 'demand' });
+      }
+      // Keep only strongest recent ones
+      zones.slice(-6).forEach(z => {
+        const yy = y(z.price);
+        ctx.fillStyle = z.type === 'supply' ? 'rgba(255,59,59,0.12)' : 'rgba(0,200,83,0.12)';
+        ctx.fillRect(padding.left, yy - 8, chartW, 16);
+        ctx.strokeStyle = z.type === 'supply' ? 'rgba(255,59,59,0.4)' : 'rgba(0,200,83,0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, yy);
+        ctx.lineTo(padding.left + chartW, yy);
+        ctx.stroke();
+      });
+    }
+
     // Candles
-    const candleW = Math.max(3, xStep * 0.55);
+    const candleW = Math.max(2.5, xStep * 0.55);
     candles.forEach((c, i) => {
       const x = padding.left + i * xStep;
       const green = c.c >= c.o;
@@ -249,11 +382,11 @@
       ctx.fillRect(x - candleW/2, top, candleW, h);
     });
 
-    // ===== Dynamic S / B / Pattern logic (simplified real-time) =====
+    // ===== STRUCTURE (S / B / Pattern Break / Target) =====
     const len = candles.length;
-    const peakIdx = Math.floor(len * 0.45);
-    const troughIdx = Math.floor(len * 0.78);
-    const breakIdx = Math.floor(len * 0.85);
+    const peakIdx = Math.max(10, Math.floor(len * 0.42));
+    const troughIdx = Math.max(peakIdx + 10, Math.floor(len * 0.75));
+    const breakIdx = Math.min(len - 5, Math.floor(len * 0.88));
 
     // Clear old labels
     document.querySelectorAll('.label').forEach(el => el.remove());
@@ -262,88 +395,96 @@
       const el = document.createElement('div');
       el.className = `label ${cls}`;
       el.textContent = text;
-      el.style.left = `${x}px`;
-      el.style.top  = `${yPos}px`;
+      el.style.left = x + 'px';
+      el.style.top  = yPos + 'px';
       wrapper.appendChild(el);
     }
 
-    // Trendline S → B
+    // Trendline
     const sX = padding.left + peakIdx * xStep;
     const bX = padding.left + troughIdx * xStep;
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.4;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(sX, y(candles[peakIdx].h));
     ctx.lineTo(bX, y(candles[troughIdx].l));
     ctx.stroke();
 
-    // Lower channel line
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    // Parallel channel
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.beginPath();
-    ctx.moveTo(sX, y(candles[peakIdx].h) + 28);
-    ctx.lineTo(bX + 20, y(candles[troughIdx].l) + 18);
+    ctx.moveTo(sX, y(candles[peakIdx].h) + 22);
+    ctx.lineTo(bX + 15, y(candles[troughIdx].l) + 15);
     ctx.stroke();
 
-    // Pattern Break circle
+    // Pattern Break
     const breakX = padding.left + breakIdx * xStep;
     const breakY = y(candles[breakIdx].c);
     ctx.beginPath();
-    ctx.arc(breakX, breakY, 5.5, 0, Math.PI*2);
+    ctx.arc(breakX, breakY, 5, 0, Math.PI * 2);
     ctx.fillStyle = '#00ff9d';
     ctx.fill();
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Target Hit dashed line
+    // Target dashed
     ctx.strokeStyle = '#00ff9d';
     ctx.setLineDash([5, 4]);
     ctx.beginPath();
     ctx.moveTo(breakX, breakY);
-    ctx.lineTo(breakX, y(candles[len-1].h) - 8);
-    ctx.lineTo(width - padding.right - 5, y(candles[len-1].h) - 8);
+    ctx.lineTo(breakX, y(candles[len-1].h) - 6);
+    ctx.lineTo(width - padding.right - 4, y(candles[len-1].h) - 6);
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // Early Reversal marker (last few candles)
+    if (len > 15) {
+      const last3 = candles.slice(-3);
+      const strongReversal = last3[2].c > last3[0].h && last3[1].c < last3[0].c;
+      if (strongReversal) {
+        const rx = padding.left + (len-1) * xStep;
+        addLabel('REV', rx - 12, y(candles[len-1].h) - 22, 'label-reversal');
+      }
+    }
+
     // Labels
-    addLabel('S', sX - 7, y(candles[peakIdx].h) - 22, 'label-s');
-    addLabel('B', bX - 7, y(candles[troughIdx].l) + 12, 'label-b');
-    addLabel('Target Hit', breakX + 8, y(candles[len-1].h) - 28, 'label-target');
-    addLabel('Pattern Break', breakX - 28, breakY + 14, 'label-pattern');
+    addLabel('S', sX - 6, y(candles[peakIdx].h) - 20, 'label-s');
+    addLabel('B', bX - 6, y(candles[troughIdx].l) + 10, 'label-b');
+    addLabel('Target Hit', breakX + 8, y(candles[len-1].h) - 26, 'label-target');
+    addLabel('Pattern Break', breakX - 30, breakY + 12, 'label-pattern');
 
-    // Live price
-    document.getElementById('priceDisplay').textContent =
-      currentPrice.toFixed(3);
+    // Live stats
+    document.getElementById('priceDisplay').textContent = currentPrice.toFixed(3);
 
-    // Bull / Bear / Delta (rolling)
     let bulls = 0, bears = 0, delta = 0;
-    const lookback = Math.min(40, candles.length);
-    for (let i = candles.length - lookback; i < candles.length; i++) {
+    const look = Math.min(35, candles.length);
+    for (let i = candles.length - look; i < candles.length; i++) {
       const c = candles[i];
       const body = Math.abs(c.c - c.o);
-      if (c.c >= c.o) { bulls += body; delta += body * 1000; }
-      else { bears += body; delta -= body * 1000; }
+      if (c.c >= c.o) { bulls += body; delta += c.v; }
+      else { bears += body; delta -= c.v; }
     }
     const total = bulls + bears || 1;
-    const bullPct = (bulls / total * 100).toFixed(2);
-    const bearPct = (bears / total * 100).toFixed(2);
-
-    document.getElementById('bullPct').textContent = `Bull % : ${bullPct}`;
-    document.getElementById('bearPct').textContent = `Bear % : ${bearPct}`;
-    document.getElementById('delta').textContent =
-      `Delta ${Math.round(delta).toLocaleString()}`;
-    document.getElementById('candleCount').textContent =
-      `Candles: ${candles.length}  |  1s live`;
+    document.getElementById('bullPct').textContent = `Bull % : ${(bulls/total*100).toFixed(2)}`;
+    document.getElementById('bearPct').textContent = `Bear % : ${(bears/total*100).toFixed(2)}`;
+    document.getElementById('delta').textContent = `Delta ${Math.round(delta).toLocaleString()}`;
+    document.getElementById('status').textContent =
+      `Candles: ${candles.length} | Speed: ${(candleInterval/1000).toFixed(1)}s | Vol: ${volatilityMult.toFixed(1)}× | Recommended TF: 1m → 15s/5s`;
   }
 
-  // Live loop – new candle every second
-  setInterval(() => {
-    generateNextCandle();
-    draw();
-  }, 1000);
+  // ========== LOOP ==========
+  function restartLoop() {
+    if (intervalId) clearInterval(intervalId);
+    intervalId = setInterval(() => {
+      generateNextCandle();
+      draw();
+    }, candleInterval);
+  }
 
   window.addEventListener('resize', resize);
   resize();
+  restartLoop();
 </script>
 </body>
 </html>
