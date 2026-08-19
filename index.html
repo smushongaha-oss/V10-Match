@@ -96,16 +96,6 @@
       color: #aaa;
       border: 1px solid #444;
     }
-    .label-ob-bull {
-      background: rgba(0,200,83,0.85);
-      color: #000;
-      font-size: 10px;
-    }
-    .label-ob-bear {
-      background: rgba(255,59,59,0.85);
-      color: #fff;
-      font-size: 10px;
-    }
 
     .volume-bar {
       display: flex;
@@ -246,7 +236,7 @@
       ws.send(JSON.stringify({
         ticks_history: SYMBOL,
         end: 'latest',
-        count: 600,
+        count: 500,
         style: 'ticks',
         req_id: 1
       }));
@@ -288,7 +278,7 @@
           }
         }
         candles.push({ o, h, l, c, v: 1, t: currentSec * 1000 });
-        if (candles.length > 220) candles = candles.slice(-220);
+        if (candles.length > 250) candles = candles.slice(-250);
         currentCandle = { ...candles[candles.length - 1] };
 
         document.getElementById('status').textContent = `1HZ100V • Real 1s candles: ${candles.length}`;
@@ -305,7 +295,7 @@
         if (!currentCandle || Math.floor(currentCandle.t / 1000) !== sec) {
           if (currentCandle) {
             candles.push({ ...currentCandle });
-            if (candles.length > 220) candles.shift();
+            if (candles.length > 250) candles.shift();
           }
           currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: sec * 1000 };
         } else {
@@ -339,23 +329,23 @@
   function detectOrderBlocks() {
     const data = currentCandle ? [...candles, currentCandle] : candles;
     const obs = [];
-    if (data.length < 30) return obs;
+    if (data.length < 40) return obs;
 
-    for (let i = 12; i < data.length - 8; i++) {
+    for (let i = 15; i < data.length - 10; i++) {
       const c = data[i];
       const body = Math.abs(c.c - c.o);
       const range = c.h - c.l || 0.001;
 
-      if (c.c > c.o && body / range > 0.5) {
-        for (let j = i-1; j >= Math.max(0, i-7); j--) {
+      if (c.c > c.o && body / range > 0.45) {
+        for (let j = i-1; j >= Math.max(0, i-8); j--) {
           if (data[j].c < data[j].o) {
             obs.push({ type: 'bull', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length-1 });
             break;
           }
         }
       }
-      if (c.c < c.o && body / range > 0.5) {
-        for (let j = i-1; j >= Math.max(0, i-7); j--) {
+      if (c.c < c.o && body / range > 0.45) {
+        for (let j = i-1; j >= Math.max(0, i-8); j--) {
           if (data[j].c > data[j].o) {
             obs.push({ type: 'bear', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length-1 });
             break;
@@ -363,7 +353,7 @@
         }
       }
     }
-    return obs.slice(-4);
+    return obs.slice(-3);
   }
 
   function resize() {
@@ -380,7 +370,7 @@
 
   function draw() {
     const data = currentCandle ? [...candles, currentCandle] : candles;
-    if (data.length < 10) return;
+    if (data.length < 15) return;
 
     const width = wrapper.clientWidth;
     const height = wrapper.clientHeight;
@@ -440,30 +430,30 @@
         const x2 = padding.left + ob.endIdx * xStep;
         const yHigh = y(ob.high);
         const yLow = y(ob.low);
-        ctx.fillStyle = ob.type === 'bull' ? 'rgba(0,200,83,0.18)' : 'rgba(255,59,59,0.18)';
+        ctx.fillStyle = ob.type === 'bull' ? 'rgba(0,200,83,0.15)' : 'rgba(255,59,59,0.15)';
         ctx.fillRect(x1, yHigh, x2 - x1, yLow - yHigh);
-        ctx.strokeStyle = ob.type === 'bull' ? 'rgba(0,200,83,0.7)' : 'rgba(255,59,59,0.7)';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = ob.type === 'bull' ? 'rgba(0,200,83,0.6)' : 'rgba(255,59,59,0.6)';
+        ctx.lineWidth = 1.2;
         ctx.strokeRect(x1, yHigh, x2 - x1, yLow - yHigh);
       });
     }
 
     // Liquidity Zones
-    if (showZones && data.length > 50) {
+    if (showZones && data.length > 60) {
       const zones = [];
-      for (let i = 12; i < data.length - 12; i++) {
+      for (let i = 15; i < data.length - 15; i++) {
         const isSwingHigh = data[i].h > data[i-1].h && data[i].h > data[i+1].h &&
-                            data[i].h > data[i-5].h && data[i].h > data[i+5].h;
+                            data[i].h > data[i-6].h && data[i].h > data[i+6].h;
         const isSwingLow  = data[i].l < data[i-1].l && data[i].l < data[i+1].l &&
-                            data[i].l < data[i-5].l && data[i].l < data[i+5].l;
+                            data[i].l < data[i-6].l && data[i].l < data[i+6].l;
         if (isSwingHigh) zones.push({ price: data[i].h, type: 'supply' });
         if (isSwingLow)  zones.push({ price: data[i].l, type: 'demand' });
       }
-      zones.slice(-5).forEach(z => {
+      zones.slice(-4).forEach(z => {
         const yy = y(z.price);
-        ctx.fillStyle = z.type === 'supply' ? 'rgba(255,59,59,0.10)' : 'rgba(0,200,83,0.10)';
-        ctx.fillRect(padding.left, yy - 7, chartW, 14);
-        ctx.strokeStyle = z.type === 'supply' ? 'rgba(255,59,59,0.35)' : 'rgba(0,200,83,0.35)';
+        ctx.fillStyle = z.type === 'supply' ? 'rgba(255,59,59,0.08)' : 'rgba(0,200,83,0.08)';
+        ctx.fillRect(padding.left, yy - 6, chartW, 12);
+        ctx.strokeStyle = z.type === 'supply' ? 'rgba(255,59,59,0.3)' : 'rgba(0,200,83,0.3)';
         ctx.beginPath();
         ctx.moveTo(padding.left, yy);
         ctx.lineTo(padding.left + chartW, yy);
@@ -471,35 +461,34 @@
       });
     }
 
-    // ===== CANDLES (fixed for 1s visibility) =====
-    const candleW = Math.max(3, xStep * 0.6);
+    // ===== MAIN PRICE LINE (best for 1s) =====
+    ctx.beginPath();
+    ctx.strokeStyle = '#00ff9d';
+    ctx.lineWidth = 1.8;
     data.forEach((c, i) => {
       const x = padding.left + i * xStep;
-      const green = c.c >= c.o;
+      const yy = y(c.c);
+      if (i === 0) ctx.moveTo(x, yy);
+      else ctx.lineTo(x, yy);
+    });
+    ctx.stroke();
 
-      // Wick
-      ctx.strokeStyle = green ? '#00c853' : '#ff1744';
-      ctx.lineWidth = 1.2;
+    // Small dots on the line for better visibility
+    data.forEach((c, i) => {
+      const x = padding.left + i * xStep;
+      const yy = y(c.c);
       ctx.beginPath();
-      ctx.moveTo(x, y(c.h));
-      ctx.lineTo(x, y(c.l));
-      ctx.stroke();
-
-      // Body – force minimum height so 1s candles are visible
-      let bodyTop = y(Math.max(c.o, c.c));
-      let bodyH = Math.abs(y(c.o) - y(c.c));
-      if (bodyH < 2.5) bodyH = 2.5;          // ← this is the key fix
-
-      ctx.fillStyle = green ? '#00c853' : '#ff1744';
-      ctx.fillRect(x - candleW/2, bodyTop - (bodyH < 2.5 ? 1.25 : 0), candleW, bodyH);
+      ctx.arc(x, yy, 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = c.c >= c.o ? '#00c853' : '#ff1744';
+      ctx.fill();
     });
 
-    // Structure labels
+    // Structure
     document.querySelectorAll('.label').forEach(el => el.remove());
     const len = data.length;
-    if (len > 40) {
-      const peakIdx = Math.floor(len * 0.35);
-      const troughIdx = Math.floor(len * 0.72);
+    if (len > 50) {
+      const peakIdx = Math.floor(len * 0.32);
+      const troughIdx = Math.floor(len * 0.68);
       const breakIdx = Math.floor(len * 0.88);
 
       function addLabel(text, x, yPos, cls) {
@@ -543,9 +532,9 @@
       addLabel('Pattern Break', breakX - 28, breakY + 12, 'label-pattern');
     }
 
-    // Improved Bull / Bear % (uses direction + volume)
+    // Stats
     let bulls = 0, bears = 0, delta = 0;
-    const look = Math.min(60, data.length);
+    const look = Math.min(80, data.length);
     for (let i = data.length - look; i < data.length; i++) {
       const c = data[i];
       if (c.c >= c.o) {
