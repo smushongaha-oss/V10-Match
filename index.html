@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPrime – Volatility 100 Live (Enhanced)</title>
+  <title>ChartPrime – Volatility 100 (15m / 1H)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -48,11 +48,10 @@
     }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
 
-    /* Controls */
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
       font-size: 12px;
     }
@@ -111,6 +110,16 @@
       background: #ff9800;
       color: #000;
       font-weight: 700;
+    }
+    .label-ob-bull {
+      background: rgba(0,200,83,0.85);
+      color: #000;
+      font-size: 10px;
+    }
+    .label-ob-bear {
+      background: rgba(255,59,59,0.85);
+      color: #fff;
+      font-size: 10px;
     }
 
     .volume-bar {
@@ -173,15 +182,17 @@
 
     <div class="controls">
       <div class="control-group">
-        Vol <input type="range" id="volSlider" min="0.5" max="3" step="0.1" value="1.2">
-        <span id="volValue">1.2×</span>
+        Vol <input type="range" id="volSlider" min="0.5" max="3" step="0.1" value="1.4">
+        <span id="volValue">1.4×</span>
       </div>
-      <div class="control-group">
-        Speed <input type="range" id="speedSlider" min="200" max="2000" step="100" value="1000">
-        <span id="speedValue">1s</span>
-      </div>
+
+      <!-- Timeframe Switcher -->
+      <button id="btn15m" class="active">15m</button>
+      <button id="btn1h">1H</button>
+
       <button id="btnZones" class="active">Liquidity Zones</button>
       <button id="btnProfile" class="active">Volume Profile</button>
+      <button id="btnOB" class="active">Order Blocks</button>
       <button id="btnPause">Pause</button>
     </div>
   </div>
@@ -197,8 +208,8 @@
   </div>
 
   <div class="footer">
-    <span>Market Dynamics • Liquidity Zones • Volume Profile • Structure</span>
-    <span id="status">Candles: 0 | 1s live | Recommended: start on 1m, then drop to 15s/5s</span>
+    <span>Market Dynamics • Order Blocks • Liquidity Zones • Volume Profile</span>
+    <span id="status">Timeframe: 15m | Recommended for structure & cleaner Order Blocks</span>
   </div>
 </div>
 
@@ -211,12 +222,14 @@
   let candles = [];
   let currentPrice = 920 + Math.random() * 80;
   let lastClose = currentPrice;
-  const MAX_CANDLES = 140;
+  const MAX_CANDLES = 80;               // fewer candles for higher TFs
   let isPaused = false;
   let showZones = true;
   let showProfile = true;
-  let volatilityMult = 1.2;
-  let candleInterval = 1000; // ms
+  let showOB = true;
+  let volatilityMult = 1.4;
+  let currentTF = '15m';               // '15m' or '1H'
+  let candleInterval = 2500;           // visual update speed (not real time)
   let intervalId = null;
 
   // ========== CONTROLS ==========
@@ -224,12 +237,23 @@
     volatilityMult = parseFloat(e.target.value);
     document.getElementById('volValue').textContent = volatilityMult.toFixed(1) + '×';
   };
-  document.getElementById('speedSlider').oninput = e => {
-    candleInterval = parseInt(e.target.value);
-    const sec = (candleInterval / 1000).toFixed(1);
-    document.getElementById('speedValue').textContent = sec + 's';
-    restartLoop();
+
+  document.getElementById('btn15m').onclick = function() {
+    if (currentTF === '15m') return;
+    currentTF = '15m';
+    this.classList.add('active');
+    document.getElementById('btn1h').classList.remove('active');
+    resetChart();
   };
+
+  document.getElementById('btn1h').onclick = function() {
+    if (currentTF === '1H') return;
+    currentTF = '1H';
+    this.classList.add('active');
+    document.getElementById('btn15m').classList.remove('active');
+    resetChart();
+  };
+
   document.getElementById('btnZones').onclick = function() {
     showZones = !showZones;
     this.classList.toggle('active');
@@ -240,6 +264,11 @@
     this.classList.toggle('active');
     draw();
   };
+  document.getElementById('btnOB').onclick = function() {
+    showOB = !showOB;
+    this.classList.toggle('active');
+    draw();
+  };
   document.getElementById('btnPause').onclick = function() {
     isPaused = !isPaused;
     this.textContent = isPaused ? 'Resume' : 'Pause';
@@ -247,20 +276,21 @@
     document.getElementById('liveBadge').style.background = isPaused ? '#666' : '#ff1744';
   };
 
-  // ========== CANDLE GENERATION (realistic V100) ==========
+  // ========== CANDLE GENERATION (tuned for 15m / 1H) ==========
   function generateNextCandle() {
     if (isPaused) return;
 
-    const baseVol = 0.9 + Math.random() * 1.6;
+    // Higher TF = larger moves
+    const baseVol = currentTF === '15m' ? 2.2 : 4.8;
     const vol = baseVol * volatilityMult;
-    const bias = Math.random() > 0.49 ? 1 : -1;
+    const bias = Math.random() > 0.48 ? 1 : -1;
     const change = bias * (Math.random() * vol);
 
     const open = lastClose;
     const close = open + change;
-    const high = Math.max(open, close) + Math.random() * 0.7 * volatilityMult;
-    const low  = Math.min(open, close) - Math.random() * 0.7 * volatilityMult;
-    const volume = Math.floor(80 + Math.random() * 420 + Math.abs(change) * 180);
+    const high = Math.max(open, close) + Math.random() * (currentTF === '15m' ? 1.4 : 2.8) * volatilityMult;
+    const low  = Math.min(open, close) - Math.random() * (currentTF === '15m' ? 1.4 : 2.8) * volatilityMult;
+    const volume = Math.floor(300 + Math.random() * 1800 + Math.abs(change) * 400);
 
     lastClose = close;
     currentPrice = close;
@@ -269,8 +299,63 @@
     if (candles.length > MAX_CANDLES) candles.shift();
   }
 
-  // Pre-fill history
-  for (let i = 0; i < 90; i++) generateNextCandle();
+  function resetChart() {
+    candles = [];
+    // Pre-fill history
+    for (let i = 0; i < 55; i++) generateNextCandle();
+    document.getElementById('status').textContent =
+      `Timeframe: ${currentTF} | Recommended for structure & cleaner Order Blocks`;
+    draw();
+  }
+
+  // Initial fill
+  resetChart();
+
+  // ========== ORDER BLOCK DETECTION ==========
+  function detectOrderBlocks() {
+    const obs = [];
+    if (candles.length < 15) return obs;
+
+    for (let i = 6; i < candles.length - 5; i++) {
+      const c = candles[i];
+      const body = Math.abs(c.c - c.o);
+      const range = c.h - c.l || 0.001;
+      const bodyRatio = body / range;
+
+      // Strong bullish impulse
+      if (c.c > c.o && bodyRatio > 0.62 && body > (currentTF === '15m' ? 1.8 : 3.5) * volatilityMult) {
+        for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
+          if (candles[j].c < candles[j].o) {
+            obs.push({
+              type: 'bull',
+              high: candles[j].h,
+              low: candles[j].l,
+              startIdx: j,
+              endIdx: candles.length - 1
+            });
+            break;
+          }
+        }
+      }
+
+      // Strong bearish impulse
+      if (c.c < c.o && bodyRatio > 0.62 && body > (currentTF === '15m' ? 1.8 : 3.5) * volatilityMult) {
+        for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
+          if (candles[j].c > candles[j].o) {
+            obs.push({
+              type: 'bear',
+              high: candles[j].h,
+              low: candles[j].l,
+              startIdx: j,
+              endIdx: candles.length - 1
+            });
+            break;
+          }
+        }
+      }
+    }
+    return obs.slice(-4);
+  }
 
   // ========== DRAW ==========
   function resize() {
@@ -295,7 +380,6 @@
     ctx.clearRect(0, 0, width, height);
     if (candles.length < 5) return;
 
-    // Price range
     let min = Infinity, max = -Infinity;
     candles.forEach(c => { min = Math.min(min, c.l); max = Math.max(max, c.h); });
     const range = max - min || 1;
@@ -317,9 +401,9 @@
       ctx.stroke();
     }
 
-    // ===== VOLUME PROFILE (right side) =====
+    // Volume Profile
     if (showProfile) {
-      const levels = 28;
+      const levels = 26;
       const volProfile = new Array(levels).fill(0);
       const step = (max - min) / levels;
       candles.forEach(c => {
@@ -338,11 +422,33 @@
       });
     }
 
-    // ===== LIQUIDITY ZONES =====
-    if (showZones && candles.length > 30) {
-      // Simple swing-based liquidity zones
+    // Order Blocks
+    if (showOB) {
+      const orderBlocks = detectOrderBlocks();
+      orderBlocks.forEach(ob => {
+        const x1 = padding.left + ob.startIdx * xStep;
+        const x2 = padding.left + ob.endIdx * xStep;
+        const yHigh = y(ob.high);
+        const yLow = y(ob.low);
+        const h = yLow - yHigh;
+
+        ctx.fillStyle = ob.type === 'bull' 
+          ? 'rgba(0, 200, 83, 0.18)' 
+          : 'rgba(255, 59, 59, 0.18)';
+        ctx.fillRect(x1, yHigh, x2 - x1, h);
+
+        ctx.strokeStyle = ob.type === 'bull' 
+          ? 'rgba(0, 200, 83, 0.7)' 
+          : 'rgba(255, 59, 59, 0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x1, yHigh, x2 - x1, h);
+      });
+    }
+
+    // Liquidity Zones
+    if (showZones && candles.length > 25) {
       const zones = [];
-      for (let i = 8; i < candles.length - 8; i++) {
+      for (let i = 6; i < candles.length - 6; i++) {
         const isSwingHigh = candles[i].h > candles[i-1].h && candles[i].h > candles[i+1].h &&
                             candles[i].h > candles[i-3].h && candles[i].h > candles[i+3].h;
         const isSwingLow  = candles[i].l < candles[i-1].l && candles[i].l < candles[i+1].l &&
@@ -350,12 +456,11 @@
         if (isSwingHigh) zones.push({ price: candles[i].h, type: 'supply' });
         if (isSwingLow)  zones.push({ price: candles[i].l, type: 'demand' });
       }
-      // Keep only strongest recent ones
-      zones.slice(-6).forEach(z => {
+      zones.slice(-5).forEach(z => {
         const yy = y(z.price);
-        ctx.fillStyle = z.type === 'supply' ? 'rgba(255,59,59,0.12)' : 'rgba(0,200,83,0.12)';
-        ctx.fillRect(padding.left, yy - 8, chartW, 16);
-        ctx.strokeStyle = z.type === 'supply' ? 'rgba(255,59,59,0.4)' : 'rgba(0,200,83,0.4)';
+        ctx.fillStyle = z.type === 'supply' ? 'rgba(255,59,59,0.10)' : 'rgba(0,200,83,0.10)';
+        ctx.fillRect(padding.left, yy - 7, chartW, 14);
+        ctx.strokeStyle = z.type === 'supply' ? 'rgba(255,59,59,0.35)' : 'rgba(0,200,83,0.35)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(padding.left, yy);
@@ -365,7 +470,7 @@
     }
 
     // Candles
-    const candleW = Math.max(2.5, xStep * 0.55);
+    const candleW = Math.max(4, xStep * 0.6);
     candles.forEach((c, i) => {
       const x = padding.left + i * xStep;
       const green = c.c >= c.o;
@@ -382,13 +487,12 @@
       ctx.fillRect(x - candleW/2, top, candleW, h);
     });
 
-    // ===== STRUCTURE (S / B / Pattern Break / Target) =====
+    // Structure
     const len = candles.length;
-    const peakIdx = Math.max(10, Math.floor(len * 0.42));
-    const troughIdx = Math.max(peakIdx + 10, Math.floor(len * 0.75));
-    const breakIdx = Math.min(len - 5, Math.floor(len * 0.88));
+    const peakIdx = Math.max(8, Math.floor(len * 0.40));
+    const troughIdx = Math.max(peakIdx + 8, Math.floor(len * 0.72));
+    const breakIdx = Math.min(len - 4, Math.floor(len * 0.86));
 
-    // Clear old labels
     document.querySelectorAll('.label').forEach(el => el.remove());
 
     function addLabel(text, x, yPos, cls) {
@@ -410,11 +514,10 @@
     ctx.lineTo(bX, y(candles[troughIdx].l));
     ctx.stroke();
 
-    // Parallel channel
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.beginPath();
-    ctx.moveTo(sX, y(candles[peakIdx].h) + 22);
-    ctx.lineTo(bX + 15, y(candles[troughIdx].l) + 15);
+    ctx.moveTo(sX, y(candles[peakIdx].h) + 20);
+    ctx.lineTo(bX + 12, y(candles[troughIdx].l) + 14);
     ctx.stroke();
 
     // Pattern Break
@@ -428,7 +531,7 @@
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Target dashed
+    // Target
     ctx.strokeStyle = '#00ff9d';
     ctx.setLineDash([5, 4]);
     ctx.beginPath();
@@ -438,8 +541,8 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Early Reversal marker (last few candles)
-    if (len > 15) {
+    // Early Reversal
+    if (len > 12) {
       const last3 = candles.slice(-3);
       const strongReversal = last3[2].c > last3[0].h && last3[1].c < last3[0].c;
       if (strongReversal) {
@@ -448,17 +551,28 @@
       }
     }
 
-    // Labels
+    // Order Block labels
+    if (showOB) {
+      const orderBlocks = detectOrderBlocks();
+      orderBlocks.forEach(ob => {
+        const x = padding.left + ob.startIdx * xStep + 4;
+        const yPos = ob.type === 'bull' ? y(ob.low) + 4 : y(ob.high) - 18;
+        addLabel(ob.type === 'bull' ? 'Bull OB' : 'Bear OB', x, yPos, 
+                 ob.type === 'bull' ? 'label-ob-bull' : 'label-ob-bear');
+      });
+    }
+
+    // Standard labels
     addLabel('S', sX - 6, y(candles[peakIdx].h) - 20, 'label-s');
     addLabel('B', bX - 6, y(candles[troughIdx].l) + 10, 'label-b');
     addLabel('Target Hit', breakX + 8, y(candles[len-1].h) - 26, 'label-target');
     addLabel('Pattern Break', breakX - 30, breakY + 12, 'label-pattern');
 
     // Live stats
-    document.getElementById('priceDisplay').textContent = currentPrice.toFixed(3);
+    document.getElementById('priceDisplay').textContent = currentPrice.toFixed(2);
 
     let bulls = 0, bears = 0, delta = 0;
-    const look = Math.min(35, candles.length);
+    const look = Math.min(25, candles.length);
     for (let i = candles.length - look; i < candles.length; i++) {
       const c = candles[i];
       const body = Math.abs(c.c - c.o);
@@ -469,11 +583,8 @@
     document.getElementById('bullPct').textContent = `Bull % : ${(bulls/total*100).toFixed(2)}`;
     document.getElementById('bearPct').textContent = `Bear % : ${(bears/total*100).toFixed(2)}`;
     document.getElementById('delta').textContent = `Delta ${Math.round(delta).toLocaleString()}`;
-    document.getElementById('status').textContent =
-      `Candles: ${candles.length} | Speed: ${(candleInterval/1000).toFixed(1)}s | Vol: ${volatilityMult.toFixed(1)}× | Recommended TF: 1m → 15s/5s`;
   }
 
-  // ========== LOOP ==========
   function restartLoop() {
     if (intervalId) clearInterval(intervalId);
     intervalId = setInterval(() => {
