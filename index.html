@@ -1,368 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPrime – Market Dynamics Indicator</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #0a0a0a;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: #e0e0e0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 1100px;
-      background: #111;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-      border: 1px solid #222;
-    }
-
-    .header {
-      padding: 16px 24px;
-      background: #0d0d0d;
-      border-bottom: 1px solid #222;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-weight: 700;
-      font-size: 18px;
-      letter-spacing: 1px;
-      color: #fff;
-    }
-
-    .logo span {
-      color: #00ff9d;
-    }
-
-    .chart-wrapper {
-      position: relative;
-      width: 100%;
-      height: 520px;
-      background: #0a0a0a;
-    }
-
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    /* Labels that float over the chart */
-    .label {
-      position: absolute;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 4px;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .label-s {
-      background: #ff3b3b;
-      color: white;
-    }
-
-    .label-b {
-      background: #00c853;
-      color: white;
-    }
-
-    .label-target {
-      background: rgba(0, 200, 83, 0.2);
-      color: #00ff9d;
-      border: 1px solid #00ff9d;
-    }
-
-    .label-pattern {
-      background: rgba(255, 255, 255, 0.1);
-      color: #aaa;
-      border: 1px solid #444;
-    }
-
-    /* Bottom volume bar */
-    .volume-bar {
-      display: flex;
-      height: 36px;
-      background: #111;
-      border-top: 1px solid #222;
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .bear {
-      background: #c62828;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      white-space: nowrap;
-    }
-
-    .bull {
-      background: #2e7d32;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      white-space: nowrap;
-    }
-
-    .delta {
-      background: #1a1a1a;
-      color: #00e676;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 20px;
-      margin-left: auto;
-      border-left: 1px solid #333;
-    }
-
-    .footer {
-      padding: 12px 24px;
-      font-size: 12px;
-      color: #666;
-      background: #0d0d0d;
-      border-top: 1px solid #1a1a1a;
-      text-align: center;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WTI + V100 1s // LIVE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap');
+  :root {
+    --amber: #ffb02e;
+    --cyan: #00f0ff;
+    --green: #00ff41;
+    --bg: #05080f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: #e2e8f0;
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    padding: 15px 0 20px;
+  }
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    background: linear-gradient(90deg, #ffb02e, #00f0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(12px);
+  }
+  .card h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .oil h2 { color: var(--amber); }
+  .v100 h2 { color: var(--cyan); }
+  .price {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+  }
+  .status {
+    font-size: 0.8rem;
+    margin-top: 6px;
+    opacity: 0.8;
+  }
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    margin-right: 6px;
+  }
+  .dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .chart {
+    width: 100%;
+    height: 120px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    margin-top: 12px;
+  }
+  .log {
+    height: 140px;
+    overflow-y: auto;
+    font-size: 0.78rem;
+    margin-top: 12px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .log div { margin-bottom: 4px; }
+  .t { color: #94a3b8; }
+</style>
 </head>
 <body>
+<div class="container">
+  <header>
+    <h1>WTI CRUDE + VOLATILITY 100 (1s)</h1>
+    <div style="color:#94a3b8;font-size:0.9rem;margin-top:6px;">Dual Live Feed</div>
+  </header>
 
-  <div class="container">
-    <div class="header">
-      <div class="logo">CHART<span>PRIME</span> · Market Dynamics</div>
-      <div style="font-size:13px;color:#888;">Structure • Liquidity • Key Levels</div>
+  <div class="grid">
+    <!-- WTI OIL -->
+    <div class="card oil">
+      <h2>WTI Crude Oil</h2>
+      <div class="price" id="wtiPrice">—</div>
+      <div class="status">
+        <span class="dot" id="wtiDot"></span>
+        <span id="wtiStatus">Connecting...</span>
+      </div>
+      <canvas id="wtiChart" class="chart" width="500" height="120"></canvas>
+      <div class="log" id="wtiLog"></div>
     </div>
 
-    <div class="chart-wrapper" id="chartWrapper">
-      <canvas id="chart"></canvas>
-
-      <!-- Dynamic labels will be injected here -->
-    </div>
-
-    <div class="volume-bar">
-      <div class="bear" id="bearPct">Bear % : 27.48</div>
-      <div class="bull" id="bullPct" style="flex:1;">Bull % : 72.52</div>
-      <div class="delta" id="delta">Delta 386320</div>
-    </div>
-
-    <div class="footer">
-      Breakouts drawn automatically • Early reversal alerts • Support & Resistance mapped
+    <!-- V100 1s -->
+    <div class="card v100">
+      <h2>Volatility 100 Index (1s)</h2>
+      <div class="price" id="v100Price">—</div>
+      <div class="status">
+        <span class="dot" id="v100Dot"></span>
+        <span id="v100Status">Connecting to Deriv...</span>
+      </div>
+      <canvas id="v100Chart" class="chart" width="500" height="120"></canvas>
+      <div class="log" id="v100Log"></div>
     </div>
   </div>
+</div>
 
-  <script>
-    const canvas = document.getElementById('chart');
+<script>
+  // ========== WTI (OilPriceAPI) ==========
+  const wtiPrices = [];
+  async function fetchWTI() {
+    try {
+      const res = await fetch('https://api.oilpriceapi.com/v1/demo/prices');
+      const data = await res.json();
+      let price = null;
+      if (data?.data?.prices) {
+        const item = data.data.prices.find(p => p.code === 'WTI_USD' || p.name?.includes('WTI'));
+        if (item) price = parseFloat(item.price);
+      }
+      if (!price) throw new Error('No data');
+
+      document.getElementById('wtiDot').classList.add('on');
+      document.getElementById('wtiStatus').textContent = 'Live • WTI';
+      document.getElementById('wtiPrice').textContent = '$' + price.toFixed(2);
+
+      wtiPrices.push(price);
+      if (wtiPrices.length > 60) wtiPrices.shift();
+      drawChart('wtiChart', wtiPrices, '#ffb02e');
+      addLog('wtiLog', `$${price.toFixed(2)}`);
+    } catch (e) {
+      document.getElementById('wtiStatus').textContent = 'Error';
+    }
+  }
+
+  // ========== V100 1s (Deriv WebSocket) ==========
+  let v100Prices = [];
+  let ws = null;
+
+  function connectV100() {
+    ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+
+    ws.onopen = () => {
+      document.getElementById('v100Dot').classList.add('on');
+      document.getElementById('v100Status').textContent = 'Live • 1HZ100V';
+      ws.send(JSON.stringify({
+        ticks: '1HZ100V',
+        subscribe: 1
+      }));
+      addLog('v100Log', 'Connected to Deriv');
+    };
+
+    ws.onmessage = (msg) => {
+      const data = JSON.parse(msg.data);
+      if (data.tick && data.tick.quote) {
+        const price = parseFloat(data.tick.quote);
+        document.getElementById('v100Price').textContent = price.toFixed(2);
+
+        v100Prices.push(price);
+        if (v100Prices.length > 80) v100Prices.shift();
+        drawChart('v100Chart', v100Prices, '#00f0ff');
+        addLog('v100Log', price.toFixed(2));
+      }
+    };
+
+    ws.onclose = () => {
+      document.getElementById('v100Dot').classList.remove('on');
+      document.getElementById('v100Status').textContent = 'Reconnecting...';
+      setTimeout(connectV100, 3000);
+    };
+  }
+
+  // ========== Helpers ==========
+  function drawChart(id, data, color) {
+    const canvas = document.getElementById(id);
     const ctx = canvas.getContext('2d');
-    const wrapper = document.getElementById('chartWrapper');
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    if (data.length < 2) return;
 
-    // High-DPI support
-    function resize() {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = wrapper.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
-      ctx.scale(dpr, dpr);
-      draw();
-    }
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min || 1;
 
-    // Sample price data (simulating the chart in the screenshot)
-    const candles = [
-      {o:100,h:105,l:98,c:103}, {o:103,h:108,l:101,c:106},
-      {o:106,h:112,l:104,c:110}, {o:110,h:115,l:108,c:113},
-      {o:113,h:118,l:111,c:116}, {o:116,h:122,l:114,c:120},
-      {o:120,h:125,l:117,c:123}, {o:123,h:128,l:120,c:126},
-      {o:126,h:132,l:124,c:130}, {o:130,h:135,l:127,c:132},
-      {o:132,h:138,l:129,c:135}, {o:135,h:140,l:132,c:137},
-      {o:137,h:142,l:134,c:139}, {o:139,h:145,l:136,c:142},
-      {o:142,h:148,l:139,c:145}, {o:145,h:150,l:142,c:147},
-      {o:147,h:152,l:144,c:149}, {o:149,h:155,l:146,c:152},
-      {o:152,h:158,l:149,c:155}, {o:155,h:160,l:151,c:157},
-      // Peak + decline (the descending channel)
-      {o:157,h:162,l:154,c:159}, {o:159,h:163,l:155,c:156},
-      {o:156,h:160,l:152,c:154}, {o:154,h:158,l:150,c:152},
-      {o:152,h:156,l:148,c:150}, {o:150,h:154,l:146,c:148},
-      {o:148,h:152,l:144,c:146}, {o:146,h:150,l:142,c:144},
-      {o:144,h:148,l:140,c:142}, {o:142,h:146,l:138,c:140},
-      {o:140,h:144,l:136,c:138}, {o:138,h:142,l:134,c:136},
-      {o:136,h:140,l:132,c:134}, {o:134,h:138,l:130,c:132},
-      {o:132,h:136,l:128,c:130}, {o:130,h:134,l:126,c:128},
-      {o:128,h:132,l:124,c:126}, {o:126,h:130,l:122,c:124},
-      {o:124,h:128,l:120,c:122}, {o:122,h:126,l:118,c:120},
-      // Final breakout
-      {o:120,h:135,l:118,c:132}, {o:132,h:148,l:130,c:145},
-      {o:145,h:158,l:143,c:155}, {o:155,h:168,l:152,c:164},
-      {o:164,h:175,l:161,c:172}, {o:172,h:182,l:169,c:178}
-    ];
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    data.forEach((p, i) => {
+      const x = (i / (data.length - 1)) * (w - 10) + 5;
+      const y = h - 8 - ((p - min) / range) * (h - 16);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
 
-    function draw() {
-      const width = wrapper.clientWidth;
-      const height = wrapper.clientHeight;
-      const padding = { top: 40, right: 40, bottom: 40, left: 20 };
-      const chartW = width - padding.left - padding.right;
-      const chartH = height - padding.top - padding.bottom;
+  function addLog(id, text) {
+    const el = document.getElementById(id);
+    const time = new Date().toISOString().substr(11, 8);
+    const div = document.createElement('div');
+    div.innerHTML = `<span class="t">[${time}]</span> ${text}`;
+    el.appendChild(div);
+    while (el.children.length > 12) el.removeChild(el.firstChild);
+    el.scrollTop = el.scrollHeight;
+  }
 
-      // Clear
-      ctx.clearRect(0, 0, width, height);
-
-      // Find min/max
-      let min = Infinity, max = -Infinity;
-      candles.forEach(c => {
-        min = Math.min(min, c.l);
-        max = Math.max(max, c.h);
-      });
-      const range = max - min;
-      min -= range * 0.05;
-      max += range * 0.08;
-
-      const xStep = chartW / (candles.length - 1);
-      const yScale = chartH / (max - min);
-
-      function y(price) {
-        return padding.top + (max - price) * yScale;
-      }
-
-      // Grid lines
-      ctx.strokeStyle = '#1a1a1a';
-      ctx.lineWidth = 1;
-      for (let i = 0; i < 6; i++) {
-        const yy = padding.top + (chartH / 5) * i;
-        ctx.beginPath();
-        ctx.moveTo(padding.left, yy);
-        ctx.lineTo(width - padding.right, yy);
-        ctx.stroke();
-      }
-
-      // Candles
-      const candleW = Math.max(4, xStep * 0.6);
-      candles.forEach((c, i) => {
-        const x = padding.left + i * xStep;
-        const isGreen = c.c >= c.o;
-        ctx.strokeStyle = isGreen ? '#00c853' : '#ff1744';
-        ctx.fillStyle = isGreen ? '#00c853' : '#ff1744';
-
-        // Wick
-        ctx.beginPath();
-        ctx.moveTo(x, y(c.h));
-        ctx.lineTo(x, y(c.l));
-        ctx.stroke();
-
-        // Body
-        const bodyTop = y(Math.max(c.o, c.c));
-        const bodyH = Math.abs(y(c.o) - y(c.c)) || 1;
-        ctx.fillRect(x - candleW / 2, bodyTop, candleW, bodyH);
-      });
-
-      // === KEY LEVELS (matching the screenshot) ===
-
-      // Sell label (S) near the top of the channel
-      const sIndex = 20;
-      const sX = padding.left + sIndex * xStep;
-      const sY = y(candles[sIndex].h) - 25;
-
-      // Buy label (B) at the bottom of the channel
-      const bIndex = 39;
-      const bX = padding.left + bIndex * xStep;
-      const bY = y(candles[bIndex].l) + 25;
-
-      // Descending trendline (S → B)
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.moveTo(sX, y(candles[sIndex].h));
-      ctx.lineTo(bX, y(candles[bIndex].l));
-      ctx.stroke();
-
-      // Lower parallel line (channel)
-      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-      ctx.beginPath();
-      ctx.moveTo(sX, y(candles[sIndex].h) + 45);
-      ctx.lineTo(bX + 30, y(candles[bIndex].l) + 20);
-      ctx.stroke();
-
-      // Pattern Break label + green circle
-      const breakIndex = 40;
-      const breakX = padding.left + breakIndex * xStep;
-      const breakY = y(candles[breakIndex].c);
-
-      // Target Hit dashed green line
-      ctx.strokeStyle = '#00ff9d';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([6, 4]);
-      ctx.beginPath();
-      ctx.moveTo(breakX, breakY);
-      ctx.lineTo(breakX, y(candles[candles.length - 1].h) - 10);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Horizontal target line
-      ctx.beginPath();
-      ctx.moveTo(breakX - 20, y(candles[candles.length - 1].h) - 10);
-      ctx.lineTo(width - padding.right - 10, y(candles[candles.length - 1].h) - 10);
-      ctx.stroke();
-
-      // === Inject HTML labels ===
-      // Clear previous labels
-      document.querySelectorAll('.label').forEach(el => el.remove());
-
-      function addLabel(text, x, y, className) {
-        const el = document.createElement('div');
-        el.className = `label ${className}`;
-        el.textContent = text;
-        el.style.left = x + 'px';
-        el.style.top = y + 'px';
-        wrapper.appendChild(el);
-      }
-
-      addLabel('S', sX - 8, sY, 'label-s');
-      addLabel('B', bX - 8, bY, 'label-b');
-      addLabel('Target Hit', breakX + 10, y(candles[candles.length - 1].h) - 35, 'label-target');
-      addLabel('Pattern Break', breakX - 30, breakY + 20, 'label-pattern');
-
-      // Green circle at pattern break
-      ctx.beginPath();
-      ctx.arc(breakX, breakY, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#00ff9d';
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    // Initial draw + resize handling
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Optional: slight animation feel
-    setInterval(() => {
-      // You can update candles here live if you want
-    }, 5000);
-  </script>
+  // Start
+  fetchWTI();
+  setInterval(fetchWTI, 8000);
+  connectV100();
+</script>
 </body>
 </html>
