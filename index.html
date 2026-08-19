@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPrime – Volatility 100 (1s) REAL LIVE</title>
+  <title>ChartPrime – Volatility 100 (H1) REAL LIVE</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -96,6 +96,16 @@
       color: #aaa;
       border: 1px solid #444;
     }
+    .label-ob-bull {
+      background: rgba(0,200,83,0.85);
+      color: #000;
+      font-size: 10px;
+    }
+    .label-ob-bear {
+      background: rgba(255,59,59,0.85);
+      color: #fff;
+      font-size: 10px;
+    }
 
     .volume-bar {
       display: flex;
@@ -159,7 +169,7 @@
 <div class="container">
   <div class="header">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div class="logo">CHART<span>PRIME</span> · Volatility 100 (1s)</div>
+      <div class="logo">CHART<span>PRIME</span> · Volatility 100 (H1)</div>
       <div class="live-badge" id="liveBadge">● CONNECTING...</div>
       <div id="priceDisplay" style="font-size:14px;font-weight:600;color:#00ff9d;">—</div>
     </div>
@@ -183,7 +193,7 @@
   </div>
 
   <div class="footer">
-    <span><span class="status-dot" id="statusDot"></span>Real Deriv Public WS • 1HZ100V • 1s</span>
+    <span><span class="status-dot" id="statusDot"></span>Real Deriv Public WS • R_100 • H1</span>
     <span id="status">Connecting to Deriv...</span>
   </div>
 </div>
@@ -194,7 +204,8 @@
   const wrapper = document.getElementById('chartWrapper');
 
   const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
-  const SYMBOL = '1HZ100V';
+  const SYMBOL = 'R_100';          // Volatility 100
+  const GRANULARITY = 3600;        // H1 = 3600 seconds
 
   let candles = [];
   let currentCandle = null;
@@ -228,19 +239,22 @@
     ws = new WebSocket(PUBLIC_WS);
 
     ws.onopen = () => {
-      document.getElementById('liveBadge').textContent = '● LIVE 1s';
+      document.getElementById('liveBadge').textContent = '● LIVE H1';
       document.getElementById('liveBadge').style.background = '#ff1744';
       document.getElementById('statusDot').classList.add('connected');
-      document.getElementById('status').textContent = 'Connected • Loading 1HZ100V...';
+      document.getElementById('status').textContent = 'Connected • Loading H1 candles...';
 
+      // Historical H1 candles
       ws.send(JSON.stringify({
         ticks_history: SYMBOL,
         end: 'latest',
-        count: 500,
-        style: 'ticks',
+        count: 120,
+        style: 'candles',
+        granularity: GRANULARITY,
         req_id: 1
       }));
 
+      // Live ticks (to update the current H1 candle)
       ws.send(JSON.stringify({
         ticks: SYMBOL,
         subscribe: 1,
@@ -255,55 +269,50 @@
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.history && data.history.prices && data.history.times) {
-        const prices = data.history.prices;
-        const times  = data.history.times;
+      // Historical H1 candles
+      if (data.candles) {
+        candles = data.candles.map(c => ({
+          o: +c.open,
+          h: +c.high,
+          l: +c.low,
+          c: +c.close,
+          v: Math.floor(Math.random() * 800 + 200),
+          t: c.epoch * 1000
+        }));
 
-        candles = [];
-        let currentSec = Math.floor(times[0]);
-        let o = +prices[0], h = +prices[0], l = +prices[0], c = +prices[0];
-
-        for (let i = 0; i < prices.length; i++) {
-          const t = Math.floor(times[i]);
-          const p = +prices[i];
-
-          if (t !== currentSec) {
-            candles.push({ o, h, l, c, v: 1, t: currentSec * 1000 });
-            currentSec = t;
-            o = h = l = c = p;
-          } else {
-            h = Math.max(h, p);
-            l = Math.min(l, p);
-            c = p;
-          }
+        if (candles.length > 0) {
+          const last = candles[candles.length - 1];
+          currentCandle = { o: last.c, h: last.c, l: last.c, c: last.c, v: 1, t: Date.now() };
         }
-        candles.push({ o, h, l, c, v: 1, t: currentSec * 1000 });
-        if (candles.length > 250) candles = candles.slice(-250);
-        currentCandle = { ...candles[candles.length - 1] };
 
-        document.getElementById('status').textContent = `1HZ100V • Real 1s candles: ${candles.length}`;
+        document.getElementById('status').textContent = `R_100 • H1 candles: ${candles.length}`;
         draw();
       }
 
+      // Live tick → update current H1 candle
       if (data.tick) {
         const price = +data.tick.quote;
-        const epoch = data.tick.epoch;
         document.getElementById('priceDisplay').textContent = price.toFixed(3);
 
-        const sec = Math.floor(epoch);
-
-        if (!currentCandle || Math.floor(currentCandle.t / 1000) !== sec) {
-          if (currentCandle) {
-            candles.push({ ...currentCandle });
-            if (candles.length > 250) candles.shift();
-          }
-          currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: sec * 1000 };
+        if (!currentCandle) {
+          currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: Date.now() };
         } else {
           currentCandle.c = price;
           currentCandle.h = Math.max(currentCandle.h, price);
           currentCandle.l = Math.min(currentCandle.l, price);
           currentCandle.v += 1;
         }
+
+        // Check if a new H1 candle should start
+        const now = Math.floor(Date.now() / 1000);
+        const hourStart = Math.floor(now / 3600) * 3600;
+
+        if (currentCandle && Math.floor(currentCandle.t / 1000) < hourStart) {
+          candles.push({ ...currentCandle });
+          if (candles.length > 150) candles.shift();
+          currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: Date.now() };
+        }
+
         draw();
       }
 
@@ -329,31 +338,32 @@
   function detectOrderBlocks() {
     const data = currentCandle ? [...candles, currentCandle] : candles;
     const obs = [];
-    if (data.length < 40) return obs;
+    if (data.length < 20) return obs;
 
-    for (let i = 15; i < data.length - 10; i++) {
+    for (let i = 6; i < data.length - 5; i++) {
       const c = data[i];
       const body = Math.abs(c.c - c.o);
       const range = c.h - c.l || 0.001;
+      const bodyRatio = body / range;
 
-      if (c.c > c.o && body / range > 0.45) {
-        for (let j = i-1; j >= Math.max(0, i-8); j--) {
+      if (c.c > c.o && bodyRatio > 0.55 && body > 2) {
+        for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
           if (data[j].c < data[j].o) {
-            obs.push({ type: 'bull', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length-1 });
+            obs.push({ type: 'bull', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length - 1 });
             break;
           }
         }
       }
-      if (c.c < c.o && body / range > 0.45) {
-        for (let j = i-1; j >= Math.max(0, i-8); j--) {
+      if (c.c < c.o && bodyRatio > 0.55 && body > 2) {
+        for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
           if (data[j].c > data[j].o) {
-            obs.push({ type: 'bear', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length-1 });
+            obs.push({ type: 'bear', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length - 1 });
             break;
           }
         }
       }
     }
-    return obs.slice(-3);
+    return obs.slice(-4);
   }
 
   function resize() {
@@ -370,7 +380,7 @@
 
   function draw() {
     const data = currentCandle ? [...candles, currentCandle] : candles;
-    if (data.length < 15) return;
+    if (data.length < 5) return;
 
     const width = wrapper.clientWidth;
     const height = wrapper.clientHeight;
@@ -386,8 +396,8 @@
       max = Math.max(max, c.h);
     });
     const range = max - min || 1;
-    min -= range * 0.08;
-    max += range * 0.10;
+    min -= range * 0.06;
+    max += range * 0.08;
 
     const xStep = chartW / (data.length - 1);
     const yScale = chartH / (max - min);
@@ -406,7 +416,7 @@
 
     // Volume Profile
     if (showProfile) {
-      const levels = 28;
+      const levels = 26;
       const volProfile = new Array(levels).fill(0);
       const step = (max - min) / levels;
       data.forEach(c => {
@@ -430,30 +440,30 @@
         const x2 = padding.left + ob.endIdx * xStep;
         const yHigh = y(ob.high);
         const yLow = y(ob.low);
-        ctx.fillStyle = ob.type === 'bull' ? 'rgba(0,200,83,0.15)' : 'rgba(255,59,59,0.15)';
+        ctx.fillStyle = ob.type === 'bull' ? 'rgba(0,200,83,0.18)' : 'rgba(255,59,59,0.18)';
         ctx.fillRect(x1, yHigh, x2 - x1, yLow - yHigh);
-        ctx.strokeStyle = ob.type === 'bull' ? 'rgba(0,200,83,0.6)' : 'rgba(255,59,59,0.6)';
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = ob.type === 'bull' ? 'rgba(0,200,83,0.7)' : 'rgba(255,59,59,0.7)';
+        ctx.lineWidth = 1.5;
         ctx.strokeRect(x1, yHigh, x2 - x1, yLow - yHigh);
       });
     }
 
     // Liquidity Zones
-    if (showZones && data.length > 60) {
+    if (showZones && data.length > 20) {
       const zones = [];
-      for (let i = 15; i < data.length - 15; i++) {
+      for (let i = 5; i < data.length - 5; i++) {
         const isSwingHigh = data[i].h > data[i-1].h && data[i].h > data[i+1].h &&
-                            data[i].h > data[i-6].h && data[i].h > data[i+6].h;
+                            data[i].h > data[i-3].h && data[i].h > data[i+3].h;
         const isSwingLow  = data[i].l < data[i-1].l && data[i].l < data[i+1].l &&
-                            data[i].l < data[i-6].l && data[i].l < data[i+6].l;
+                            data[i].l < data[i-3].l && data[i].l < data[i+3].l;
         if (isSwingHigh) zones.push({ price: data[i].h, type: 'supply' });
         if (isSwingLow)  zones.push({ price: data[i].l, type: 'demand' });
       }
-      zones.slice(-4).forEach(z => {
+      zones.slice(-5).forEach(z => {
         const yy = y(z.price);
-        ctx.fillStyle = z.type === 'supply' ? 'rgba(255,59,59,0.08)' : 'rgba(0,200,83,0.08)';
-        ctx.fillRect(padding.left, yy - 6, chartW, 12);
-        ctx.strokeStyle = z.type === 'supply' ? 'rgba(255,59,59,0.3)' : 'rgba(0,200,83,0.3)';
+        ctx.fillStyle = z.type === 'supply' ? 'rgba(255,59,59,0.10)' : 'rgba(0,200,83,0.10)';
+        ctx.fillRect(padding.left, yy - 7, chartW, 14);
+        ctx.strokeStyle = z.type === 'supply' ? 'rgba(255,59,59,0.35)' : 'rgba(0,200,83,0.35)';
         ctx.beginPath();
         ctx.moveTo(padding.left, yy);
         ctx.lineTo(padding.left + chartW, yy);
@@ -461,34 +471,30 @@
       });
     }
 
-    // ===== MAIN PRICE LINE (best for 1s) =====
-    ctx.beginPath();
-    ctx.strokeStyle = '#00ff9d';
-    ctx.lineWidth = 1.8;
+    // Candles
+    const candleW = Math.max(5, xStep * 0.62);
     data.forEach((c, i) => {
       const x = padding.left + i * xStep;
-      const yy = y(c.c);
-      if (i === 0) ctx.moveTo(x, yy);
-      else ctx.lineTo(x, yy);
-    });
-    ctx.stroke();
+      const green = c.c >= c.o;
+      ctx.strokeStyle = green ? '#00c853' : '#ff1744';
+      ctx.fillStyle   = green ? '#00c853' : '#ff1744';
 
-    // Small dots on the line for better visibility
-    data.forEach((c, i) => {
-      const x = padding.left + i * xStep;
-      const yy = y(c.c);
       ctx.beginPath();
-      ctx.arc(x, yy, 1.8, 0, Math.PI * 2);
-      ctx.fillStyle = c.c >= c.o ? '#00c853' : '#ff1744';
-      ctx.fill();
+      ctx.moveTo(x, y(c.h));
+      ctx.lineTo(x, y(c.l));
+      ctx.stroke();
+
+      const top = y(Math.max(c.o, c.c));
+      const h = Math.max(1.5, Math.abs(y(c.o) - y(c.c)));
+      ctx.fillRect(x - candleW/2, top, candleW, h);
     });
 
     // Structure
     document.querySelectorAll('.label').forEach(el => el.remove());
     const len = data.length;
-    if (len > 50) {
-      const peakIdx = Math.floor(len * 0.32);
-      const troughIdx = Math.floor(len * 0.68);
+    if (len > 15) {
+      const peakIdx = Math.floor(len * 0.35);
+      const troughIdx = Math.floor(len * 0.70);
       const breakIdx = Math.floor(len * 0.88);
 
       function addLabel(text, x, yPos, cls) {
@@ -534,16 +540,12 @@
 
     // Stats
     let bulls = 0, bears = 0, delta = 0;
-    const look = Math.min(80, data.length);
+    const look = Math.min(30, data.length);
     for (let i = data.length - look; i < data.length; i++) {
       const c = data[i];
-      if (c.c >= c.o) {
-        bulls += c.v;
-        delta += c.v;
-      } else {
-        bears += c.v;
-        delta -= c.v;
-      }
+      const body = Math.abs(c.c - c.o);
+      if (c.c >= c.o) { bulls += body; delta += c.v; }
+      else { bears += body; delta -= c.v; }
     }
     const total = bulls + bears || 1;
     document.getElementById('bullPct').textContent = `Bull % : ${(bulls/total*100).toFixed(2)}`;
