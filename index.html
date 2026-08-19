@@ -15,6 +15,7 @@
   .controls label{display:flex;align-items:center;gap:6px;}
   select,input[type=number]{background:var(--panel2);color:var(--white);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;font-family:var(--mono);}
   button{background:var(--panel2);color:var(--cyan);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;}
+  button:hover{background:#222;}
   .wrap{padding:16px 18px;max-width:760px;}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;transition:border-color .2s;}
   .card.signal-sell{border-color:rgba(239,68,68,.55);}.card.signal-buy{border-color:rgba(34,197,94,.55);}
@@ -79,19 +80,25 @@
 </div>
 
 <footer>
-  <strong>Note:</strong> uses Deriv's public market-data WebSocket (wss://ws.derivws.com/websockets/v3) with a demo app_id — read-only price data, no account access. Educational only, not financial advice. Synthetic indices are high risk.
+  <strong>Note:</strong> Uses Deriv's public WebSocket (read-only). Educational only – not financial advice. Synthetic indices are high risk.
 </footer>
 
 <script>
-// Correct, working Deriv public WebSocket endpoint (verified in prior test).
-// The endpoint in the pasted code ("api.derivws.com/trading/v1/options/ws/public")
-// is not a real Deriv API path, so it was swapped for the real one below.
 const PUBLIC_WS = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
-const SYM = '1HZ100V'; // Volatility 100 (1s)
+const SYM = '1HZ100V';
 
-const state = {candles:[], ema:[], cci:[], atr:[], signal:null, status:'idle', strength:0};
+const state = {
+  candles: [],
+  ema: [],
+  cci: [],
+  atr: [],
+  signal: null,
+  status: 'idle',
+  strength: 0
+};
 
-let ws = null, reqId = 1, pending = {}, pingTimer = null;
+let ws = null;
+let pingTimer = null;
 
 const dot = document.getElementById('dot');
 const statusText = document.getElementById('statusText');
@@ -100,25 +107,31 @@ const projMultEl = document.getElementById('projMult');
 const cciThreshEl = document.getElementById('cciThresh');
 const slBufEl = document.getElementById('slBuf');
 
-function setCardStatus(txt){
-  const el = document.getElementById('status-'+SYM);
-  if(el) el.textContent = txt;
+function setCardStatus(txt) {
+  const el = document.getElementById('status-' + SYM);
+  if (el) el.textContent = txt;
   state.status = txt;
 }
 
-function connect(){
-  if(ws) try{ws.close();}catch(e){}
+function connect() {
+  if (ws) try { ws.close(); } catch(e) {}
+  clearInterval(pingTimer);
+
   ws = new WebSocket(PUBLIC_WS);
 
   ws.onopen = () => {
     dot.classList.add('on');
     statusText.textContent = 'connected – loading…';
     setCardStatus('loading…');
-    const badge = document.getElementById('badge-'+SYM);
-    if(badge){badge.textContent='…'; badge.className='badge loading';}
+    const badge = document.getElementById('badge-' + SYM);
+    if (badge) {
+      badge.textContent = '…';
+      badge.className = 'badge loading';
+    }
     requestCandles();
-    clearInterval(pingTimer);
-    pingTimer = setInterval(()=>{if(ws&&ws.readyState===1) ws.send(JSON.stringify({ping:1}));},20000);
+    pingTimer = setInterval(() => {
+      if (ws && ws.readyState === 1) ws.send(JSON.stringify({ ping: 1 }));
+    }, 20000);
   };
 
   ws.onclose = () => {
@@ -128,59 +141,86 @@ function connect(){
     setTimeout(connect, 4000);
   };
 
-  ws.onerror = () => {statusText.textContent = 'connection error';};
+  ws.onerror = () => {
+    statusText.textContent = 'connection error';
+  };
 
   ws.onmessage = (msg) => {
-    try{
+    try {
       const data = JSON.parse(msg.data);
-      if(data.error){
-        setCardStatus('ERR: '+(data.error.message||data.error.code));
-        const badge = document.getElementById('badge-'+SYM);
-        if(badge){badge.textContent='ERR'; badge.className='badge error';}
+
+      if (data.error) {
+        setCardStatus('ERR: ' + (data.error.message || data.error.code));
+        const badge = document.getElementById('badge-' + SYM);
+        if (badge) {
+          badge.textContent = 'ERR';
+          badge.className = 'badge error';
+        }
         return;
       }
 
-      // Historical candles response
-      if(data.candles){
+      // Historical candles
+      if (data.candles) {
         state.candles = data.candles.map(c => ({
-          epoch: c.epoch, open: +c.open, high: +c.high, low: +c.low, close: +c.close
+          epoch: c.epoch,
+          open: +c.open,
+          high: +c.high,
+          low: +c.low,
+          close: +c.close
         }));
-        setCardStatus('live ('+state.candles.length+')');
+
+        setCardStatus('live (' + state.candles.length + ')');
         recompute();
-        // subscribe to live ticks separately so we can build the forming candle
-        ws.send(JSON.stringify({ticks: SYM, subscribe: 1, req_id: 99}));
+
+        // Subscribe to live ticks
+        ws.send(JSON.stringify({
+          ticks: SYM,
+          subscribe: 1,
+          req_id: 99
+        }));
       }
 
-      // Live tick -> update/append the forming candle for the selected granularity
-      if(data.tick && data.tick.symbol === SYM){
+      // Live tick
+      if (data.tick && data.tick.symbol === SYM) {
         const price = +data.tick.quote;
         const epoch = data.tick.epoch;
         const gran = +granSel.value;
-        const bucket = Math.floor(epoch/gran)*gran;
+        const bucket = Math.floor(epoch / gran) * gran;
 
-        document.getElementById('price-'+SYM).textContent = fmt(price);
+        document.getElementById('price-' + SYM).textContent = fmt(price);
 
         const arr = state.candles;
-        const last = arr[arr.length-1];
-        if(last && Math.floor(last.epoch/gran)*gran === bucket){
+        const last = arr[arr.length - 1];
+
+        if (last && Math.floor(last.epoch / gran) * gran === bucket) {
+          // Update current forming candle
           last.close = price;
           last.high = Math.max(last.high, price);
           last.low = Math.min(last.low, price);
         } else {
-          arr.push({epoch: bucket, open: price, high: price, low: price, close: price});
-          if(arr.length > 320) arr.shift();
+          // New candle
+          arr.push({
+            epoch: bucket,
+            open: price,
+            high: price,
+            low: price,
+            close: price
+          });
+          if (arr.length > 320) arr.shift();
         }
-        setCardStatus('live ('+arr.length+')');
+
+        setCardStatus('live (' + arr.length + ')');
         recompute();
       }
-    }catch(e){console.error(e);}
+    } catch (e) {
+      console.error(e);
+    }
   };
 }
 
-function requestCandles(){
-  if(!ws || ws.readyState !== 1) return;
-  const id = reqId++;
-  pending[id] = SYM;
+function requestCandles() {
+  if (!ws || ws.readyState !== 1) return;
+
   ws.send(JSON.stringify({
     ticks_history: SYM,
     adjust_start_time: 1,
@@ -188,71 +228,91 @@ function requestCandles(){
     end: 'latest',
     style: 'candles',
     granularity: +granSel.value,
-    req_id: id
+    req_id: 1
   }));
 }
 
 document.getElementById('btnRefresh').onclick = () => {
-  state.candles = []; state.ema = []; state.cci = []; state.atr = []; state.signal = null; state.strength = 0;
-  if(ws && ws.readyState === 1) requestCandles();
-  else connect();
-};
-granSel.onchange = () => document.getElementById('btnRefresh').click();
+  state.candles = [];
+  state.ema = [];
+  state.cci = [];
+  state.atr = [];
+  state.signal = null;
+  state.strength = 0;
 
-// ===== Indicators & signal logic (same approach as the pasted scanner) =====
-function ema(values,period){
-  const k=2/(period+1); const out=[];
-  values.forEach((v,i)=>out.push(i===0?v:v*k+out[i-1]*(1-k)));
-  return out;
-}
-function cci(candles,period){
-  const tp=candles.map(c=>(c.high+c.low+c.close)/3);
-  const out=new Array(candles.length).fill(null);
-  for(let i=period-1;i<candles.length;i++){
-    const slice=tp.slice(i-period+1,i+1);
-    const sma=slice.reduce((a,b)=>a+b,0)/period;
-    const md=slice.reduce((a,b)=>a+Math.abs(b-sma),0)/period;
-    out[i]=md===0?0:(tp[i]-sma)/(0.015*md);
+  if (ws && ws.readyState === 1) {
+    requestCandles();
+  } else {
+    connect();
   }
-  return out;
-}
-function atr(candles,period){
-  const trs=candles.map((c,i)=>{
-    if(i===0) return c.high-c.low;
-    const pc=candles[i-1].close;
-    return Math.max(c.high-c.low, Math.abs(c.high-pc), Math.abs(c.low-pc));
+};
+
+granSel.onchange = () => {
+  document.getElementById('btnRefresh').click();
+};
+
+// ===== Indicators =====
+function ema(values, period) {
+  const k = 2 / (period + 1);
+  const out = [];
+  values.forEach((v, i) => {
+    out.push(i === 0 ? v : v * k + out[i - 1] * (1 - k));
   });
-  const out=new Array(candles.length).fill(null);
-  for(let i=period-1;i<candles.length;i++)
-    out[i]=trs.slice(i-period+1,i+1).reduce((a,b)=>a+b,0)/period;
   return out;
 }
-function findQualityPivots(emaArr, lookback, minBarsApart, minSize){
-  const highs=[], lows=[];
-  for(let i=lookback; i<emaArr.length-lookback; i++){
-    const w = emaArr.slice(i-lookback, i+lookback+1);
-    if(emaArr[i] === Math.max(...w)) highs.push({index:i, price:emaArr[i]});
-    if(emaArr[i] === Math.min(...w)) lows.push({index:i, price:emaArr[i]});
+
+function cci(candles, period) {
+  const tp = candles.map(c => (c.high + c.low + c.close) / 3);
+  const out = new Array(candles.length).fill(null);
+  for (let i = period - 1; i < candles.length; i++) {
+    const slice = tp.slice(i - period + 1, i + 1);
+    const sma = slice.reduce((a, b) => a + b, 0) / period;
+    const md = slice.reduce((a, b) => a + Math.abs(b - sma), 0) / period;
+    out[i] = md === 0 ? 0 : (tp[i] - sma) / (0.015 * md);
   }
-  function clean(arr){
-    if(arr.length < 2) return arr;
+  return out;
+}
+
+function atr(candles, period) {
+  const trs = candles.map((c, i) => {
+    if (i === 0) return c.high - c.low;
+    const pc = candles[i - 1].close;
+    return Math.max(c.high - c.low, Math.abs(c.high - pc), Math.abs(c.low - pc));
+  });
+  const out = new Array(candles.length).fill(null);
+  for (let i = period - 1; i < candles.length; i++) {
+    out[i] = trs.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0) / period;
+  }
+  return out;
+}
+
+function findQualityPivots(emaArr, lookback, minBarsApart, minSize) {
+  const highs = [], lows = [];
+  for (let i = lookback; i < emaArr.length - lookback; i++) {
+    const w = emaArr.slice(i - lookback, i + lookback + 1);
+    if (emaArr[i] === Math.max(...w)) highs.push({ index: i, price: emaArr[i] });
+    if (emaArr[i] === Math.min(...w)) lows.push({ index: i, price: emaArr[i] });
+  }
+
+  function clean(arr) {
+    if (arr.length < 2) return arr;
     const out = [arr[0]];
-    for(let i=1; i<arr.length; i++){
-      const prev = out[out.length-1];
-      if(arr[i].index - prev.index >= minBarsApart &&
-         Math.abs(arr[i].price - prev.price) >= minSize){
+    for (let i = 1; i < arr.length; i++) {
+      const prev = out[out.length - 1];
+      if (arr[i].index - prev.index >= minBarsApart &&
+          Math.abs(arr[i].price - prev.price) >= minSize) {
         out.push(arr[i]);
       }
     }
     return out;
   }
-  return {highs: clean(highs), lows: clean(lows)};
+  return { highs: clean(highs), lows: clean(lows) };
 }
 
-function recompute(){
-  try{
+function recompute() {
+  try {
     const s = state;
-    if(s.candles.length < 70) return;
+    if (s.candles.length < 70) return;
 
     const closes = s.candles.map(c => c.close);
     s.ema = ema(closes, 9);
@@ -263,7 +323,7 @@ function recompute(){
     const lastClose = closes[lastIdx];
     const lastCci = s.cci[lastIdx];
     const lastAtr = s.atr[lastIdx] || 0;
-    if(lastAtr === 0) return;
+    if (lastAtr === 0) return;
 
     const projMult = +projMultEl.value;
     const cciThresh = +cciThreshEl.value;
@@ -272,20 +332,21 @@ function recompute(){
     const minBars = 5;
     const minPivotSize = lastAtr * 0.4;
 
-    const {highs, lows} = findQualityPivots(s.ema, 4, minBars, minPivotSize);
+    const { highs, lows } = findQualityPivots(s.ema, 4, minBars, minPivotSize);
 
     let signal = null;
 
-    if(highs.length >= 2){
-      const p2 = highs[highs.length-1];
-      const p1 = highs[highs.length-2];
-      if(p2.price < p1.price){
+    // SELL logic
+    if (highs.length >= 2) {
+      const p2 = highs[highs.length - 1];
+      const p1 = highs[highs.length - 2];
+      if (p2.price < p1.price) {
         const barsSincePivot = lastIdx - p2.index;
-        const prevClose = closes[lastIdx-1];
+        const prevClose = closes[lastIdx - 1];
         const justBroke = prevClose >= p2.price && lastClose < p2.price;
         const recentlyBroke = barsSincePivot <= 4 && lastClose < p2.price;
 
-        if((recentlyBroke || justBroke) && lastCci != null && lastCci < -cciThresh){
+        if ((recentlyBroke || justBroke) && lastCci != null && lastCci < -cciThresh) {
           const slope = (p2.price - p1.price) / (p2.index - p1.index);
           const dist = p2.index - p1.index;
           const projIndex = p2.index + projMult * dist;
@@ -295,26 +356,29 @@ function recompute(){
           const reward = lastClose - tp;
           const rr = risk > 0 ? reward / risk : 0;
 
-          if(tp < lastClose && rr >= 1.2){
+          if (tp < lastClose && rr >= 1.2) {
             const strength = Math.min(100, Math.round(
-              (Math.abs(lastCci)/cciThresh)*35 + Math.min(rr,3)*18 + (barsSincePivot <= 2 ? 20 : 10)
+              (Math.abs(lastCci) / cciThresh) * 35 + Math.min(rr, 3) * 18 + (barsSincePivot <= 2 ? 20 : 10)
             ));
-            if(strength >= 48) signal = {dir:'SELL', entry:lastClose, sl, tp, p1, p2, projIndex, rr, strength};
+            if (strength >= 48) {
+              signal = { dir: 'SELL', entry: lastClose, sl, tp, p1, p2, projIndex, rr, strength };
+            }
           }
         }
       }
     }
 
-    if(!signal && lows.length >= 2){
-      const p2 = lows[lows.length-1];
-      const p1 = lows[lows.length-2];
-      if(p2.price > p1.price){
+    // BUY logic
+    if (!signal && lows.length >= 2) {
+      const p2 = lows[lows.length - 1];
+      const p1 = lows[lows.length - 2];
+      if (p2.price > p1.price) {
         const barsSincePivot = lastIdx - p2.index;
-        const prevClose = closes[lastIdx-1];
+        const prevClose = closes[lastIdx - 1];
         const justBroke = prevClose <= p2.price && lastClose > p2.price;
         const recentlyBroke = barsSincePivot <= 4 && lastClose > p2.price;
 
-        if((recentlyBroke || justBroke) && lastCci != null && lastCci > cciThresh){
+        if ((recentlyBroke || justBroke) && lastCci != null && lastCci > cciThresh) {
           const slope = (p2.price - p1.price) / (p2.index - p1.index);
           const dist = p2.index - p1.index;
           const projIndex = p2.index + projMult * dist;
@@ -324,11 +388,13 @@ function recompute(){
           const reward = tp - lastClose;
           const rr = risk > 0 ? reward / risk : 0;
 
-          if(tp > lastClose && rr >= 1.2){
+          if (tp > lastClose && rr >= 1.2) {
             const strength = Math.min(100, Math.round(
-              (Math.abs(lastCci)/cciThresh)*35 + Math.min(rr,3)*18 + (barsSincePivot <= 2 ? 20 : 10)
+              (Math.abs(lastCci) / cciThresh) * 35 + Math.min(rr, 3) * 18 + (barsSincePivot <= 2 ? 20 : 10)
             ));
-            if(strength >= 48) signal = {dir:'BUY', entry:lastClose, sl, tp, p1, p2, projIndex, rr, strength};
+            if (strength >= 48) {
+              signal = { dir: 'BUY', entry: lastClose, sl, tp, p1, p2, projIndex, rr, strength };
+            }
           }
         }
       }
@@ -337,119 +403,182 @@ function recompute(){
     s.signal = signal;
     s.strength = signal ? signal.strength : 0;
     render();
-  }catch(e){console.error(e);}
+  } catch (e) {
+    console.error(e);
+  }
 }
 
-function fmt(n){return (n==null||!isFinite(n))?'—':n.toFixed(n>100?2:4);}
+function fmt(n) {
+  return (n == null || !isFinite(n)) ? '—' : n.toFixed(n > 100 ? 2 : 4);
+}
 
-function render(){
-  try{
+function render() {
+  try {
     const s = state;
-    if(!s.candles.length) return;
-    const last = s.candles[s.candles.length-1];
-    const badge = document.getElementById('badge-'+SYM);
-    const card = document.getElementById('card-'+SYM);
+    if (!s.candles.length) return;
 
-    document.getElementById('price-'+SYM).textContent = fmt(last.close);
-    document.getElementById('cci-'+SYM).textContent = s.cci[s.cci.length-1]!=null ? s.cci[s.cci.length-1].toFixed(1) : '—';
+    const last = s.candles[s.candles.length - 1];
+    const badge = document.getElementById('badge-' + SYM);
+    const card = document.getElementById('card-' + SYM);
 
-    card.classList.remove('signal-sell','signal-buy');
+    document.getElementById('price-' + SYM).textContent = fmt(last.close);
+    document.getElementById('cci-' + SYM).textContent = s.cci[s.cci.length - 1] != null ? s.cci[s.cci.length - 1].toFixed(1) : '—';
 
-    if(s.signal){
+    card.classList.remove('signal-sell', 'signal-buy');
+
+    if (s.signal) {
       badge.textContent = s.signal.dir;
-      badge.className = 'badge ' + (s.signal.dir==='SELL'?'sell':'buy');
-      card.classList.add(s.signal.dir==='SELL'?'signal-sell':'signal-buy');
-      document.getElementById('entry-'+SYM).textContent = fmt(s.signal.entry);
-      document.getElementById('sl-'+SYM).textContent = fmt(s.signal.sl);
-      document.getElementById('tp-'+SYM).textContent = fmt(s.signal.tp);
-      document.getElementById('str-'+SYM).textContent = s.signal.strength;
-      document.getElementById('rr-'+SYM).textContent = s.signal.rr.toFixed(2);
-    }else{
+      badge.className = 'badge ' + (s.signal.dir === 'SELL' ? 'sell' : 'buy');
+      card.classList.add(s.signal.dir === 'SELL' ? 'signal-sell' : 'signal-buy');
+      document.getElementById('entry-' + SYM).textContent = fmt(s.signal.entry);
+      document.getElementById('sl-' + SYM).textContent = fmt(s.signal.sl);
+      document.getElementById('tp-' + SYM).textContent = fmt(s.signal.tp);
+      document.getElementById('str-' + SYM).textContent = s.signal.strength;
+      document.getElementById('rr-' + SYM).textContent = s.signal.rr.toFixed(2);
+    } else {
       badge.textContent = 'WAIT';
       badge.className = 'badge wait';
-      document.getElementById('entry-'+SYM).textContent = '—';
-      document.getElementById('sl-'+SYM).textContent = '—';
-      document.getElementById('tp-'+SYM).textContent = '—';
-      document.getElementById('str-'+SYM).textContent = '0';
-      document.getElementById('rr-'+SYM).textContent = '—';
+      document.getElementById('entry-' + SYM).textContent = '—';
+      document.getElementById('sl-' + SYM).textContent = '—';
+      document.getElementById('tp-' + SYM).textContent = '—';
+      document.getElementById('str-' + SYM).textContent = '0';
+      document.getElementById('rr-' + SYM).textContent = '—';
     }
     drawChart();
-  }catch(e){console.error(e);}
+  } catch (e) {
+    console.error(e);
+  }
 }
 
-function drawChart(){
-  try{
+function drawChart() {
+  try {
     const s = state;
-    const canvas = document.getElementById('canvas-'+SYM);
-    if(!canvas) return;
+    const canvas = document.getElementById('canvas-' + SYM);
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0,0,W,H);
-    const candles = s.candles, emaArr = s.ema;
-    if(!emaArr || emaArr.length < 2) return;
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const candles = s.candles;
+    const emaArr = s.ema;
+    if (!emaArr || emaArr.length < 2) return;
 
     const visible = 90;
     const start = Math.max(0, emaArr.length - visible);
     const sliceEma = emaArr.slice(start);
     const sliceCandles = candles.slice(start);
     const projIndex = (s.signal && isFinite(s.signal.projIndex)) ? s.signal.projIndex : null;
-    const maxIndex = projIndex !== null ? Math.max(emaArr.length-1, projIndex) : emaArr.length-1;
+    const maxIndex = projIndex !== null ? Math.max(emaArr.length - 1, projIndex) : emaArr.length - 1;
     const spanCount = Math.max(1, maxIndex - start);
 
-    let lo = Math.min(...sliceCandles.map(c=>c.low), ...sliceEma);
-    let hi = Math.max(...sliceCandles.map(c=>c.high), ...sliceEma);
-    if(s.signal && isFinite(s.signal.tp) && isFinite(s.signal.sl)){
+    let lo = Math.min(...sliceCandles.map(c => c.low), ...sliceEma);
+    let hi = Math.max(...sliceCandles.map(c => c.high), ...sliceEma);
+
+    if (s.signal && isFinite(s.signal.tp) && isFinite(s.signal.sl)) {
       lo = Math.min(lo, s.signal.tp, s.signal.sl, s.signal.entry);
       hi = Math.max(hi, s.signal.tp, s.signal.sl, s.signal.entry);
     }
-    if(!isFinite(lo)||!isFinite(hi)) return;
-    let pad = (hi-lo)*0.13 || Math.abs(hi)*0.01 || 1;
-    lo -= pad; hi += pad;
-    const range = (hi-lo)||1;
-    const x = i => ((i-start)/spanCount)*(W-12)+6;
-    const y = v => H-((v-lo)/range)*(H-12)-6;
-    const finite = (...v) => v.every(n => typeof n==='number' && isFinite(n));
 
-    const candleW = Math.max(2,(W/spanCount)*0.55);
-    sliceCandles.forEach((c,i)=>{
-      const idx=start+i, cx=x(idx);
-      const openY=y(c.open), closeY=y(c.close), highY=y(c.high), lowY=y(c.low);
+    if (!isFinite(lo) || !isFinite(hi)) return;
+
+    let pad = (hi - lo) * 0.13 || Math.abs(hi) * 0.01 || 1;
+    lo -= pad;
+    hi += pad;
+    const range = (hi - lo) || 1;
+
+    const x = i => ((i - start) / spanCount) * (W - 12) + 6;
+    const y = v => H - ((v - lo) / range) * (H - 12) - 6;
+
+    // Candles
+    const candleW = Math.max(2.5, (W / spanCount) * 0.55);
+    sliceCandles.forEach((c, i) => {
+      const idx = start + i;
+      const cx = x(idx);
+      const openY = y(c.open);
+      const closeY = y(c.close);
+      const highY = y(c.high);
+      const lowY = y(c.low);
       const up = c.close >= c.open;
-      ctx.strokeStyle = up?'#22c55e':'#ef4444';
-      ctx.fillStyle = up?'#22c55e':'#ef4444';
-      ctx.beginPath(); ctx.moveTo(cx,highY); ctx.lineTo(cx,lowY); ctx.stroke();
-      ctx.fillRect(cx-candleW/2, Math.min(openY,closeY), candleW, Math.max(1,Math.abs(closeY-openY)));
+
+      ctx.strokeStyle = up ? '#22c55e' : '#ef4444';
+      ctx.fillStyle = up ? '#22c55e' : '#ef4444';
+      ctx.beginPath();
+      ctx.moveTo(cx, highY);
+      ctx.lineTo(cx, lowY);
+      ctx.stroke();
+      ctx.fillRect(cx - candleW / 2, Math.min(openY, closeY), candleW, Math.max(1.5, Math.abs(closeY - openY)));
     });
 
-    ctx.strokeStyle='#e8e9f0'; ctx.lineWidth=1.6; ctx.beginPath();
-    sliceEma.forEach((v,i)=>{const idx=start+i; if(i===0) ctx.moveTo(x(idx),y(v)); else ctx.lineTo(x(idx),y(v));});
+    // EMA line
+    ctx.strokeStyle = '#e8e9f0';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    sliceEma.forEach((v, i) => {
+      const idx = start + i;
+      if (i === 0) ctx.moveTo(x(idx), y(v));
+      else ctx.lineTo(x(idx), y(v));
+    });
     ctx.stroke();
 
-    if(s.signal && projIndex!==null && finite(s.signal.tp,s.signal.sl,s.signal.entry,s.signal.p1.price,s.signal.p2.price)){
-      const {p1,p2,tp,sl,entry,dir} = s.signal;
-      const color = dir==='SELL'?'#3b82f6':'#22d3ee';
-      [p1,p2].forEach(p=>{
-        const px=x(p.index), py=y(p.price);
-        if(!finite(px,py)) return;
-        ctx.fillStyle=color; ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    // Signal drawing
+    if (s.signal && projIndex !== null) {
+      const { p1, p2, tp, sl, entry, dir } = s.signal;
+      const color = dir === 'SELL' ? '#3b82f6' : '#22d3ee';
+
+      [p1, p2].forEach(p => {
+        const px = x(p.index);
+        const py = y(p.price);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
       });
-      const tpX=x(projIndex), tpY=y(tp);
-      if(finite(tpX,tpY)){
-        ctx.strokeStyle=color; ctx.lineWidth=1.4;
-        ctx.beginPath(); ctx.moveTo(x(p1.index),y(p1.price)); ctx.lineTo(tpX,tpY); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(x(p2.index),y(p2.price)); ctx.lineTo(tpX,tpY); ctx.stroke();
-        ctx.fillStyle='#22d3ee'; ctx.beginPath(); ctx.arc(tpX,tpY,5,0,Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+
+      const tpX = x(projIndex);
+      const tpY = y(tp);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(x(p1.index), y(p1.price));
+      ctx.lineTo(tpX, tpY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x(p2.index), y(p2.price));
+      ctx.lineTo(tpX, tpY);
+      ctx.stroke();
+
+      ctx.fillStyle = '#22d3ee';
+      ctx.beginPath();
+      ctx.arc(tpX, tpY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Horizontal lines
+      function hLine(val, col) {
+        const vy = y(val);
+        ctx.strokeStyle = col;
+        ctx.setLineDash([5, 3]);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(0, vy);
+        ctx.lineTo(W, vy);
+        ctx.stroke();
+        ctx.setLineDash([]);
       }
-      function hLine(val,col){
-        const vy=y(val); if(!finite(vy)) return;
-        ctx.strokeStyle=col; ctx.setLineDash([5,3]); ctx.lineWidth=1.2;
-        ctx.beginPath(); ctx.moveTo(0,vy); ctx.lineTo(W,vy); ctx.stroke(); ctx.setLineDash([]);
-      }
-      hLine(entry,'#ef4444'); hLine(sl,'#ef4444'); hLine(tp,'#22d3ee');
+      hLine(entry, '#ef4444');
+      hLine(sl, '#ef4444');
+      hLine(tp, '#22d3ee');
     }
-  }catch(e){console.error(e);}
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 connect();
