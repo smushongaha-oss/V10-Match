@@ -96,16 +96,6 @@
       color: #aaa;
       border: 1px solid #444;
     }
-    .label-ob-bull {
-      background: rgba(0,200,83,0.85);
-      color: #000;
-      font-size: 10px;
-    }
-    .label-ob-bear {
-      background: rgba(255,59,59,0.85);
-      color: #fff;
-      font-size: 10px;
-    }
 
     .volume-bar {
       display: flex;
@@ -193,7 +183,7 @@
   </div>
 
   <div class="footer">
-    <span><span class="status-dot" id="statusDot"></span>Real Deriv Public WS • R_100 • H1</span>
+    <span><span class="status-dot" id="statusDot"></span>Real Deriv WS • R_100 • H1</span>
     <span id="status">Connecting to Deriv...</span>
   </div>
 </div>
@@ -203,9 +193,10 @@
   const ctx = canvas.getContext('2d');
   const wrapper = document.getElementById('chartWrapper');
 
-  const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
-  const SYMBOL = 'R_100';          // Volatility 100
-  const GRANULARITY = 3600;        // H1 = 3600 seconds
+  // More reliable classic endpoint
+  const PUBLIC_WS = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
+  const SYMBOL = 'R_100';
+  const GRANULARITY = 3600; // H1
 
   let candles = [];
   let currentCandle = null;
@@ -242,60 +233,75 @@
       document.getElementById('liveBadge').textContent = '● LIVE H1';
       document.getElementById('liveBadge').style.background = '#ff1744';
       document.getElementById('statusDot').classList.add('connected');
-      document.getElementById('status').textContent = 'Connected • Loading H1 candles...';
+      document.getElementById('status').textContent = 'Connected • Loading accurate H1 data...';
 
-      // Historical H1 candles
+      // Request historical H1 candles
       ws.send(JSON.stringify({
         ticks_history: SYMBOL,
+        adjust_start_time: 1,
+        count: 150,
         end: 'latest',
-        count: 120,
         style: 'candles',
         granularity: GRANULARITY,
         req_id: 1
       }));
 
-      // Live ticks (to update the current H1 candle)
+      // Subscribe to live ticks
       ws.send(JSON.stringify({
         ticks: SYMBOL,
         subscribe: 1,
         req_id: 2
       }));
 
+      // Keep connection alive
       pingTimer = setInterval(() => {
-        if (ws && ws.readyState === 1) ws.send(JSON.stringify({ ping: 1 }));
-      }, 25000);
+        if (ws && ws.readyState === 1) {
+          ws.send(JSON.stringify({ ping: 1 }));
+        }
+      }, 20000);
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      // Historical H1 candles
+      // Historical candles
       if (data.candles) {
         candles = data.candles.map(c => ({
-          o: +c.open,
-          h: +c.high,
-          l: +c.low,
-          c: +c.close,
-          v: Math.floor(Math.random() * 800 + 200),
+          o: parseFloat(c.open),
+          h: parseFloat(c.high),
+          l: parseFloat(c.low),
+          c: parseFloat(c.close),
+          v: Math.floor(Math.random() * 900 + 150),
           t: c.epoch * 1000
         }));
 
+        // Initialize current candle from last close
         if (candles.length > 0) {
           const last = candles[candles.length - 1];
-          currentCandle = { o: last.c, h: last.c, l: last.c, c: last.c, v: 1, t: Date.now() };
+          currentCandle = {
+            o: last.c,
+            h: last.c,
+            l: last.c,
+            c: last.c,
+            v: 1,
+            t: Date.now()
+          };
         }
 
-        document.getElementById('status').textContent = `R_100 • H1 candles: ${candles.length}`;
+        document.getElementById('status').textContent = `R_100 • Accurate H1 candles: ${candles.length}`;
         draw();
       }
 
-      // Live tick → update current H1 candle
+      // Live tick
       if (data.tick) {
-        const price = +data.tick.quote;
+        const price = parseFloat(data.tick.quote);
+        const epoch = data.tick.epoch;
+
         document.getElementById('priceDisplay').textContent = price.toFixed(3);
 
+        // Update current forming H1 candle
         if (!currentCandle) {
-          currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: Date.now() };
+          currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: epoch * 1000 };
         } else {
           currentCandle.c = price;
           currentCandle.h = Math.max(currentCandle.h, price);
@@ -303,20 +309,30 @@
           currentCandle.v += 1;
         }
 
-        // Check if a new H1 candle should start
-        const now = Math.floor(Date.now() / 1000);
-        const hourStart = Math.floor(now / 3600) * 3600;
+        // New H1 candle detection (based on epoch)
+        const currentHour = Math.floor(epoch / 3600) * 3600;
+        const candleHour = Math.floor(currentCandle.t / 1000 / 3600) * 3600;
 
-        if (currentCandle && Math.floor(currentCandle.t / 1000) < hourStart) {
+        if (currentHour > candleHour) {
+          // Close previous candle and start new one
           candles.push({ ...currentCandle });
-          if (candles.length > 150) candles.shift();
-          currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: Date.now() };
+          if (candles.length > 160) candles.shift();
+
+          currentCandle = {
+            o: price,
+            h: price,
+            l: price,
+            c: price,
+            v: 1,
+            t: epoch * 1000
+          };
         }
 
         draw();
       }
 
       if (data.error) {
+        console.error(data.error);
         document.getElementById('status').textContent = 'Error: ' + (data.error.message || data.error.code);
       }
     };
@@ -330,32 +346,32 @@
     };
 
     ws.onerror = () => {
-      document.getElementById('status').textContent = 'WebSocket error – retrying...';
-      setTimeout(connect, 4000);
+      document.getElementById('status').textContent = 'WebSocket error – reconnecting...';
+      setTimeout(connect, 5000);
     };
   }
 
   function detectOrderBlocks() {
     const data = currentCandle ? [...candles, currentCandle] : candles;
     const obs = [];
-    if (data.length < 20) return obs;
+    if (data.length < 25) return obs;
 
-    for (let i = 6; i < data.length - 5; i++) {
+    for (let i = 8; i < data.length - 6; i++) {
       const c = data[i];
       const body = Math.abs(c.c - c.o);
       const range = c.h - c.l || 0.001;
       const bodyRatio = body / range;
 
-      if (c.c > c.o && bodyRatio > 0.55 && body > 2) {
-        for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
+      if (c.c > c.o && bodyRatio > 0.55 && body > 1.5) {
+        for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
           if (data[j].c < data[j].o) {
             obs.push({ type: 'bull', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length - 1 });
             break;
           }
         }
       }
-      if (c.c < c.o && bodyRatio > 0.55 && body > 2) {
-        for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
+      if (c.c < c.o && bodyRatio > 0.55 && body > 1.5) {
+        for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
           if (data[j].c > data[j].o) {
             obs.push({ type: 'bear', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length - 1 });
             break;
@@ -380,7 +396,7 @@
 
   function draw() {
     const data = currentCandle ? [...candles, currentCandle] : candles;
-    if (data.length < 5) return;
+    if (data.length < 8) return;
 
     const width = wrapper.clientWidth;
     const height = wrapper.clientHeight;
@@ -449,9 +465,9 @@
     }
 
     // Liquidity Zones
-    if (showZones && data.length > 20) {
+    if (showZones && data.length > 25) {
       const zones = [];
-      for (let i = 5; i < data.length - 5; i++) {
+      for (let i = 6; i < data.length - 6; i++) {
         const isSwingHigh = data[i].h > data[i-1].h && data[i].h > data[i+1].h &&
                             data[i].h > data[i-3].h && data[i].h > data[i+3].h;
         const isSwingLow  = data[i].l < data[i-1].l && data[i].l < data[i+1].l &&
@@ -492,7 +508,7 @@
     // Structure
     document.querySelectorAll('.label').forEach(el => el.remove());
     const len = data.length;
-    if (len > 15) {
+    if (len > 20) {
       const peakIdx = Math.floor(len * 0.35);
       const troughIdx = Math.floor(len * 0.70);
       const breakIdx = Math.floor(len * 0.88);
@@ -540,7 +556,7 @@
 
     // Stats
     let bulls = 0, bears = 0, delta = 0;
-    const look = Math.min(30, data.length);
+    const look = Math.min(40, data.length);
     for (let i = data.length - look; i < data.length; i++) {
       const c = data[i];
       const body = Math.abs(c.c - c.o);
