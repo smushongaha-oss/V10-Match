@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPrime – Volatility 100 (15m / 1H)</title>
+  <title>ChartPrime – Volatility 100 (15m)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -175,8 +175,8 @@
 <div class="container">
   <div class="header">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div class="logo">CHART<span>PRIME</span> · V100</div>
-      <div class="live-badge" id="liveBadge">● LIVE</div>
+      <div class="logo">CHART<span>PRIME</span> · Volatility 100 (15m)</div>
+      <div class="live-badge" id="liveBadge">● LIVE 15m</div>
       <div id="priceDisplay" style="font-size:14px;font-weight:600;color:#00ff9d;">—</div>
     </div>
 
@@ -185,10 +185,6 @@
         Vol <input type="range" id="volSlider" min="0.5" max="3" step="0.1" value="1.4">
         <span id="volValue">1.4×</span>
       </div>
-
-      <!-- Timeframe Switcher -->
-      <button id="btn15m" class="active">15m</button>
-      <button id="btn1h">1H</button>
 
       <button id="btnZones" class="active">Liquidity Zones</button>
       <button id="btnProfile" class="active">Volume Profile</button>
@@ -208,8 +204,8 @@
   </div>
 
   <div class="footer">
-    <span>Market Dynamics • Order Blocks • Liquidity Zones • Volume Profile</span>
-    <span id="status">Timeframe: 15m | Recommended for structure & cleaner Order Blocks</span>
+    <span>Structure • Liquidity • Order Blocks • Key Levels</span>
+    <span id="status">Timeframe: 15m | Candles: 0</span>
   </div>
 </div>
 
@@ -218,40 +214,23 @@
   const ctx = canvas.getContext('2d');
   const wrapper = document.getElementById('chartWrapper');
 
-  // ========== STATE ==========
+  // ========== STATE (STRICTLY 15m) ==========
   let candles = [];
-  let currentPrice = 920 + Math.random() * 80;
+  let currentPrice = 910 + Math.random() * 40;
   let lastClose = currentPrice;
-  const MAX_CANDLES = 80;               // fewer candles for higher TFs
+  const MAX_CANDLES = 90;
   let isPaused = false;
   let showZones = true;
   let showProfile = true;
   let showOB = true;
   let volatilityMult = 1.4;
-  let currentTF = '15m';               // '15m' or '1H'
-  let candleInterval = 2500;           // visual update speed (not real time)
+  let candleInterval = 2800; // visual update speed for 15m simulation
   let intervalId = null;
 
   // ========== CONTROLS ==========
   document.getElementById('volSlider').oninput = e => {
     volatilityMult = parseFloat(e.target.value);
     document.getElementById('volValue').textContent = volatilityMult.toFixed(1) + '×';
-  };
-
-  document.getElementById('btn15m').onclick = function() {
-    if (currentTF === '15m') return;
-    currentTF = '15m';
-    this.classList.add('active');
-    document.getElementById('btn1h').classList.remove('active');
-    resetChart();
-  };
-
-  document.getElementById('btn1h').onclick = function() {
-    if (currentTF === '1H') return;
-    currentTF = '1H';
-    this.classList.add('active');
-    document.getElementById('btn15m').classList.remove('active');
-    resetChart();
   };
 
   document.getElementById('btnZones').onclick = function() {
@@ -272,25 +251,24 @@
   document.getElementById('btnPause').onclick = function() {
     isPaused = !isPaused;
     this.textContent = isPaused ? 'Resume' : 'Pause';
-    document.getElementById('liveBadge').textContent = isPaused ? '● PAUSED' : '● LIVE';
+    document.getElementById('liveBadge').textContent = isPaused ? '● PAUSED' : '● LIVE 15m';
     document.getElementById('liveBadge').style.background = isPaused ? '#666' : '#ff1744';
   };
 
-  // ========== CANDLE GENERATION (tuned for 15m / 1H) ==========
+  // ========== 15m CANDLE GENERATION ==========
   function generateNextCandle() {
     if (isPaused) return;
 
-    // Higher TF = larger moves
-    const baseVol = currentTF === '15m' ? 2.2 : 4.8;
+    const baseVol = 2.4; // realistic 15m move size for V100
     const vol = baseVol * volatilityMult;
-    const bias = Math.random() > 0.48 ? 1 : -1;
+    const bias = Math.random() > 0.485 ? 1 : -1;
     const change = bias * (Math.random() * vol);
 
     const open = lastClose;
     const close = open + change;
-    const high = Math.max(open, close) + Math.random() * (currentTF === '15m' ? 1.4 : 2.8) * volatilityMult;
-    const low  = Math.min(open, close) - Math.random() * (currentTF === '15m' ? 1.4 : 2.8) * volatilityMult;
-    const volume = Math.floor(300 + Math.random() * 1800 + Math.abs(change) * 400);
+    const high = Math.max(open, close) + Math.random() * 1.6 * volatilityMult;
+    const low  = Math.min(open, close) - Math.random() * 1.6 * volatilityMult;
+    const volume = Math.floor(400 + Math.random() * 2200 + Math.abs(change) * 500);
 
     lastClose = close;
     currentPrice = close;
@@ -299,17 +277,8 @@
     if (candles.length > MAX_CANDLES) candles.shift();
   }
 
-  function resetChart() {
-    candles = [];
-    // Pre-fill history
-    for (let i = 0; i < 55; i++) generateNextCandle();
-    document.getElementById('status').textContent =
-      `Timeframe: ${currentTF} | Recommended for structure & cleaner Order Blocks`;
-    draw();
-  }
-
-  // Initial fill
-  resetChart();
+  // Pre-fill history
+  for (let i = 0; i < 60; i++) generateNextCandle();
 
   // ========== ORDER BLOCK DETECTION ==========
   function detectOrderBlocks() {
@@ -323,7 +292,7 @@
       const bodyRatio = body / range;
 
       // Strong bullish impulse
-      if (c.c > c.o && bodyRatio > 0.62 && body > (currentTF === '15m' ? 1.8 : 3.5) * volatilityMult) {
+      if (c.c > c.o && bodyRatio > 0.62 && body > 2.0 * volatilityMult) {
         for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
           if (candles[j].c < candles[j].o) {
             obs.push({
@@ -339,7 +308,7 @@
       }
 
       // Strong bearish impulse
-      if (c.c < c.o && bodyRatio > 0.62 && body > (currentTF === '15m' ? 1.8 : 3.5) * volatilityMult) {
+      if (c.c < c.o && bodyRatio > 0.62 && body > 2.0 * volatilityMult) {
         for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
           if (candles[j].c > candles[j].o) {
             obs.push({
@@ -470,7 +439,7 @@
     }
 
     // Candles
-    const candleW = Math.max(4, xStep * 0.6);
+    const candleW = Math.max(4.5, xStep * 0.62);
     candles.forEach((c, i) => {
       const x = padding.left + i * xStep;
       const green = c.c >= c.o;
@@ -569,7 +538,7 @@
     addLabel('Pattern Break', breakX - 30, breakY + 12, 'label-pattern');
 
     // Live stats
-    document.getElementById('priceDisplay').textContent = currentPrice.toFixed(2);
+    document.getElementById('priceDisplay').textContent = currentPrice.toFixed(3);
 
     let bulls = 0, bears = 0, delta = 0;
     const look = Math.min(25, candles.length);
@@ -583,6 +552,8 @@
     document.getElementById('bullPct').textContent = `Bull % : ${(bulls/total*100).toFixed(2)}`;
     document.getElementById('bearPct').textContent = `Bear % : ${(bears/total*100).toFixed(2)}`;
     document.getElementById('delta').textContent = `Delta ${Math.round(delta).toLocaleString()}`;
+    document.getElementById('status').textContent =
+      `Timeframe: 15m | Candles: ${candles.length} | Vol: ${volatilityMult.toFixed(1)}×`;
   }
 
   function restartLoop() {
