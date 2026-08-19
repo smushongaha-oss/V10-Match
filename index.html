@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPrime – Volatility 100 (15m) REAL LIVE</title>
+  <title>ChartPrime – Volatility 100 (1s) REAL LIVE</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -169,7 +169,7 @@
 <div class="container">
   <div class="header">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div class="logo">CHART<span>PRIME</span> · Volatility 100 (15m)</div>
+      <div class="logo">CHART<span>PRIME</span> · Volatility 100 (1s)</div>
       <div class="live-badge" id="liveBadge">● CONNECTING...</div>
       <div id="priceDisplay" style="font-size:14px;font-weight:600;color:#00ff9d;">—</div>
     </div>
@@ -193,7 +193,7 @@
   </div>
 
   <div class="footer">
-    <span><span class="status-dot" id="statusDot"></span>Real Deriv Public WebSocket • R_100 • 15m</span>
+    <span><span class="status-dot" id="statusDot"></span>Real Deriv Public WS • 1HZ100V • 1s</span>
     <span id="status">Connecting to Deriv...</span>
   </div>
 </div>
@@ -203,19 +203,19 @@
   const ctx = canvas.getContext('2d');
   const wrapper = document.getElementById('chartWrapper');
 
-  // ========== OFFICIAL PUBLIC ENDPOINT ==========
+  // Official public endpoint from your code
   const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
+  const SYMBOL = '1HZ100V';   // Volatility 100 (1s)
 
-  // ========== STATE ==========
-  let candles = [];
+  let candles = [];          // 1-second candles built from ticks
   let currentCandle = null;
-  let lastPrice = 0;
   let showZones = true;
   let showProfile = true;
   let showOB = true;
   let ws = null;
+  let lastTickTime = 0;
 
-  // ========== CONTROLS ==========
+  // Controls
   document.getElementById('btnZones').onclick = function() {
     showZones = !showZones;
     this.classList.toggle('active');
@@ -231,99 +231,98 @@
     this.classList.toggle('active');
     draw();
   };
-  document.getElementById('btnReconnect').onclick = () => connectDeriv();
+  document.getElementById('btnReconnect').onclick = () => connect();
 
-  // ========== CONNECT TO REAL DERIV DATA ==========
-  function connectDeriv() {
-    if (ws) {
-      try { ws.close(); } catch(e) {}
-    }
+  function connect() {
+    if (ws) try { ws.close(); } catch(e) {}
 
     ws = new WebSocket(PUBLIC_WS);
 
     ws.onopen = () => {
-      document.getElementById('liveBadge').textContent = '● LIVE 15m';
+      document.getElementById('liveBadge').textContent = '● LIVE 1s';
       document.getElementById('liveBadge').style.background = '#ff1744';
       document.getElementById('statusDot').classList.add('connected');
-      document.getElementById('status').textContent = 'Connected • Fetching real 15m candles...';
+      document.getElementById('status').textContent = 'Connected • Subscribing to 1HZ100V ticks...';
 
-      // Historical 15-minute candles
+      // Get recent ticks history to bootstrap
       ws.send(JSON.stringify({
-        ticks_history: 'R_100',
+        ticks_history: SYMBOL,
         end: 'latest',
-        count: 100,
-        style: 'candles',
-        granularity: 900          // 15 minutes
+        count: 500,
+        style: 'ticks',
+        req_id: 1
       }));
 
-      // Live ticks
+      // Live ticks subscription
       ws.send(JSON.stringify({
-        ticks: 'R_100',
-        subscribe: 1
+        ticks: SYMBOL,
+        subscribe: 1,
+        req_id: 2
       }));
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      // Historical candles
-      if (data.candles) {
-        candles = data.candles.map(c => ({
-          o: parseFloat(c.open),
-          h: parseFloat(c.high),
-          l: parseFloat(c.low),
-          c: parseFloat(c.close),
-          v: Math.floor(Math.random() * 1800 + 400),
-          t: c.epoch * 1000
-        }));
+      // Historical ticks → build 1s candles
+      if (data.history && data.history.prices) {
+        const prices = data.history.prices;
+        const times  = data.history.times;
+        candles = [];
+        let sec = Math.floor(times[0]);
+        let o = prices[0], h = prices[0], l = prices[0], c = prices[0];
 
+        for (let i = 0; i < prices.length; i++) {
+          const t = Math.floor(times[i]);
+          const p = prices[i];
+          if (t !== sec) {
+            candles.push({ o, h, l, c, v: 1, t: sec * 1000 });
+            sec = t;
+            o = h = l = c = p;
+          } else {
+            h = Math.max(h, p);
+            l = Math.min(l, p);
+            c = p;
+          }
+        }
         if (candles.length > 0) {
-          const last = candles[candles.length - 1];
-          currentCandle = {
-            o: last.c,
-            h: last.c,
-            l: last.c,
-            c: last.c,
-            v: 1,
-            t: Date.now()
-          };
+          currentCandle = { ...candles[candles.length - 1] };
         }
         draw();
         document.getElementById('status').textContent = 
-          `Timeframe: 15m | Real candles: ${candles.length} | Deriv Public API`;
+          `1HZ100V • Real 1s candles: ${candles.length}`;
       }
 
-      // Live tick → update current 15m candle
+      // Live tick
       if (data.tick) {
         const price = parseFloat(data.tick.quote);
-        lastPrice = price;
+        const epoch = data.tick.epoch;
         document.getElementById('priceDisplay').textContent = price.toFixed(3);
 
-        if (!currentCandle) {
-          currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: Date.now() };
+        const sec = Math.floor(epoch);
+
+        if (!currentCandle || Math.floor(currentCandle.t / 1000) !== sec) {
+          // New 1-second candle
+          if (currentCandle) {
+            candles.push({ ...currentCandle });
+            if (candles.length > 180) candles.shift();
+          }
+          currentCandle = {
+            o: price, h: price, l: price, c: price,
+            v: 1, t: sec * 1000
+          };
         } else {
           currentCandle.c = price;
           currentCandle.h = Math.max(currentCandle.h, price);
           currentCandle.l = Math.min(currentCandle.l, price);
           currentCandle.v += 1;
         }
-
-        // Close candle every 15 minutes
-        const nowSec = Math.floor(Date.now() / 1000);
-        const periodStart = Math.floor(nowSec / 900) * 900;
-
-        if (currentCandle && Math.floor(currentCandle.t / 1000) < periodStart) {
-          candles.push({ ...currentCandle });
-          if (candles.length > 120) candles.shift();
-          currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: Date.now() };
-        }
-
         draw();
       }
 
       if (data.error) {
         console.error(data.error);
-        document.getElementById('status').textContent = 'Error: ' + (data.error.message || JSON.stringify(data.error));
+        document.getElementById('status').textContent = 'Error: ' + (data.error.message || data.error.code);
       }
     };
 
@@ -334,37 +333,36 @@
       document.getElementById('status').textContent = 'Disconnected – click Reconnect';
     };
 
-    ws.onerror = (err) => {
-      console.error('WebSocket error', err);
-      document.getElementById('status').textContent = 'Connection error – retrying...';
-      setTimeout(connectDeriv, 4000);
+    ws.onerror = () => {
+      document.getElementById('status').textContent = 'WebSocket error – retrying...';
+      setTimeout(connect, 4000);
     };
   }
 
-  // ========== ORDER BLOCKS ==========
+  // Order Blocks (same logic)
   function detectOrderBlocks() {
     const data = currentCandle ? [...candles, currentCandle] : candles;
     const obs = [];
-    if (data.length < 12) return obs;
+    if (data.length < 20) return obs;
 
-    for (let i = 5; i < data.length - 3; i++) {
+    for (let i = 8; i < data.length - 5; i++) {
       const c = data[i];
       const body = Math.abs(c.c - c.o);
       const range = c.h - c.l || 0.001;
       const bodyRatio = body / range;
 
-      if (c.c > c.o && bodyRatio > 0.58 && body > 1.2) {
-        for (let j = i-1; j >= Math.max(0, i-4); j--) {
+      if (c.c > c.o && bodyRatio > 0.6 && body > 0.8) {
+        for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
           if (data[j].c < data[j].o) {
-            obs.push({ type: 'bull', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length-1 });
+            obs.push({ type: 'bull', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length - 1 });
             break;
           }
         }
       }
-      if (c.c < c.o && bodyRatio > 0.58 && body > 1.2) {
-        for (let j = i-1; j >= Math.max(0, i-4); j--) {
+      if (c.c < c.o && bodyRatio > 0.6 && body > 0.8) {
+        for (let j = i - 1; j >= Math.max(0, i - 5); j--) {
           if (data[j].c > data[j].o) {
-            obs.push({ type: 'bear', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length-1 });
+            obs.push({ type: 'bear', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length - 1 });
             break;
           }
         }
@@ -373,7 +371,6 @@
     return obs.slice(-4);
   }
 
-  // ========== DRAW ==========
   function resize() {
     const dpr = window.devicePixelRatio || 1;
     const rect = wrapper.getBoundingClientRect();
@@ -388,7 +385,7 @@
 
   function draw() {
     const data = currentCandle ? [...candles, currentCandle] : candles;
-    if (data.length < 3) return;
+    if (data.length < 5) return;
 
     const width = wrapper.clientWidth;
     const height = wrapper.clientHeight;
@@ -401,8 +398,8 @@
     let min = Infinity, max = -Infinity;
     data.forEach(c => { min = Math.min(min, c.l); max = Math.max(max, c.h); });
     const range = max - min || 1;
-    min -= range * 0.06;
-    max += range * 0.08;
+    min -= range * 0.07;
+    max += range * 0.09;
 
     const xStep = chartW / (data.length - 1);
     const yScale = chartH / (max - min);
@@ -421,7 +418,7 @@
 
     // Volume Profile
     if (showProfile) {
-      const levels = 26;
+      const levels = 28;
       const volProfile = new Array(levels).fill(0);
       const step = (max - min) / levels;
       data.forEach(c => {
@@ -454,9 +451,9 @@
     }
 
     // Liquidity Zones
-    if (showZones && data.length > 18) {
+    if (showZones && data.length > 30) {
       const zones = [];
-      for (let i = 5; i < data.length - 5; i++) {
+      for (let i = 8; i < data.length - 8; i++) {
         const isSwingHigh = data[i].h > data[i-1].h && data[i].h > data[i+1].h &&
                             data[i].h > data[i-3].h && data[i].h > data[i+3].h;
         const isSwingLow  = data[i].l < data[i-1].l && data[i].l < data[i+1].l &&
@@ -477,12 +474,12 @@
     }
 
     // Candles
-    const candleW = Math.max(4, xStep * 0.6);
+    const candleW = Math.max(2.5, xStep * 0.55);
     data.forEach((c, i) => {
       const x = padding.left + i * xStep;
       const green = c.c >= c.o;
       ctx.strokeStyle = green ? '#00c853' : '#ff1744';
-      ctx.fillStyle = green ? '#00c853' : '#ff1744';
+      ctx.fillStyle   = green ? '#00c853' : '#ff1744';
       ctx.beginPath();
       ctx.moveTo(x, y(c.h));
       ctx.lineTo(x, y(c.l));
@@ -492,12 +489,12 @@
       ctx.fillRect(x - candleW/2, top, candleW, h);
     });
 
-    // Structure
+    // Structure labels
     document.querySelectorAll('.label').forEach(el => el.remove());
     const len = data.length;
-    if (len > 20) {
-      const peakIdx = Math.floor(len * 0.38);
-      const troughIdx = Math.floor(len * 0.70);
+    if (len > 25) {
+      const peakIdx = Math.floor(len * 0.40);
+      const troughIdx = Math.floor(len * 0.72);
       const breakIdx = Math.floor(len * 0.88);
 
       function addLabel(text, x, yPos, cls) {
@@ -543,7 +540,7 @@
 
     // Stats
     let bulls = 0, bears = 0, delta = 0;
-    const look = Math.min(30, data.length);
+    const look = Math.min(40, data.length);
     for (let i = data.length - look; i < data.length; i++) {
       const c = data[i];
       const body = Math.abs(c.c - c.o);
@@ -558,7 +555,7 @@
 
   window.addEventListener('resize', resize);
   resize();
-  connectDeriv();
+  connect();
 </script>
 </body>
 </html>
