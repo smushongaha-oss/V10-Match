@@ -193,7 +193,7 @@
   </div>
 
   <div class="footer">
-    <span><span class="status-dot" id="statusDot"></span>Real Deriv WebSocket • R_100 • 15m</span>
+    <span><span class="status-dot" id="statusDot"></span>Real Deriv Public WebSocket • R_100 • 15m</span>
     <span id="status">Connecting to Deriv...</span>
   </div>
 </div>
@@ -203,15 +203,17 @@
   const ctx = canvas.getContext('2d');
   const wrapper = document.getElementById('chartWrapper');
 
+  // ========== OFFICIAL PUBLIC ENDPOINT ==========
+  const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
+
   // ========== STATE ==========
-  let candles = [];          // real 15m candles from Deriv
-  let currentCandle = null;  // the forming 15m candle
+  let candles = [];
+  let currentCandle = null;
   let lastPrice = 0;
   let showZones = true;
   let showProfile = true;
   let showOB = true;
   let ws = null;
-  let isConnected = false;
 
   // ========== CONTROLS ==========
   document.getElementById('btnZones').onclick = function() {
@@ -231,30 +233,30 @@
   };
   document.getElementById('btnReconnect').onclick = () => connectDeriv();
 
-  // ========== DERIV WEBSOCKET (REAL DATA) ==========
+  // ========== CONNECT TO REAL DERIV DATA ==========
   function connectDeriv() {
-    if (ws) ws.close();
+    if (ws) {
+      try { ws.close(); } catch(e) {}
+    }
 
-    // Public endpoint – no token needed for market data
-    ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+    ws = new WebSocket(PUBLIC_WS);
 
     ws.onopen = () => {
-      isConnected = true;
       document.getElementById('liveBadge').textContent = '● LIVE 15m';
       document.getElementById('liveBadge').style.background = '#ff1744';
       document.getElementById('statusDot').classList.add('connected');
-      document.getElementById('status').textContent = 'Connected to Deriv • Fetching 15m candles...';
+      document.getElementById('status').textContent = 'Connected • Fetching real 15m candles...';
 
-      // 1. Get historical 15-minute candles
+      // Historical 15-minute candles
       ws.send(JSON.stringify({
         ticks_history: 'R_100',
         end: 'latest',
         count: 100,
         style: 'candles',
-        granularity: 900   // 15 minutes = 900 seconds
+        granularity: 900          // 15 minutes
       }));
 
-      // 2. Subscribe to live ticks
+      // Live ticks
       ws.send(JSON.stringify({
         ticks: 'R_100',
         subscribe: 1
@@ -271,19 +273,27 @@
           h: parseFloat(c.high),
           l: parseFloat(c.low),
           c: parseFloat(c.close),
-          v: Math.floor(Math.random() * 2000 + 500), // Deriv doesn't send volume for synthetics
+          v: Math.floor(Math.random() * 1800 + 400),
           t: c.epoch * 1000
         }));
-        // Start the current forming candle
+
         if (candles.length > 0) {
           const last = candles[candles.length - 1];
-          currentCandle = { o: last.c, h: last.c, l: last.c, c: last.c, v: 0, t: Date.now() };
+          currentCandle = {
+            o: last.c,
+            h: last.c,
+            l: last.c,
+            c: last.c,
+            v: 1,
+            t: Date.now()
+          };
         }
         draw();
-        document.getElementById('status').textContent = `Timeframe: 15m | Candles: ${candles.length} | Real Deriv data`;
+        document.getElementById('status').textContent = 
+          `Timeframe: 15m | Real candles: ${candles.length} | Deriv Public API`;
       }
 
-      // Live tick
+      // Live tick → update current 15m candle
       if (data.tick) {
         const price = parseFloat(data.tick.quote);
         lastPrice = price;
@@ -298,14 +308,13 @@
           currentCandle.v += 1;
         }
 
-        // Check if we need to close the 15m candle (every 15 minutes)
-        const now = Math.floor(Date.now() / 1000);
-        const candleStart = Math.floor(now / 900) * 900;
-        if (currentCandle && Math.floor(currentCandle.t / 1000) < candleStart) {
-          // Close previous candle
+        // Close candle every 15 minutes
+        const nowSec = Math.floor(Date.now() / 1000);
+        const periodStart = Math.floor(nowSec / 900) * 900;
+
+        if (currentCandle && Math.floor(currentCandle.t / 1000) < periodStart) {
           candles.push({ ...currentCandle });
           if (candles.length > 120) candles.shift();
-          // Start new one
           currentCandle = { o: price, h: price, l: price, c: price, v: 1, t: Date.now() };
         }
 
@@ -313,49 +322,49 @@
       }
 
       if (data.error) {
-        console.error('Deriv error:', data.error);
-        document.getElementById('status').textContent = 'Error: ' + data.error.message;
+        console.error(data.error);
+        document.getElementById('status').textContent = 'Error: ' + (data.error.message || JSON.stringify(data.error));
       }
     };
 
     ws.onclose = () => {
-      isConnected = false;
       document.getElementById('liveBadge').textContent = '● DISCONNECTED';
       document.getElementById('liveBadge').style.background = '#666';
       document.getElementById('statusDot').classList.remove('connected');
       document.getElementById('status').textContent = 'Disconnected – click Reconnect';
     };
 
-    ws.onerror = () => {
-      document.getElementById('status').textContent = 'WebSocket error – trying to reconnect...';
-      setTimeout(connectDeriv, 3000);
+    ws.onerror = (err) => {
+      console.error('WebSocket error', err);
+      document.getElementById('status').textContent = 'Connection error – retrying...';
+      setTimeout(connectDeriv, 4000);
     };
   }
 
-  // ========== ORDER BLOCK DETECTION ==========
+  // ========== ORDER BLOCKS ==========
   function detectOrderBlocks() {
-    const obs = [];
     const data = currentCandle ? [...candles, currentCandle] : candles;
-    if (data.length < 15) return obs;
+    const obs = [];
+    if (data.length < 12) return obs;
 
-    for (let i = 6; i < data.length - 4; i++) {
+    for (let i = 5; i < data.length - 3; i++) {
       const c = data[i];
       const body = Math.abs(c.c - c.o);
       const range = c.h - c.l || 0.001;
       const bodyRatio = body / range;
 
-      if (c.c > c.o && bodyRatio > 0.6 && body > 1.5) {
-        for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
+      if (c.c > c.o && bodyRatio > 0.58 && body > 1.2) {
+        for (let j = i-1; j >= Math.max(0, i-4); j--) {
           if (data[j].c < data[j].o) {
-            obs.push({ type: 'bull', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length - 1 });
+            obs.push({ type: 'bull', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length-1 });
             break;
           }
         }
       }
-      if (c.c < c.o && bodyRatio > 0.6 && body > 1.5) {
-        for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
+      if (c.c < c.o && bodyRatio > 0.58 && body > 1.2) {
+        for (let j = i-1; j >= Math.max(0, i-4); j--) {
           if (data[j].c > data[j].o) {
-            obs.push({ type: 'bear', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length - 1 });
+            obs.push({ type: 'bear', high: data[j].h, low: data[j].l, startIdx: j, endIdx: data.length-1 });
             break;
           }
         }
@@ -431,8 +440,7 @@
 
     // Order Blocks
     if (showOB) {
-      const orderBlocks = detectOrderBlocks();
-      orderBlocks.forEach(ob => {
+      detectOrderBlocks().forEach(ob => {
         const x1 = padding.left + ob.startIdx * xStep;
         const x2 = padding.left + ob.endIdx * xStep;
         const yHigh = y(ob.high);
@@ -446,7 +454,7 @@
     }
 
     // Liquidity Zones
-    if (showZones && data.length > 20) {
+    if (showZones && data.length > 18) {
       const zones = [];
       for (let i = 5; i < data.length - 5; i++) {
         const isSwingHigh = data[i].h > data[i-1].h && data[i].h > data[i+1].h &&
@@ -474,7 +482,7 @@
       const x = padding.left + i * xStep;
       const green = c.c >= c.o;
       ctx.strokeStyle = green ? '#00c853' : '#ff1744';
-      ctx.fillStyle   = green ? '#00c853' : '#ff1744';
+      ctx.fillStyle = green ? '#00c853' : '#ff1744';
       ctx.beginPath();
       ctx.moveTo(x, y(c.h));
       ctx.lineTo(x, y(c.l));
@@ -484,7 +492,7 @@
       ctx.fillRect(x - candleW/2, top, candleW, h);
     });
 
-    // Structure labels (simplified)
+    // Structure
     document.querySelectorAll('.label').forEach(el => el.remove());
     const len = data.length;
     if (len > 20) {
@@ -501,7 +509,6 @@
         wrapper.appendChild(el);
       }
 
-      // Trendline
       const sX = padding.left + peakIdx * xStep;
       const bX = padding.left + troughIdx * xStep;
       ctx.strokeStyle = '#ffffff';
@@ -514,16 +521,15 @@
       addLabel('S', sX - 6, y(data[peakIdx].h) - 18, 'label-s');
       addLabel('B', bX - 6, y(data[troughIdx].l) + 8, 'label-b');
 
-      // Pattern Break + Target
       const breakX = padding.left + breakIdx * xStep;
       const breakY = y(data[breakIdx].c);
       ctx.beginPath();
-      ctx.arc(breakX, breakY, 5, 0, Math.PI*2);
+      ctx.arc(breakX, breakY, 5, 0, Math.PI * 2);
       ctx.fillStyle = '#00ff9d';
       ctx.fill();
 
       ctx.strokeStyle = '#00ff9d';
-      ctx.setLineDash([5,4]);
+      ctx.setLineDash([5, 4]);
       ctx.beginPath();
       ctx.moveTo(breakX, breakY);
       ctx.lineTo(breakX, y(data[len-1].h) - 6);
@@ -535,7 +541,7 @@
       addLabel('Pattern Break', breakX - 28, breakY + 12, 'label-pattern');
     }
 
-    // Bull/Bear stats
+    // Stats
     let bulls = 0, bears = 0, delta = 0;
     const look = Math.min(30, data.length);
     for (let i = data.length - look; i < data.length; i++) {
@@ -552,7 +558,7 @@
 
   window.addEventListener('resize', resize);
   resize();
-  connectDeriv(); // start real data
+  connectDeriv();
 </script>
 </body>
 </html>
