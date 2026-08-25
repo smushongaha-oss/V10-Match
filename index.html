@@ -1,651 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChartPrime – Volatility 100 (Live)</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #0a0a0a;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: #e0e0e0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 15px;
-    }
-    .container {
-      width: 100%;
-      max-width: 1150px;
-      background: #111;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-      border: 1px solid #222;
-    }
-    .header {
-      padding: 12px 20px;
-      background: #0d0d0d;
-      border-bottom: 1px solid #222;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .logo { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
-    .logo span { color: #00ff9d; }
-    .live-badge {
-      background: #ff1744;
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 4px;
-      animation: pulse 1.4s infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      font-size: 12px;
-    }
-    .control-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #1a1a1a;
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: 1px solid #333;
-    }
-    input[type="range"] { width: 80px; accent-color: #00ff9d; }
-    button {
-      background: #222;
-      color: #eee;
-      border: 1px solid #444;
-      padding: 4px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    button:hover { background: #333; }
-    button.active { background: #00c853; color: #000; border-color: #00c853; }
-
-    .chart-wrapper {
-      position: relative;
-      width: 100%;
-      height: 540px;
-      background: #0a0a0a;
-    }
-    canvas { width: 100%; height: 100%; display: block; }
-
-    .label {
-      position: absolute;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 3px;
-      pointer-events: none;
-      z-index: 10;
-    }
-    .label-s { background: #ff3b3b; color: white; }
-    .label-b { background: #00c853; color: white; }
-    .label-target {
-      background: rgba(0,200,83,0.15);
-      color: #00ff9d;
-      border: 1px solid #00ff9d;
-    }
-    .label-pattern {
-      background: rgba(255,255,255,0.08);
-      color: #aaa;
-      border: 1px solid #444;
-    }
-    .label-reversal {
-      background: #ff9800;
-      color: #000;
-      font-weight: 700;
-    }
-    .label-ob-bull {
-      background: rgba(0,200,83,0.85);
-      color: #000;
-      font-size: 10px;
-    }
-    .label-ob-bear {
-      background: rgba(255,59,59,0.85);
-      color: #fff;
-      font-size: 10px;
-    }
-
-    .volume-bar {
-      display: flex;
-      height: 34px;
-      background: #111;
-      border-top: 1px solid #222;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    .bear {
-      background: #c62828;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 14px;
-      min-width: 120px;
-    }
-    .bull {
-      background: #2e7d32;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-    }
-    .delta {
-      background: #1a1a1a;
-      color: #00e676;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 18px;
-      border-left: 1px solid #333;
-      min-width: 130px;
-    }
-    .footer {
-      padding: 9px 20px;
-      font-size: 12px;
-      color: #666;
-      background: #0d0d0d;
-      border-top: 1px solid #1a1a1a;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Signal - Step Index M6</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0f1117;
+    color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  
+  .signal-card {
+    background: linear-gradient(145deg, #1a1d27, #12141c);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+    border: 1px solid #2a2e3a;
+  }
+  
+  .header {
+    background: linear-gradient(90deg, #00c853, #00e676);
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #000;
+    letter-spacing: 0.5px;
+  }
+  
+  .badge {
+    background: #000;
+    color: #00e676;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+  }
+  
+  .body {
+    padding: 24px;
+  }
+  
+  .pair {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  
+  .timeframe {
+    font-size: 13px;
+    color: #8b93a7;
+    margin-bottom: 20px;
+  }
+  
+  .levels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  
+  .level-box {
+    background: #1e222d;
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid #2a2e3a;
+  }
+  
+  .level-box.full {
+    grid-column: 1 / -1;
+  }
+  
+  .label {
+    font-size: 12px;
+    color: #8b93a7;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+  
+  .entry { color: #00e676; }
+  .sl { color: #ff5252; }
+  .tp { color: #40c4ff; }
+  
+  .analysis {
+    background: #1e222d;
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid #2a2e3a;
+    margin-bottom: 20px;
+  }
+  
+  .analysis h3 {
+    font-size: 14px;
+    color: #00e676;
+    margin-bottom: 10px;
+  }
+  
+  .analysis ul {
+    list-style: none;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #c0c5d0;
+  }
+  
+  .analysis li {
+    margin-bottom: 6px;
+    padding-left: 16px;
+    position: relative;
+  }
+  
+  .analysis li::before {
+    content: "•";
+    color: #00e676;
+    position: absolute;
+    left: 0;
+  }
+  
+  .rr {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffd740;
+    margin-bottom: 16px;
+  }
+  
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: #6b7280;
+    border-top: 1px solid #2a2e3a;
+    padding-top: 16px;
+  }
+</style>
 </head>
 <body>
-
-<div class="container">
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div class="logo">CHART<span>PRIME</span> · V100 LIVE</div>
-      <div class="live-badge" id="liveBadge">● CONNECTING</div>
-      <div id="priceDisplay" style="font-size:14px;font-weight:600;color:#00ff9d;">—</div>
+  <div class="signal-card">
+    <div class="header">
+      <h1>BUY SIGNAL</h1>
+      <div class="badge">ACTIVE</div>
     </div>
-
-    <div class="controls">
-      <div class="control-group">
-        Vol <input type="range" id="volSlider" min="0.5" max="3" step="0.1" value="1.4">
-        <span id="volValue">1.4×</span>
+    
+    <div class="body">
+      <div class="pair">Step Index • M6</div>
+      <div class="timeframe">25 Aug 2026 • Equal probability step 0.1</div>
+      
+      <div class="levels">
+        <div class="level-box">
+          <div class="label">Entry Zone</div>
+          <div class="value entry">7812.8 – 7815.0</div>
+        </div>
+        <div class="level-box">
+          <div class="label">Stop Loss</div>
+          <div class="value sl">7804.0</div>
+        </div>
+        <div class="level-box">
+          <div class="label">Take Profit 1</div>
+          <div class="value tp">7816.3</div>
+        </div>
+        <div class="level-box">
+          <div class="label">Take Profit 2</div>
+          <div class="value tp">7820.3 – 7824.3</div>
+        </div>
       </div>
-
-      <button id="btn15m" class="active">15m</button>
-      <button id="btn1h">1H</button>
-
-      <button id="btnZones" class="active">Liquidity Zones</button>
-      <button id="btnProfile" class="active">Volume Profile</button>
-      <button id="btnOB" class="active">Order Blocks</button>
-      <button id="btnPause">Pause</button>
+      
+      <div class="rr">Risk : Reward ≈ 1 : 1.5+</div>
+      
+      <div class="analysis">
+        <h3>Technical Reasons</h3>
+        <ul>
+          <li>CCI(14) at –129.50 → deep oversold / “Ready to Buy”</li>
+          <li>Ascending triangle with higher lows from 7788</li>
+          <li>Purple MA holding above orange MA</li>
+          <li>Strong bounce structure + horizontal support at 7812.8</li>
+        </ul>
+      </div>
+      
+      <div class="footer">
+        Manage risk carefully • Trail stop to BE after TP1<br>
+        Invalidation: close below 7804 or new CCI low
+      </div>
     </div>
   </div>
-
-  <div class="chart-wrapper" id="chartWrapper">
-    <canvas id="chart"></canvas>
-  </div>
-
-  <div class="volume-bar">
-    <div class="bear" id="bearPct">Bear % : 50.00</div>
-    <div class="bull" id="bullPct">Bull % : 50.00</div>
-    <div class="delta" id="delta">Delta 0</div>
-  </div>
-
-  <div class="footer">
-    <span>Live Deriv R_100 • Order Blocks • Liquidity Zones • Volume Profile</span>
-    <span id="status">Connecting to Deriv…</span>
-  </div>
-</div>
-
-<script>
-  const canvas = document.getElementById('chart');
-  const ctx = canvas.getContext('2d');
-  const wrapper = document.getElementById('chartWrapper');
-
-  // ========== STATE ==========
-  let candles = [];
-  let currentPrice = 0;
-  let lastClose = 0;
-  const MAX_CANDLES = 80;
-  let isPaused = false;
-  let showZones = true;
-  let showProfile = true;
-  let showOB = true;
-  let volatilityMult = 1.4;          // still used only for visual sensitivity of OB thresholds
-  let currentTF = '15m';
-  let ws = null;
-  let tickSubId = null;
-  let reconnectTimer = null;
-  let currentCandleStart = 0;
-  let granularity = 900;             // seconds
-
-  // ========== CONTROLS ==========
-  document.getElementById('volSlider').oninput = e => {
-    volatilityMult = parseFloat(e.target.value);
-    document.getElementById('volValue').textContent = volatilityMult.toFixed(1) + '×';
-  };
-
-  document.getElementById('btn15m').onclick = function() {
-    if (currentTF === '15m') return;
-    currentTF = '15m';
-    granularity = 900;
-    this.classList.add('active');
-    document.getElementById('btn1h').classList.remove('active');
-    requestHistory();
-  };
-
-  document.getElementById('btn1h').onclick = function() {
-    if (currentTF === '1H') return;
-    currentTF = '1H';
-    granularity = 3600;
-    this.classList.add('active');
-    document.getElementById('btn15m').classList.remove('active');
-    requestHistory();
-  };
-
-  document.getElementById('btnZones').onclick = function() {
-    showZones = !showZones;
-    this.classList.toggle('active');
-    draw();
-  };
-  document.getElementById('btnProfile').onclick = function() {
-    showProfile = !showProfile;
-    this.classList.toggle('active');
-    draw();
-  };
-  document.getElementById('btnOB').onclick = function() {
-    showOB = !showOB;
-    this.classList.toggle('active');
-    draw();
-  };
-  document.getElementById('btnPause').onclick = function() {
-    isPaused = !isPaused;
-    this.textContent = isPaused ? 'Resume' : 'Pause';
-    document.getElementById('liveBadge').textContent = isPaused ? '● PAUSED' : '● LIVE';
-    document.getElementById('liveBadge').style.background = isPaused ? '#666' : '#ff1744';
-  };
-
-  // ========== DERIV WEBSOCKET ==========
-  const APP_ID = 1089;   // public testing app_id – works for market data
-  const WS_URL = `wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`;
-
-  function connect() {
-    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-
-    document.getElementById('liveBadge').textContent = '● CONNECTING';
-    document.getElementById('liveBadge').style.background = '#ff9800';
-    document.getElementById('status').textContent = 'Connecting to Deriv…';
-
-    ws = new WebSocket(WS_URL);
-
-    ws.onopen = () => {
-      document.getElementById('liveBadge').textContent = '● LIVE';
-      document.getElementById('liveBadge').style.background = '#ff1744';
-      document.getElementById('status').textContent = `Timeframe: ${currentTF} | Live R_100 from Deriv`;
-      requestHistory();
-      // keep-alive ping every 30s
-      setInterval(() => {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ ping: 1 }));
-        }
-      }, 30000);
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      if (data.error) {
-        console.error('Deriv error:', data.error);
-        document.getElementById('status').textContent = 'Error: ' + (data.error.message || 'API error');
-        return;
-      }
-
-      // Historical candles
-      if (data.msg_type === 'candles' && data.candles) {
-        candles = data.candles.map(c => ({
-          o: parseFloat(c.open),
-          h: parseFloat(c.high),
-          l: parseFloat(c.low),
-          c: parseFloat(c.close),
-          v: Math.max(100, Math.abs(parseFloat(c.close) - parseFloat(c.open)) * 800), // proxy volume
-          t: c.epoch * 1000
-        }));
-        if (candles.length > MAX_CANDLES) candles = candles.slice(-MAX_CANDLES);
-
-        if (candles.length) {
-          lastClose = candles[candles.length - 1].c;
-          currentPrice = lastClose;
-          currentCandleStart = candles[candles.length - 1].t;
-        }
-        subscribeTicks();
-        draw();
-      }
-
-      // Live tick → update current candle
-      if (data.msg_type === 'tick' && data.tick && !isPaused) {
-        const price = data.tick.quote;
-        const epoch = data.tick.epoch * 1000;
-        currentPrice = price;
-        lastClose = price;
-
-        // New candle boundary?
-        const candleBoundary = Math.floor(epoch / 1000 / granularity) * granularity * 1000;
-
-        if (candles.length === 0 || candleBoundary > currentCandleStart) {
-          // start new candle
-          candles.push({
-            o: price, h: price, l: price, c: price,
-            v: 100, t: candleBoundary
-          });
-          currentCandleStart = candleBoundary;
-          if (candles.length > MAX_CANDLES) candles.shift();
-        } else {
-          // update last candle
-          const last = candles[candles.length - 1];
-          last.h = Math.max(last.h, price);
-          last.l = Math.min(last.l, price);
-          last.c = price;
-          last.v += Math.abs(price - last.o) * 50; // accumulate proxy volume
-        }
-        draw();
-      }
-    };
-
-    ws.onclose = () => {
-      document.getElementById('liveBadge').textContent = '● DISCONNECTED';
-      document.getElementById('liveBadge').style.background = '#666';
-      document.getElementById('status').textContent = 'Disconnected – reconnecting…';
-      clearTimeout(reconnectTimer);
-      reconnectTimer = setTimeout(connect, 3000);
-    };
-
-    ws.onerror = () => {
-      document.getElementById('status').textContent = 'WebSocket error – will retry';
-    };
-  }
-
-  function requestHistory() {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-
-    // forget previous tick subscription
-    if (tickSubId) {
-      ws.send(JSON.stringify({ forget: tickSubId }));
-      tickSubId = null;
-    }
-
-    candles = [];
-    document.getElementById('status').textContent = `Loading ${currentTF} history…`;
-
-    ws.send(JSON.stringify({
-      ticks_history: 'R_100',
-      end: 'latest',
-      count: MAX_CANDLES,
-      style: 'candles',
-      granularity: granularity,
-      req_id: 1
-    }));
-  }
-
-  function subscribeTicks() {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({
-      ticks: 'R_100',
-      subscribe: 1,
-      req_id: 2
-    }));
-  }
-
-  // ========== ORDER BLOCK DETECTION (unchanged logic) ==========
-  function detectOrderBlocks() {
-    const obs = [];
-    if (candles.length < 15) return obs;
-
-    for (let i = 6; i < candles.length - 5; i++) {
-      const c = candles[i];
-      const body = Math.abs(c.c - c.o);
-      const range = c.h - c.l || 0.001;
-      const bodyRatio = body / range;
-
-      if (c.c > c.o && bodyRatio > 0.62 && body > (currentTF === '15m' ? 1.8 : 3.5) * volatilityMult) {
-        for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
-          if (candles[j].c < candles[j].o) {
-            obs.push({
-              type: 'bull',
-              high: candles[j].h,
-              low: candles[j].l,
-              startIdx: j,
-              endIdx: candles.length - 1
-            });
-            break;
-          }
-        }
-      }
-
-      if (c.c < c.o && bodyRatio > 0.62 && body > (currentTF === '15m' ? 1.8 : 3.5) * volatilityMult) {
-        for (let j = i - 1; j >= Math.max(0, i - 4); j--) {
-          if (candles[j].c > candles[j].o) {
-            obs.push({
-              type: 'bear',
-              high: candles[j].h,
-              low: candles[j].l,
-              startIdx: j,
-              endIdx: candles.length - 1
-            });
-            break;
-          }
-        }
-      }
-    }
-    return obs.slice(-4);
-  }
-
-  // ========== DRAW (same as original, only minor tweaks) ==========
-  function resize() {
-    const dpr = window.devicePixelRatio || 1;
-    const rect = wrapper.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
-    draw();
-  }
-
-  function draw() {
-    const width = wrapper.clientWidth;
-    const height = wrapper.clientHeight;
-    const padding = { top: 30, right: showProfile ? 70 : 40, bottom: 25, left: 12 };
-    const chartW = width - padding.left - padding.right;
-    const chartH = height - padding.top - padding.bottom;
-
-    ctx.clearRect(0, 0, width, height);
-    if (candles.length < 5) return;
-
-    let min = Infinity, max = -Infinity;
-    candles.forEach(c => { min = Math.min(min, c.l); max = Math.max(max, c.h); });
-    const range = max - min || 1;
-    min -= range * 0.07;
-    max += range * 0.10;
-
-    const xStep = chartW / (candles.length - 1);
-    const yScale = chartH / (max - min);
-    const y = p => padding.top + (max - p) * yScale;
-
-    // Grid
-    ctx.strokeStyle = '#161616';
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 5; i++) {
-      const yy = padding.top + (chartH / 5) * i;
-      ctx.beginPath();
-      ctx.moveTo(padding.left, yy);
-      ctx.lineTo(width - padding.right, yy);
-      ctx.stroke();
-    }
-
-    // Volume Profile
-    if (showProfile) {
-      const levels = 26;
-      const volProfile = new Array(levels).fill(0);
-      const step = (max - min) / levels;
-      candles.forEach(c => {
-        const idx = Math.floor((c.c - min) / step);
-        if (idx >= 0 && idx < levels) volProfile[idx] += c.v;
-      });
-      const maxVol = Math.max(...volProfile) || 1;
-      const profileW = 55;
-
-      volProfile.forEach((v, i) => {
-        const barH = chartH / levels;
-        const barW = (v / maxVol) * profileW;
-        const yy = padding.top + (levels - 1 - i) * barH;
-        ctx.fillStyle = v > maxVol * 0.65 ? 'rgba(0,255,157,0.45)' : 'rgba(0,200,83,0.18)';
-        ctx.fillRect(width - padding.right + 8, yy, barW, barH - 1);
-      });
-    }
-
-    // Order Blocks
-    if (showOB) {
-      const orderBlocks = detectOrderBlocks();
-      orderBlocks.forEach(ob => {
-        const x1 = padding.left + ob.startIdx * xStep;
-        const x2 = padding.left + ob.endIdx * xStep;
-        const yHigh = y(ob.high);
-        const yLow = y(ob.low);
-        const h = yLow - yHigh;
-
-        ctx.fillStyle = ob.type === 'bull' 
-          ? 'rgba(0, 200, 83, 0.18)' 
-          : 'rgba(255, 59, 59, 0.18)';
-        ctx.fillRect(x1, yHigh, x2 - x1, h);
-
-        ctx.strokeStyle = ob.type === 'bull' 
-          ? 'rgba(0, 200, 83, 0.7)' 
-          : 'rgba(255, 59, 59, 0.7)';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(x1, yHigh, x2 - x1, h);
-      });
-    }
-
-    // Liquidity Zones
-    if (showZones && candles.length > 25) {
-      const zones = [];
-      for (let i = 6; i < candles.length - 6; i++) {
-        const isSwingHigh = candles[i].h > candles[i-1].h && candles[i].h > candles[i+1].h &&
-                            candles[i].h > candles[i-3].h && candles[i].h > candles[i+3].h;
-        const isSwingLow  = candles[i].l < candles[i-1].l && candles[i].l < candles[i+1].l &&
-                            candles[i].l < candles[i-3].l && candles[i].l < candles[i+3].l;
-        if (isSwingHigh) zones.push({ price: candles[i].h, type: 'supply' });
-        if (isSwingLow)  zones.push({ price: candles[i].l, type: 'demand' });
-      }
-      zones.slice(-5).forEach(z => {
-        const yy = y(z.price);
-        ctx.fillStyle = z.type === 'supply' ? 'rgba(255,59,59,0.10)' : 'rgba(0,200,83,0.10)';
-        ctx.fillRect(padding.left, yy - 7, chartW, 14);
-        ctx.strokeStyle = z.type === 'supply' ? 'rgba(255,59,59,0.35)' : 'rgba(0,200,83,0.35)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(padding.left, yy);
-        ctx.lineTo(padding.left + chartW, yy);
-        ctx.stroke();
-      });
-    }
-
-    // Candles
-    const candleW = Math.max(4, xStep * 0.6);
-    candles.forEach((c, i) => {
-      const x = padding.left + i * xStep;
-      const green = c.c >= c.o;
-      ctx.strokeStyle = green ? '#00c853' : '#ff1744';
-      ctx.fillStyle   = green ? '#00c853' : '#ff1744';
-
-      ctx.beginPath();
-      ctx.moveTo(x, y(c.h));
-      ctx.lineTo(x, y(c.l));
-      ctx.stroke();
-
-      const top = y(Math.max(c.o, c.c));
-      const h = Math.max(1, Math.abs(y(c.o) - y(c.c)));
-      ctx.fillRect(x - candleW/2, top, candleW, h);
-    });
-
-    // Structure labels (kept for visual consistency)
-    const len = candles.length;
-    const peakIdx = Math.max(8, Math.floor(len * 0.40));
-    const troughIdx = Math.max(peakIdx + 8, Math.floor(len * 0.72));
-    const breakIdx = Math.min(len - 4, Math.floor(len * 0.86));
-
-    document.querySelectorAll('.label').forEach(el => el.remove());
-
-    function addLabel(text, x, yPos, cls) {
-      const el = document.createElement('div');
-      el.className = `label ${cls}`;
-      el.textContent = text;
-      el.style.left = x + 'px';
-      el.style.top  = yPos + 'px';
-      wrapper.appendChild(el);
-    }
-
-    // Trendline
-    if (len > 20) {
-      const sX = padding.left + peakIdx * xStep;
-      const bX = padding.left + troughIdx * xStep;
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(sX, y(candles[peakIdx].h));
-      ctx.lineTo(bX, y(candles[troughIdx].l));
-      ctx.stroke();
-    }
-
-    // Order Block labels
-    if (showOB) {
-      const orderBlocks = detectOrderBlocks();
-      orderBlocks.forEach(ob => {
-        const x = padding.left + ob.startIdx * xStep + 4;
-        const yPos = ob.type === 'bull' ? y(ob.low) + 4 : y(ob.high) - 18;
-        addLabel(ob.type === 'bull' ? 'Bull OB' : 'Bear OB', x, yPos, 
-                 ob.type === 'bull' ? 'label-ob-bull' : 'label-ob-bear');
-      });
-    }
-
-    // Live price
-    document.getElementById('priceDisplay').textContent = currentPrice ? currentPrice.toFixed(2) : '—';
-
-    // Bull / Bear stats
-    let bulls = 0, bears = 0, delta = 0;
-    const look = Math.min(25, candles.length);
-    for (let i = candles.length - look; i < candles.length; i++) {
-      const c = candles[i];
-      const body = Math.abs(c.c - c.o);
-      if (c.c >= c.o) { bulls += body; delta += c.v; }
-      else { bears += body; delta -= c.v; }
-    }
-    const total = bulls + bears || 1;
-    document.getElementById('bullPct').textContent = `Bull % : ${(bulls/total*100).toFixed(2)}`;
-    document.getElementById('bearPct').textContent = `Bear % : ${(bears/total*100).toFixed(2)}`;
-    document.getElementById('delta').textContent = `Delta ${Math.round(delta).toLocaleString()}`;
-  }
-
-  // Start
-  window.addEventListener('resize', resize);
-  resize();
-  connect();
-</script>
 </body>
 </html>
+```​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
