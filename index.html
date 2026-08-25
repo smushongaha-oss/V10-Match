@@ -272,10 +272,10 @@
 
 <script>
 (function () {
-  const SYMBOL = 'stpRNG'; // Step Index on Deriv
-  const APP_ID = 1089; // Deriv public demo app id
+  const PUBLIC_WS = 'wss://api.derivws.com/trading/v1/options/ws/public';
   const CANDLE_COUNT = 200;
 
+  let SYMBOL = null; // resolved dynamically from active_symbols
   let ws = null;
   let granularity = parseInt(document.getElementById('tf').value, 10);
   let candles = []; // {epoch, open, high, low, close}
@@ -309,7 +309,7 @@
     els.connWarning.style.display = 'none';
 
     try {
-      ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
+      ws = new WebSocket(PUBLIC_WS);
     } catch (e) {
       showBlocked(e.message);
       return;
@@ -329,7 +329,8 @@
       clearTimeout(openTimeout);
       els.dot.classList.remove('down');
       els.dot.classList.add('live');
-      subscribeCandles();
+      els.meta.textContent = 'Resolving Step Index symbol…';
+      ws.send(JSON.stringify({ active_symbols: 'brief', req_id: reqId++ }));
     };
 
     ws.onmessage = (msg) => {
@@ -338,7 +339,19 @@
         els.meta.textContent = 'Error: ' + data.error.message;
         return;
       }
-      if (data.msg_type === 'candles') {
+      if (data.msg_type === 'active_symbols') {
+        console.log('Deriv active_symbols response:', data.active_symbols);
+        const match = resolveStepIndexSymbol(data.active_symbols);
+        if (!match) {
+          els.meta.textContent = 'Could not find a "Step Index" symbol — check console for the full list.';
+          console.warn('No symbol matched "Step Index". Full display names:',
+            data.active_symbols.map(s => s.display_name));
+          return;
+        }
+        SYMBOL = match.symbol;
+        els.meta.textContent = `Found ${match.display_name} (${SYMBOL}) — loading candles…`;
+        subscribeCandles();
+      } else if (data.msg_type === 'candles') {
         candles = data.candles.map(normalizeCandle);
         onDataUpdate();
       } else if (data.msg_type === 'ohlc') {
@@ -372,7 +385,19 @@
     clearTimeout(reconnectTimer);
   }
 
+  function resolveStepIndexSymbol(list) {
+    // Prefer an exact "Step Index" display name (the classic/original one).
+    // Fall back to the first symbol whose name starts with "Step Index" if
+    // Deriv has renamed or regionalised it (e.g. "Step Index 100").
+    const exact = list.find(s => (s.display_name || '').trim().toLowerCase() === 'step index');
+    if (exact) return exact;
+    const prefixed = list.find(s => (s.display_name || '').toLowerCase().startsWith('step index'));
+    if (prefixed) return prefixed;
+    return null;
+  }
+
   function subscribeCandles() {
+    if (!SYMBOL) return;
     candles = [];
     ws.send(JSON.stringify({
       ticks_history: SYMBOL,
@@ -536,12 +561,12 @@
 
   function tfLabel() {
     const map = { '60': 'M1', '300': 'M5', '900': 'M15' };
-    return 'Step Index • ' + (map[granularity] || granularity + 's');
+    return (SYMBOL || 'Step Index') + ' • ' + (map[granularity] || granularity + 's');
   }
 
   els.tf.addEventListener('change', () => {
     granularity = parseInt(els.tf.value, 10);
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (ws && ws.readyState === WebSocket.OPEN && SYMBOL) {
       subscribeCandles();
     }
   });
