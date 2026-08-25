@@ -3,17 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="refresh" content="30"> <!-- Auto refresh every 30 seconds -->
-<title>Trading Signal - Step Index M6</title>
+<title>Live Trading Signal - Step Index</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-  
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
   body {
     font-family: 'Inter', sans-serif;
     background: #0f1117;
@@ -24,7 +19,7 @@
     min-height: 100vh;
     padding: 20px;
   }
-  
+
   .signal-card {
     background: linear-gradient(145deg, #1a1d27, #12141c);
     border-radius: 16px;
@@ -33,63 +28,106 @@
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     overflow: hidden;
     border: 1px solid #2a2e3a;
+    transition: border-color 0.4s ease;
   }
-  
+
   .header {
-    background: linear-gradient(90deg, #00c853, #00e676);
     padding: 18px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: background 0.4s ease;
   }
-  
+
+  .header.buy { background: linear-gradient(90deg, #00c853, #00e676); }
+  .header.sell { background: linear-gradient(90deg, #d50000, #ff5252); }
+  .header.wait { background: linear-gradient(90deg, #37474f, #546e7a); }
+  .header.connecting { background: linear-gradient(90deg, #424242, #616161); }
+
   .header h1 {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: #000;
     letter-spacing: 0.5px;
   }
-  
+  .header.wait h1, .header.connecting h1 { color: #fff; }
+
   .badge {
     background: #000;
     color: #00e676;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     padding: 6px 12px;
     border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  
-  .body {
-    padding: 24px;
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00e676;
   }
-  
-  .pair {
-    font-size: 18px;
-    font-weight: 600;
+  .dot.live { animation: pulse 1.4s infinite; }
+  .dot.down { background: #ff5252; animation: none; }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+  }
+
+  .body { padding: 24px; }
+
+  .pair-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 6px;
-    color: #fff;
   }
-  
-  .timeframe {
+
+  .pair { font-size: 18px; font-weight: 600; color: #fff; }
+
+  select {
+    background: #1e222d;
+    color: #e0e0e0;
+    border: 1px solid #2a2e3a;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: inherit;
     font-size: 13px;
-    color: #8b93a7;
-    margin-bottom: 20px;
   }
-  
+
+  .timeframe { font-size: 13px; color: #8b93a7; margin-bottom: 16px; }
+
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    background: #1e222d;
+    border: 1px solid #2a2e3a;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .price-row .label { font-size: 12px; color: #8b93a7; }
+  .price-row .value { font-size: 20px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+
   .levels {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
-  
+
   .level-box {
     background: #1e222d;
     border-radius: 10px;
     padding: 14px;
     border: 1px solid #2a2e3a;
   }
-  
+
   .label {
     font-size: 12px;
     color: #8b93a7;
@@ -97,17 +135,24 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  
-  .value {
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
-  }
-  
+
+  .value { font-size: 17px; font-weight: 600; color: #fff; font-variant-numeric: tabular-nums; }
+
   .entry { color: #00e676; }
   .sl { color: #ff5252; }
   .tp { color: #40c4ff; }
-  
+
+  .waiting-box {
+    background: #1e222d;
+    border-radius: 10px;
+    padding: 18px;
+    border: 1px dashed #3a3f4d;
+    text-align: center;
+    color: #8b93a7;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
   .analysis {
     background: #1e222d;
     border-radius: 10px;
@@ -115,33 +160,14 @@
     border: 1px solid #2a2e3a;
     margin-bottom: 20px;
   }
-  
-  .analysis h3 {
-    font-size: 14px;
-    color: #00e676;
-    margin-bottom: 10px;
-  }
-  
-  .analysis ul {
-    list-style: none;
-    font-size: 13px;
-    line-height: 1.6;
-    color: #c0c5d0;
-  }
-  
-  .analysis li {
-    margin-bottom: 6px;
-    padding-left: 16px;
-    position: relative;
-  }
-  
-  .analysis li::before {
-    content: "•";
-    color: #00e676;
-    position: absolute;
-    left: 0;
-  }
-  
+
+  .analysis h3 { font-size: 14px; color: #00e676; margin-bottom: 10px; }
+
+  .analysis ul { list-style: none; font-size: 13px; line-height: 1.7; color: #c0c5d0; }
+
+  .analysis li { margin-bottom: 4px; padding-left: 16px; position: relative; }
+  .analysis li::before { content: "•"; color: #00e676; position: absolute; left: 0; }
+
   .rr {
     text-align: center;
     font-size: 15px;
@@ -149,7 +175,7 @@
     color: #ffd740;
     margin-bottom: 16px;
   }
-  
+
   .footer {
     text-align: center;
     font-size: 11px;
@@ -158,85 +184,370 @@
     padding-top: 16px;
   }
 
-  .refresh-btn {
-    display: block;
-    width: 100%;
-    margin-top: 16px;
-    padding: 12px;
-    background: #00c853;
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  
   .last-update {
     text-align: center;
     font-size: 12px;
     color: #8b93a7;
-    margin-top: 12px;
+    margin-bottom: 12px;
+  }
+
+  .conn-warning {
+    text-align: center;
+    font-size: 12px;
+    color: #ff5252;
+    margin-bottom: 12px;
+    display: none;
   }
 </style>
 </head>
 <body>
   <div class="signal-card">
-    <div class="header">
-      <h1>BUY SIGNAL</h1>
-      <div class="badge">ACTIVE</div>
+    <div class="header connecting" id="header">
+      <h1 id="signalTitle">CONNECTING…</h1>
+      <div class="badge"><span class="dot" id="dot"></span><span id="badgeText">LIVE</span></div>
     </div>
-    
+
     <div class="body">
-      <div class="pair">Step Index • M6</div>
-      <div class="timeframe">25 Aug 2026 • Equal probability step 0.1</div>
-      
-      <div class="levels">
-        <div class="level-box">
-          <div class="label">Entry Zone</div>
-          <div class="value entry">7812.8 – 7815.0</div>
+      <div class="pair-row">
+        <div class="pair">Step Index</div>
+        <select id="tf">
+          <option value="60">M1</option>
+          <option value="300" selected>M5</option>
+          <option value="900">M15</option>
+        </select>
+      </div>
+      <div class="timeframe" id="meta">Connecting to Deriv…</div>
+
+      <div class="price-row">
+        <div>
+          <div class="label">Live Price</div>
+          <div class="value" id="livePrice">--</div>
         </div>
-        <div class="level-box">
-          <div class="label">Stop Loss</div>
-          <div class="value sl">7804.0</div>
-        </div>
-        <div class="level-box">
-          <div class="label">Take Profit 1</div>
-          <div class="value tp">7816.3</div>
-        </div>
-        <div class="level-box">
-          <div class="label">Take Profit 2</div>
-          <div class="value tp">7820.3 – 7824.3</div>
+        <div style="text-align:right">
+          <div class="label">CCI(14)</div>
+          <div class="value" id="cciValue">--</div>
         </div>
       </div>
-      
-      <div class="rr">Risk : Reward ≈ 1 : 1.5+</div>
-      
+
+      <div id="signalArea">
+        <div class="waiting-box" id="waitingBox">Waiting for live data…</div>
+        <div class="levels" id="levels" style="display:none">
+          <div class="level-box">
+            <div class="label">Entry Zone</div>
+            <div class="value entry" id="entryVal">--</div>
+          </div>
+          <div class="level-box">
+            <div class="label">Stop Loss</div>
+            <div class="value sl" id="slVal">--</div>
+          </div>
+          <div class="level-box">
+            <div class="label">Take Profit 1</div>
+            <div class="value tp" id="tp1Val">--</div>
+          </div>
+          <div class="level-box">
+            <div class="label">Take Profit 2</div>
+            <div class="value tp" id="tp2Val">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rr" id="rrVal" style="display:none"></div>
+
       <div class="analysis">
-        <h3>Technical Reasons</h3>
-        <ul>
-          <li>CCI(14) at –129.50 → deep oversold / “Ready to Buy”</li>
-          <li>Ascending triangle with higher lows from 7788</li>
-          <li>Purple MA holding above orange MA</li>
-          <li>Strong bounce structure + horizontal support at 7812.8</li>
+        <h3>Live Technical Reading</h3>
+        <ul id="reasons">
+          <li>Waiting for candle history…</li>
         </ul>
       </div>
-      
-      <button class="refresh-btn" onclick="location.reload()">↻ Refresh Signal</button>
-      
+
+      <div class="conn-warning" id="connWarning">Connection lost — reconnecting…</div>
       <div class="last-update" id="lastUpdate"></div>
-      
+
       <div class="footer">
         Manage risk carefully • Trail stop to BE after TP1<br>
-        Invalidation: close below 7804 or new CCI low
+        Levels recompute live from Deriv candle data — not investment advice
       </div>
     </div>
   </div>
 
 <script>
-  // Show last update time
-  document.getElementById('lastUpdate').innerText = 
-    "Last updated: " + new Date().toLocaleTimeString();
+(function () {
+  const SYMBOL = 'stpRNG'; // Step Index on Deriv
+  const APP_ID = 1089; // Deriv public demo app id
+  const CANDLE_COUNT = 200;
+
+  let ws = null;
+  let granularity = parseInt(document.getElementById('tf').value, 10);
+  let candles = []; // {epoch, open, high, low, close}
+  let reconnectTimer = null;
+  let reqId = 1;
+
+  const els = {
+    header: document.getElementById('header'),
+    signalTitle: document.getElementById('signalTitle'),
+    dot: document.getElementById('dot'),
+    badgeText: document.getElementById('badgeText'),
+    meta: document.getElementById('meta'),
+    livePrice: document.getElementById('livePrice'),
+    cciValue: document.getElementById('cciValue'),
+    waitingBox: document.getElementById('waitingBox'),
+    levels: document.getElementById('levels'),
+    entryVal: document.getElementById('entryVal'),
+    slVal: document.getElementById('slVal'),
+    tp1Val: document.getElementById('tp1Val'),
+    tp2Val: document.getElementById('tp2Val'),
+    rrVal: document.getElementById('rrVal'),
+    reasons: document.getElementById('reasons'),
+    connWarning: document.getElementById('connWarning'),
+    lastUpdate: document.getElementById('lastUpdate'),
+    tf: document.getElementById('tf'),
+  };
+
+  function connect() {
+    clearTimeout(reconnectTimer);
+    setStatus('connecting', 'CONNECTING…');
+    els.connWarning.style.display = 'none';
+
+    try {
+      ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
+    } catch (e) {
+      showBlocked(e.message);
+      return;
+    }
+
+    // If the socket never opens or errors out shortly after creation (common
+    // when a sandboxed preview blocks outbound WebSocket connections), surface
+    // a clear message instead of hanging on "CONNECTING..." forever.
+    const openTimeout = setTimeout(() => {
+      if (ws.readyState !== WebSocket.OPEN) {
+        showBlocked('Connection timed out');
+        try { ws.close(); } catch (e) {}
+      }
+    }, 8000);
+
+    ws.onopen = () => {
+      clearTimeout(openTimeout);
+      els.dot.classList.remove('down');
+      els.dot.classList.add('live');
+      subscribeCandles();
+    };
+
+    ws.onmessage = (msg) => {
+      const data = JSON.parse(msg.data);
+      if (data.error) {
+        els.meta.textContent = 'Error: ' + data.error.message;
+        return;
+      }
+      if (data.msg_type === 'candles') {
+        candles = data.candles.map(normalizeCandle);
+        onDataUpdate();
+      } else if (data.msg_type === 'ohlc') {
+        applyOhlcUpdate(data.ohlc);
+        onDataUpdate();
+      }
+    };
+
+    ws.onclose = () => {
+      els.dot.classList.remove('live');
+      els.dot.classList.add('down');
+      els.connWarning.style.display = 'block';
+      setStatus('connecting', 'RECONNECTING…');
+      reconnectTimer = setTimeout(connect, 3000);
+    };
+
+    ws.onerror = () => { try { ws.close(); } catch (e) {} };
+  }
+
+  function showBlocked(detail) {
+    setStatus('wait', 'CONNECTION BLOCKED');
+    els.badgeText.textContent = 'OFFLINE';
+    els.dot.classList.remove('live');
+    els.dot.classList.add('down');
+    els.meta.textContent = 'Live data unavailable in this preview';
+    els.waitingBox.style.display = 'block';
+    els.waitingBox.textContent =
+      'This environment is blocking the WebSocket connection to Deriv (' + detail + '). ' +
+      'Save this HTML file and open it directly in a browser, or host it (e.g. GitHub Pages) — it will connect fine outside a sandboxed preview.';
+    els.connWarning.style.display = 'none';
+    clearTimeout(reconnectTimer);
+  }
+
+  function subscribeCandles() {
+    candles = [];
+    ws.send(JSON.stringify({
+      ticks_history: SYMBOL,
+      adjust_start_time: 1,
+      count: CANDLE_COUNT,
+      end: 'latest',
+      start: 1,
+      style: 'candles',
+      granularity: granularity,
+      subscribe: 1,
+      req_id: reqId++,
+    }));
+  }
+
+  function normalizeCandle(c) {
+    return {
+      epoch: parseInt(c.epoch, 10),
+      open: parseFloat(c.open),
+      high: parseFloat(c.high),
+      low: parseFloat(c.low),
+      close: parseFloat(c.close),
+    };
+  }
+
+  function applyOhlcUpdate(o) {
+    const openTime = parseInt(o.open_time, 10);
+    const updated = {
+      epoch: openTime,
+      open: parseFloat(o.open),
+      high: parseFloat(o.high),
+      low: parseFloat(o.low),
+      close: parseFloat(o.close),
+    };
+    if (candles.length && candles[candles.length - 1].epoch === openTime) {
+      candles[candles.length - 1] = updated;
+    } else {
+      candles.push(updated);
+      if (candles.length > CANDLE_COUNT) candles.shift();
+    }
+  }
+
+  function ema(values, period) {
+    const k = 2 / (period + 1);
+    let emaArr = [values[0]];
+    for (let i = 1; i < values.length; i++) {
+      emaArr.push(values[i] * k + emaArr[i - 1] * (1 - k));
+    }
+    return emaArr;
+  }
+
+  function cci(period) {
+    if (candles.length < period) return null;
+    const tp = candles.map(c => (c.high + c.low + c.close) / 3);
+    const window = tp.slice(-period);
+    const sma = window.reduce((a, b) => a + b, 0) / period;
+    const meanDev = window.reduce((a, b) => a + Math.abs(b - sma), 0) / period;
+    if (meanDev === 0) return 0;
+    return (tp[tp.length - 1] - sma) / (0.015 * meanDev);
+  }
+
+  function atr(period) {
+    if (candles.length < period + 1) return null;
+    const trs = [];
+    for (let i = 1; i < candles.length; i++) {
+      const c = candles[i], p = candles[i - 1];
+      trs.push(Math.max(c.high - c.low, Math.abs(c.high - p.close), Math.abs(c.low - p.close)));
+    }
+    const window = trs.slice(-period);
+    return window.reduce((a, b) => a + b, 0) / period;
+  }
+
+  function decimals() {
+    // infer display precision from live price granularity
+    if (!candles.length) return 2;
+    const s = candles[candles.length - 1].close.toString();
+    const idx = s.indexOf('.');
+    return idx === -1 ? 2 : Math.min(s.length - idx - 1, 4);
+  }
+
+  function fmt(n) {
+    return n.toFixed(decimals());
+  }
+
+  function setStatus(mode, title) {
+    els.header.className = 'header ' + mode;
+    els.signalTitle.textContent = title;
+  }
+
+  function onDataUpdate() {
+    if (candles.length < 25) {
+      els.meta.textContent = `Loading history… (${candles.length}/25 candles)`;
+      return;
+    }
+
+    const closes = candles.map(c => c.close);
+    const ema9 = ema(closes, 9);
+    const ema21 = ema(closes, 21);
+    const purple = ema9[ema9.length - 1];
+    const orange = ema21[ema21.length - 1];
+    const cciVal = cci(14);
+    const atrVal = atr(14);
+    const last = candles[candles.length - 1];
+    const price = last.close;
+
+    const recentLows = candles.slice(-5).map(c => c.low);
+    const priorLows = candles.slice(-10, -5).map(c => c.low);
+    const recentHighs = candles.slice(-5).map(c => c.high);
+    const priorHighs = candles.slice(-10, -5).map(c => c.high);
+    const higherLow = Math.min(...recentLows) > Math.min(...priorLows);
+    const lowerHigh = Math.max(...recentHighs) < Math.max(...priorHighs);
+
+    els.livePrice.textContent = fmt(price);
+    els.cciValue.textContent = cciVal !== null ? cciVal.toFixed(1) : '--';
+    els.meta.textContent = `${tfLabel()} • ${new Date(last.epoch * 1000).toUTCString().slice(0, 22)} UTC`;
+
+    let direction = 'wait';
+    if (cciVal !== null && atrVal) {
+      if (cciVal < -100 && purple > orange && higherLow) direction = 'buy';
+      else if (cciVal > 100 && purple < orange && lowerHigh) direction = 'sell';
+    }
+
+    const reasons = [];
+    reasons.push(`CCI(14) at ${cciVal !== null ? cciVal.toFixed(1) : '--'} ${cciVal < -100 ? '→ deep oversold' : cciVal > 100 ? '→ deep overbought' : '→ neutral zone'}`);
+    reasons.push(`EMA9 ${purple > orange ? 'above' : 'below'} EMA21 (${fmt(purple)} vs ${fmt(orange)})`);
+    reasons.push(higherLow ? 'Higher low forming vs prior swing' : lowerHigh ? 'Lower high forming vs prior swing' : 'No clear swing structure yet');
+    reasons.push(`ATR(14) ≈ ${atrVal ? fmt(atrVal) : '--'} (volatility basis for SL/TP)`);
+    els.reasons.innerHTML = reasons.map(r => `<li>${r}</li>`).join('');
+
+    if (direction === 'buy' || direction === 'sell') {
+      const sign = direction === 'buy' ? 1 : -1;
+      const swingRef = direction === 'buy' ? Math.min(...recentLows) : Math.max(...recentHighs);
+      const sl = direction === 'buy' ? swingRef - 0.25 * atrVal : swingRef + 0.25 * atrVal;
+      const risk = Math.abs(price - sl);
+      const tp1 = price + sign * risk * 1.5;
+      const tp2a = price + sign * risk * 2.0;
+      const tp2b = price + sign * risk * 3.0;
+
+      els.waitingBox.style.display = 'none';
+      els.levels.style.display = 'grid';
+      els.rrVal.style.display = 'block';
+
+      els.entryVal.textContent = fmt(price);
+      els.slVal.textContent = fmt(sl);
+      els.tp1Val.textContent = fmt(tp1);
+      els.tp2Val.textContent = `${fmt(Math.min(tp2a, tp2b))} – ${fmt(Math.max(tp2a, tp2b))}`;
+      els.rrVal.textContent = `Risk : Reward ≈ 1 : 1.5+`;
+
+      setStatus(direction, direction === 'buy' ? 'BUY SIGNAL' : 'SELL SIGNAL');
+      els.badgeText.textContent = 'ACTIVE';
+    } else {
+      els.waitingBox.style.display = 'block';
+      els.waitingBox.textContent = 'No qualifying setup right now — CCI and trend structure are not aligned. Watching live.';
+      els.levels.style.display = 'none';
+      els.rrVal.style.display = 'none';
+      setStatus('wait', 'NO SIGNAL');
+      els.badgeText.textContent = 'LIVE';
+    }
+
+    els.lastUpdate.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+  }
+
+  function tfLabel() {
+    const map = { '60': 'M1', '300': 'M5', '900': 'M15' };
+    return 'Step Index • ' + (map[granularity] || granularity + 's');
+  }
+
+  els.tf.addEventListener('change', () => {
+    granularity = parseInt(els.tf.value, 10);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      subscribeCandles();
+    }
+  });
+
+  connect();
+})();
 </script>
 </body>
 </html>
