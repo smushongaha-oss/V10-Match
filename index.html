@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="30"> <!-- Auto refresh every 30 seconds -->
 <title>Trading Signal - Step Index M6</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -89,10 +90,6 @@
     border: 1px solid #2a2e3a;
   }
   
-  .level-box.full {
-    grid-column: 1 / -1;
-  }
-  
   .label {
     font-size: 12px;
     color: #8b93a7;
@@ -160,6 +157,27 @@
     border-top: 1px solid #2a2e3a;
     padding-top: 16px;
   }
+
+  .refresh-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px;
+    background: #00c853;
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .last-update {
+    text-align: center;
+    font-size: 12px;
+    color: #8b93a7;
+    margin-top: 12px;
+  }
 </style>
 </head>
 <body>
@@ -204,12 +222,21 @@
         </ul>
       </div>
       
+      <button class="refresh-btn" onclick="location.reload()">↻ Refresh Signal</button>
+      
+      <div class="last-update" id="lastUpdate"></div>
+      
       <div class="footer">
         Manage risk carefully • Trail stop to BE after TP1<br>
         Invalidation: close below 7804 or new CCI low
       </div>
     </div>
   </div>
+
+<script>
+  // Show last update time
+  document.getElementById('lastUpdate').innerText = 
+    "Last updated: " + new Date().toLocaleTimeString();
+</script>
 </body>
 </html>
-```​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​​
