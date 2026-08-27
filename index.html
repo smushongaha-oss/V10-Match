@@ -107,7 +107,7 @@
     </section>
     <section class="card" style="margin-top:12px">
       <h2>// rules</h2>
-      <div class="plan" style="margin:0">SELL only on a fresh down impulse ≥ spike×ATR. SL = swing high or entry+sl×ATR — never 99500. TP = entry−tp×ATR.</div>
+      <div class="plan" style="margin:0">SELL only on a fresh down impulse ≥ spike×ATR. SL = swing high or entry+sl×ATR. TP = entry−tp×ATR.</div>
     </section>
     <section class="card" style="margin-top:12px">
       <h2>// printed_entries</h2>
@@ -129,24 +129,29 @@
 })();
 
 const WS_URLS=['wss://ws.derivws.com/websockets/v3?app_id=1089','wss://ws.binaryws.com/websockets/v3?app_id=1089'];
-const PROBE=['CRASH50N','CRASH50','CRASH50S','CRASH150N','CRASH300N','CRASH500','CRASH600N','CRASH900N','CRASH1000'];
+const PROBE=['CRASH50N','CRASH50','CRASH300N','CRASH500','CRASH600N','CRASH900N','CRASH1000'];
 const state={symbol:null,found:[],candles:[],ema:[],cci:[],atr:[],signal:null,zone:null,lastPrice:null,history:[],barsSince:null};
 let ws=null,wsIdx=0,reqId=1,alive=false,lastPrintKey='',pendingProbe=null,probeQueue=[];
 
 const $=id=>document.getElementById(id);
 const granEl=$('gran'), spikeKEl=$('spikeK'), slKEl=$('slK'), tpKEl=$('tpK'), minRREl=$('minRR'), symSel=$('symSel');
 const fmt=n=>{if(n==null||!isFinite(n))return '—'; return Math.abs(n)>=1000?n.toFixed(2):n.toFixed(4)};
+
 function send(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify({...o,req_id:reqId++}))}
 function banner(t){const b=$('banner'); if(!t){b.style.display='none';return;} b.style.display='block'; b.textContent=t;}
 
 function connect(){
-  try{ws&&ws.close()}catch(e){}
+  try{if(ws) ws.close();}catch(e){}
   state.candles=[]; $('statusText').textContent='ws...';
   ws=new WebSocket(WS_URLS[wsIdx%WS_URLS.length]);
-  ws.onopen=()=>{alive=true;$('dot').classList.add('on');$('statusText').textContent='symbols';
+  ws.onopen=()=>{
+    alive=true; $('dot').classList.add('on'); $('statusText').textContent='symbols';
     send({active_symbols:'brief',product_type:'basic'});
   };
-  ws.onclose=()=>{alive=false;$('dot').classList.remove('on');$('statusText').textContent='RECONNECT';wsIdx++;setTimeout(()=>{if(!document.hidden)connect()},1600)};
+  ws.onclose=()=>{
+    alive=false; $('dot').classList.remove('on'); $('statusText').textContent='RECONNECT';
+    wsIdx++; setTimeout(()=>{if(!document.hidden)connect()},1600);
+  };
   ws.onerror=()=>{try{ws.close()}catch(e){}};
   ws.onmessage=ev=>{
     const msg=JSON.parse(ev.data);
@@ -160,12 +165,12 @@ function connect(){
       const o=msg.ohlc,c={epoch:+o.open_time||Math.floor(+o.epoch),open:+o.open,high:+o.high,low:+o.low,close:+o.close};
       const last=state.candles.at(-1);
       if(last&&last.epoch===c.epoch) state.candles[state.candles.length-1]=c;
-      else {state.candles.push(c); if(state.candles.length>360) state.candles.shift()}
+      else {state.candles.push(c); if(state.candles.length>360) state.candles.shift();}
       state.lastPrice=c.close; $('price').textContent=fmt(c.close); recompute();
     }
     if(msg.tick&&msg.tick.quote!=null){
       const q=+msg.tick.quote; state.lastPrice=q; $('price').textContent=fmt(q);
-      if(state.candles.length){const last=state.candles.at(-1); last.close=q; last.high=Math.max(last.high,q); last.low=Math.min(last.low,q)}
+      if(state.candles.length){const last=state.candles.at(-1); last.close=q; last.high=Math.max(last.high,q); last.low=Math.min(last.low,q);}
     }
     if(msg.error){
       const m=String(msg.error.message||'');
@@ -191,7 +196,7 @@ function ingestSymbols(list){
             || crash[0];
   if(prefer){ symSel.value=prefer.symbol; state.symbol=prefer.symbol; }
   const has50=crash.some(r=>/crash\s*50/i.test(r.name)||/^CRASH50/i.test(r.symbol));
-  if(!has50) banner('Crash 50 is not on this public options feed (MT5 CFD only). Desk will use '+ (state.symbol||'next working Crash') +'. Same dump logic.');
+  if(!has50) banner('Crash 50 is standard CFD-only. Desk fallback: '+ (state.symbol||'Crash') +'.');
   else banner('');
 }
 
@@ -199,18 +204,19 @@ function startFeed(){
   const want=symSel.value||state.symbol||PROBE[0];
   state.symbol=want; state.candles=[];
   $('statusText').textContent='load '+want;
-  probeQueue=PROBE.slice();
+  probeQueue=PROBE.filter(p=>p!==want);
   pendingProbe=want;
-  send({ticks_history:want,adjust_start_time:1,count:300,end:'latest',start:1,style:'candles',granularity:+granEl.value,subscribe:1});
-  send({ticks:want,subscribe:1});
+  send({forget_all:['ticks','candles']});
+  send({ticks_history:want,adjust_start_time:1,count:300,end:'latest',style:'candles',granularity:+granEl.value,subscribe:1});
 }
+
 function nextProbe(){
   pendingProbe=probeQueue.shift();
-  if(!pendingProbe){ $('statusText').textContent='NO_CRASH_FEED'; $('why').textContent='No Crash symbol accepted ticks_history on this app_id.'; return; }
-  state.symbol=pendingProbe; if([...symSel.options].some(o=>o.value===pendingProbe)) symSel.value=pendingProbe;
-  banner('Trying '+pendingProbe+' …');
-  send({ticks_history:pendingProbe,adjust_start_time:1,count:300,end:'latest',start:1,style:'candles',granularity:+granEl.value,subscribe:1});
-  send({ticks:pendingProbe,subscribe:1});
+  if(!pendingProbe){ $('statusText').textContent='NO_FEED'; $('why').textContent='No public feed available for selected symbol.'; return; }
+  state.symbol=pendingProbe;
+  if([...symSel.options].some(o=>o.value===pendingProbe)) symSel.value=pendingProbe;
+  banner('Trying probe: '+pendingProbe+' …');
+  send({ticks_history:pendingProbe,adjust_start_time:1,count:300,end:'latest',style:'candles',granularity:+granEl.value,subscribe:1});
 }
 
 $('btnRefresh').onclick=()=>connect();
@@ -254,9 +260,9 @@ function recompute(){
     const tp=px-tpK*lastAtr; const risk=sl-px,reward=px-tp,rr=risk>0?reward/risk:0;
     if(rr>=minRR && tp<px){
       const st=Math.min(100,Math.round((body/lastAtr)*18+Math.min(rr,3)*16+(lastCci<-80?20:10)));
-      if(st>=50){ signal={dir:'SELL',entry:px,sl,tp,rr,strength:st,source:'Crash impulse'}; zone={code:'SELL_SPIKE',text:'Fresh down impulse. Sell the crash, not the grind.'}; }
+      if(st>=50){ signal={dir:'SELL',entry:px,sl,tp,rr,strength:st,source:'Crash impulse'}; zone={code:'SELL_SPIKE',text:'Fresh down impulse. Sell the crash.'}; }
     }
-    if(!signal) zone={code:'WATCH',text:'Impulse seen but R:R/strength failed.'};
+    if(!signal) zone={code:'WATCH',text:'Impulse seen but R:R or strength condition failed.'};
   } else zone={code:'WAIT_GRIND',text:'Up-drift / no fresh crash. Stay flat.'};
 
   state.zone=zone; state.signal=signal;
@@ -288,11 +294,12 @@ function render(){
     pill.textContent=code==='NO_CHASE'?'NO_CHASE':(code==='WATCH'?'WATCH':'WAIT');
     $('src').textContent='flat'; $('why').textContent=state.zone?state.zone.text:'No edge.';
     $('entry').textContent='—';$('sl').textContent='—';$('tp').textContent='—';$('rrstr').textContent='—';
-    $('plan').textContent='NO TRADE. Need a fresh impulse and a tight numeric stop.';
+    $('plan').textContent='NO TRADE. Need a fresh impulse and tight stop loss.';
   }
   $('hist').innerHTML=state.history.length?state.history.map(h=>`<div class="row"><div class="d ${h.dir}">${h.dir}</div><div>${fmt(h.entry)} → ${fmt(h.tp)}<br><span style="color:var(--dim)">${h.src}</span></div><div>${h.t}<br>SL ${fmt(h.sl)}</div></div>`).join(''):'<div style="color:var(--dim);font-size:11px">NONE_YET</div>';
   drawChart();
 }
+
 function drawChart(){
   const canvas=$('chart'),ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height; ctx.clearRect(0,0,W,H);
   const candles=state.candles,emaArr=state.ema; if(!emaArr||emaArr.length<2) return;
@@ -312,6 +319,7 @@ function drawChart(){
   if(state.signal){ const line=(v,col)=>{const py=y(v);if(!isFinite(py))return;ctx.strokeStyle=col;ctx.setLineDash([6,3]);ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();ctx.setLineDash([])};
     line(state.signal.entry,'#ff8b96'); line(state.signal.sl,'#ff3333'); line(state.signal.tp,'#00ff9c'); }
 }
+
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!alive)connect()});
 connect();
 </script>
