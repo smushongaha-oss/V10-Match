@@ -7,15 +7,14 @@
 
 <!--
   ============================================================
-  BEFORE THIS SITE CAN EARN ADSENSE APPROVAL:
-  1. Host it on a real domain (AdSense will not approve
-     localhost or file:// pages).
-  2. Go to adsense.google.com > Sites > Add site, enter that
-     domain.
-  3. Copy your real AdSense script tag and replace the one
-     below (currently uses a ca-pub-XXXXXXXXXXXXXXXX placeholder).
-  4. Add a real Privacy Policy page and link it in the footer —
-     AdSense requires this before approval.
+  ADSENSE SETUP STATUS:
+  - Real publisher ID (ca-pub-2514425743225219) is in place.
+  - Site is verified, review requested, consent message set up.
+  - Using Auto ads: Google places ads automatically based on
+    this base script tag — no manual <ins class="adsbygoogle">
+    slots needed. Enable/adjust Auto ads placement from the
+    AdSense dashboard under Ads > By site.
+  - Privacy Policy page is live at /privacy.html.
   ============================================================
 -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2514425743225219"
@@ -137,23 +136,6 @@
     margin: 0;
   }
 
-  .ad-slot {
-    margin: 2rem 0;
-    padding: 0.5rem;
-    border: 1px dashed var(--panel-line);
-    border-radius: 6px;
-    background: var(--panel);
-  }
-  .ad-label {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.4rem;
-  }
-  .adsbygoogle { display: block; }
-
   .disclaimer {
     background: #16110a;
     border: 1px solid #3a2c12;
@@ -241,17 +223,6 @@
     </div>
   </section>
 
-  <!-- Ad unit: in-content -->
-  <div class="ad-slot">
-    <div class="ad-label">Advertisement</div>
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-2514425743225219"
-         data-ad-slot="YOUR_AD_SLOT_ID"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-  </div>
-
   <section>
     <h2>Our approach</h2>
     <p style="color:var(--muted); max-width:65ch;">
@@ -277,17 +248,6 @@
     </div>
   </section>
 
-  <!-- Ad unit: end of content -->
-  <div class="ad-slot">
-    <div class="ad-label">Advertisement</div>
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-2514425743225219"
-         data-ad-slot="YOUR_AD_SLOT_ID"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-  </div>
-
   <section>
     <h2>Contact</h2>
     <p style="color:var(--muted);">
@@ -303,16 +263,6 @@
   <br>
   <a href="/privacy.html">Privacy Policy</a>
 </footer>
-
-<script>
-  try {
-    document.querySelectorAll('.adsbygoogle').forEach(function () {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    });
-  } catch (e) {
-    console.warn('AdSense not loaded yet:', e);
-  }
-</script>
 
 </body>
 </html>
