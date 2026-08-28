@@ -3,325 +3,316 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRASH SPIKE DESK</title>
+<title>Focus Auto Traders — Algorithmic Trading Systems</title>
+
+<!--
+  ============================================================
+  BEFORE THIS SITE CAN EARN ADSENSE APPROVAL:
+  1. Host it on a real domain (AdSense will not approve
+     localhost or file:// pages).
+  2. Go to adsense.google.com > Sites > Add site, enter that
+     domain.
+  3. Copy your real AdSense script tag and replace the one
+     below (currently uses a ca-pub-XXXXXXXXXXXXXXXX placeholder).
+  4. Add a real Privacy Policy page and link it in the footer —
+     AdSense requires this before approval.
+  ============================================================
+-->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+ crossorigin="anonymous"></script>
+
 <style>
-  :root{--bg:#000;--panel:rgba(0,18,0,.9);--line:#0f3d0f;--text:#b6ffb6;--mute:#3dff3d;--dim:#1a8f1a;--buy:#00ff66;--sell:#ff3333;--cyan:#00ff9c;--glow:0 0 8px rgba(0,255,65,.45);--mono:"Courier New",Consolas,monospace;}
-  *{box-sizing:border-box;margin:0;padding:0}body{background:#000;color:var(--text);font-family:var(--mono);min-height:100vh}
-  #rain{position:fixed;inset:0;z-index:0;opacity:.2;pointer-events:none}.shell{position:relative;z-index:1}
-  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px 8px;border-bottom:1px solid var(--line)}
-  .logo{width:38px;height:38px;border:1px solid var(--mute);color:var(--sell);display:grid;place-items:center;font-weight:900}
-  h1{font-size:13px;letter-spacing:.12em;text-transform:uppercase;text-shadow:var(--glow)}
-  h1 small{display:block;color:var(--dim);font-size:10px;margin-top:3px;letter-spacing:.06em;text-shadow:none}
-  .livebox{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--panel);padding:7px 11px;font-size:12px}
-  .dot{width:8px;height:8px;border-radius:50%;background:#660000}.dot.on{background:var(--buy);box-shadow:0 0 10px var(--buy)}
-  .px{font-size:16px;font-weight:700;color:var(--buy);text-shadow:var(--glow)}
-  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);color:var(--dim);font-size:11px}
-  label{display:flex;align-items:center;gap:6px}
-  select,input[type=number]{background:#001a00;color:var(--buy);border:1px solid var(--line);padding:5px 7px;font-family:var(--mono);font-size:11px}
-  button{background:#001a00;color:var(--buy);border:1px solid var(--mute);padding:5px 12px;cursor:pointer;font-family:var(--mono);font-size:11px}
-  .banner{margin:8px 16px 0;padding:8px 10px;border:1px solid #3a1a1a;background:#100;color:#f88;font-size:11px;display:none}
-  .layout{display:grid;grid-template-columns:minmax(0,1.65fr) 340px;gap:12px;padding:12px 16px}
-  @media(max-width:1100px){.layout{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);padding:12px}
-  .card.sell{border-color:var(--sell)}
-  .card h2{font-size:10px;color:var(--mute);letter-spacing:.16em;margin-bottom:10px;text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:6px}
-  canvas#chart{width:100%;height:390px;display:block;background:#000;border:1px solid #062006}
-  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-  .m{background:#001400;border:1px solid var(--line);padding:8px}
-  .m span{display:block;color:var(--dim);font-size:9px;margin-bottom:3px}.m b{font-size:13px;color:var(--buy)}
-  .hero{padding:12px;border:1px solid var(--line);background:#001000;margin-bottom:10px}
-  .dir{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .pill{font-size:12px;font-weight:900;letter-spacing:.12em;padding:5px 9px;border:1px solid var(--dim)}
-  .pill.SELL{color:var(--sell);border-color:var(--sell)}.pill.WAIT,.pill.NO_CHASE{color:var(--dim)}
-  .why{font-size:11px;color:var(--dim);line-height:1.45}
-  .stack{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .kv{background:#000;border:1px solid var(--line);padding:9px}
-  .kv i{display:block;font-style:normal;color:var(--dim);font-size:9px;margin-bottom:4px}
-  .kv em{font-style:normal;font-size:16px;font-weight:700}.kv.sl em{color:var(--sell)}.kv.tp em{color:var(--cyan)}
-  .plan{margin-top:10px;font-size:11px;color:var(--dim);line-height:1.5;border:1px dashed var(--line);padding:9px;background:#000}
-  .hist{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto}
-  .row{display:grid;grid-template-columns:56px 1fr auto;gap:8px;padding:7px;border:1px solid var(--line);background:#000;font-size:10px}
-  .row .d.SELL{color:var(--sell)} footer{padding:4px 16px 14px;color:var(--dim);font-size:10px}
+  :root {
+    --bg: #0b0f10;
+    --panel: #12181a;
+    --panel-line: #223033;
+    --ink: #e8f0ee;
+    --muted: #8ea3a1;
+    --signal: #2fe08a;
+    --warn: #e0a92f;
+    --mono: "SF Mono", "IBM Plex Mono", Consolas, monospace;
+    --display: "Georgia", "Iowan Old Style", serif;
+    --body: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    line-height: 1.6;
+  }
+  a { color: var(--signal); }
+
+  /* --- ticker signature element --- */
+  .ticker {
+    background: #06090a;
+    border-bottom: 1px solid var(--panel-line);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0.5rem 0;
+  }
+  .ticker span {
+    display: inline-block;
+    padding-left: 100%;
+    animation: scroll 28s linear infinite;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .ticker .up { color: var(--signal); }
+  .ticker .down { color: #e05a5a; }
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+
+  header.hero {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 3rem;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    margin: 0.5rem 0 1rem;
+    letter-spacing: -0.01em;
+  }
+  .lede {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 60ch;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+  section { margin: 3rem 0; }
+  section h2 {
+    font-family: var(--display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    border-bottom: 1px solid var(--panel-line);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 6px;
+    padding: 1.25rem;
+  }
+  .card .tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--signal);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .card h3 {
+    margin: 0.4rem 0 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+  .card p {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin: 0;
+  }
+
+  .ad-slot {
+    margin: 2rem 0;
+    padding: 0.5rem;
+    border: 1px dashed var(--panel-line);
+    border-radius: 6px;
+    background: var(--panel);
+  }
+  .ad-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+  .adsbygoogle { display: block; }
+
+  .disclaimer {
+    background: #16110a;
+    border: 1px solid #3a2c12;
+    border-radius: 6px;
+    padding: 1.25rem;
+    font-size: 0.88rem;
+    color: var(--warn);
+  }
+  .disclaimer strong { color: #f0c25a; }
+
+  footer {
+    border-top: 1px solid var(--panel-line);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--muted); text-decoration: underline; }
 </style>
 </head>
 <body>
-<canvas id="rain"></canvas>
-<div class="shell">
-<header>
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="logo">C5</div>
-    <h1>Crash Spike Desk<small>// deriv public ticks · sell the dump · numeric sl/tp</small></h1>
-  </div>
-  <div class="livebox">
-    <span class="dot" id="dot"></span>
-    <span id="statusText">connecting</span>
-    <span class="px" id="price">—</span>
-  </div>
-</header>
-<div id="banner" class="banner"></div>
-<div class="controls">
-  <label>SYMBOL
-    <select id="symSel"><option value="">detecting…</option></select>
-  </label>
-  <label>CANDLE
-    <select id="gran">
-      <option value="60" selected>M1</option>
-      <option value="120">M2</option>
-      <option value="300">M5</option>
-    </select>
-  </label>
-  <label>SPIKE ×ATR<input id="spikeK" type="number" value="2.2" step="0.1" min="1.2" max="5" style="width:52px"></label>
-  <label>SL ×ATR<input id="slK" type="number" value="1.4" step="0.1" min="0.6" max="3" style="width:52px"></label>
-  <label>TP ×ATR<input id="tpK" type="number" value="2.4" step="0.1" min="1" max="6" style="width:52px"></label>
-  <label>MIN RR<input id="minRR" type="number" value="1.3" step="0.1" min="1" max="3" style="width:52px"></label>
-  <button id="btnRefresh">REFRESH</button>
+
+<div class="ticker">
+  <span>
+    V75 <span class="up">▲ 214,882.10</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    R_75 <span class="down">▼ 198,340.55</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    ZECUSD <span class="up">▲ 28.41</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    SPCXUSD <span class="down">▼ 611.20</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    XAUUSD <span class="up">▲ 2,412.60</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    US500 <span class="up">▲ 5,904.30</span>
+  </span>
 </div>
-<div class="layout">
-  <section class="card" id="chartCard">
-    <h2>// price_stream</h2>
-    <canvas id="chart" width="1100" height="430"></canvas>
-    <div class="metrics">
-      <div class="m"><span>State</span><b id="zone">—</b></div>
-      <div class="m"><span>Bars since spike</span><b id="since">—</b></div>
-      <div class="m"><span>CCI 14</span><b id="cci">—</b></div>
-      <div class="m"><span>ATR 14</span><b id="atrv">—</b></div>
+
+<header class="hero">
+  <div class="eyebrow">Focus Auto Traders</div>
+  <h1>Systematic trading, built in the open.</h1>
+  <p class="lede">
+    We design, backtest, and refine algorithmic trading systems for
+    synthetic indices, crypto derivatives, and CFDs — from MetaTrader 5
+    expert advisors to live browser-based indicator dashboards.
+  </p>
+</header>
+
+<main>
+
+  <section>
+    <h2>What we build</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="tag">MQL5 · Expert Advisors</div>
+        <h3>ZEC &amp; SPCX EAs</h3>
+        <p>
+          Iteratively developed automated trading systems on Vantage
+          MT5, using ATR-based position sizing, trailing stops, partial
+          closes, multi-timeframe confluence, and daily loss caps.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Signal Indicator</div>
+        <h3>FAT SignalPro</h3>
+        <p>
+          A buy/sell signal indicator combining five confluence layers
+          with visual take-profit and stop-loss markers, built for
+          discretionary traders who want a systematic second opinion.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Live Dashboards</div>
+        <h3>Synthetic Index Charting</h3>
+        <p>
+          Multi-timeframe candlestick dashboards for V75 and R_75, with
+          moving average crosses, RSI, MACD, Bollinger Bands, and
+          real-time bias gauges powered by the Deriv WebSocket API.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Cross-Asset Research</div>
+        <h3>US500 &amp; SPCXUSD Tools</h3>
+        <p>
+          Indicator builds spanning equity index proxies and perpetual
+          futures, connecting to multiple market-data providers to keep
+          feeds reliable across brokers.
+        </p>
+      </div>
     </div>
   </section>
-  <aside>
-    <section class="card" id="entryCard">
-      <h2>// clear_entry</h2>
-      <div class="hero">
-        <div class="dir">
-          <span class="pill WAIT" id="pill">WAIT</span>
-          <span id="src" style="font-size:10px;color:var(--dim)">no_setup</span>
-        </div>
-        <div class="why" id="why">Connecting to Deriv…</div>
-      </div>
-      <div class="stack">
-        <div class="kv"><i>Entry</i><em id="entry">—</em></div>
-        <div class="kv sl"><i>Stop loss</i><em id="sl">—</em></div>
-        <div class="kv tp"><i>Take profit</i><em id="tp">—</em></div>
-        <div class="kv"><i>R:R / strength</i><em id="rrstr">—</em></div>
-      </div>
-      <div class="plan" id="plan">NO TRADE until a live dump prints with numeric SL/TP.</div>
-    </section>
-    <section class="card" style="margin-top:12px">
-      <h2>// rules</h2>
-      <div class="plan" style="margin:0">SELL only on a fresh down impulse ≥ spike×ATR. SL = swing high or entry+sl×ATR. TP = entry−tp×ATR.</div>
-    </section>
-    <section class="card" style="margin-top:12px">
-      <h2>// printed_entries</h2>
-      <div class="hist" id="hist"><div style="color:var(--dim);font-size:11px">NONE_YET</div></div>
-    </section>
-  </aside>
-</div>
-<footer>// crash 50 is often mt5-only · this page uses whichever crash symbol the public ws actually streams</footer>
-</div>
+
+  <!-- Ad unit: in-content -->
+  <div class="ad-slot">
+    <div class="ad-label">Advertisement</div>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="YOUR_AD_SLOT_ID"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+
+  <section>
+    <h2>Our approach</h2>
+    <p style="color:var(--muted); max-width:65ch;">
+      Every system starts as a hypothesis, gets backtested against
+      historical data, and is refined through iteration — not shipped on
+      day one. We favor risk controls (position sizing, drawdown limits,
+      cooldowns after consecutive losses) over chasing win rate, and we
+      publish our build process rather than hiding behind a black box.
+    </p>
+  </section>
+
+  <section>
+    <h2>Risk disclosure</h2>
+    <div class="disclaimer">
+      <strong>Trading CFDs, synthetic indices, and crypto derivatives
+      carries a high level of risk</strong> and may not be suitable for
+      all investors. Past performance of any strategy, indicator, or
+      expert advisor is not a reliable indicator of future results.
+      Nothing on this site constitutes financial advice or a
+      recommendation to trade any specific instrument. Only trade with
+      capital you can afford to lose, and consider seeking independent
+      financial advice before making trading decisions.
+    </div>
+  </section>
+
+  <!-- Ad unit: end of content -->
+  <div class="ad-slot">
+    <div class="ad-label">Advertisement</div>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+         data-ad-slot="YOUR_AD_SLOT_ID"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+
+  <section>
+    <h2>Contact</h2>
+    <p style="color:var(--muted);">
+      Reach out at
+      <a href="mailto:contact@focusautotraders.com">contact@focusautotraders.com</a>
+      — replace with your real contact address before publishing.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  © 2026 Focus Auto Traders. All trading involves risk.
+  <br>
+  <a href="/privacy">Privacy Policy</a> — add a real page here before submitting to AdSense.
+</footer>
+
 <script>
-(function(){
-  const c=document.getElementById('rain'),ctx=c.getContext('2d');
-  let w,h,cols,drops; const chars='CRASH50⬇01';
-  function resize(){w=c.width=innerWidth;h=c.height=innerHeight;cols=Math.floor(w/14);drops=Array.from({length:cols},()=>Math.random()*h/14)}
-  addEventListener('resize',resize); resize();
-  (function draw(){ctx.fillStyle='rgba(0,0,0,.08)';ctx.fillRect(0,0,w,h);ctx.fillStyle='#00ff41';ctx.font='13px monospace';
-    for(let i=0;i<drops.length;i++){ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*14,drops[i]*14);if(drops[i]*14>h&&Math.random()>0.975)drops[i]=0;drops[i]++;}
-    requestAnimationFrame(draw);})();
-})();
-
-const WS_URLS=['wss://ws.derivws.com/websockets/v3?app_id=1089','wss://ws.binaryws.com/websockets/v3?app_id=1089'];
-const PROBE=['CRASH50N','CRASH50','CRASH300N','CRASH500','CRASH600N','CRASH900N','CRASH1000'];
-const state={symbol:null,found:[],candles:[],ema:[],cci:[],atr:[],signal:null,zone:null,lastPrice:null,history:[],barsSince:null};
-let ws=null,wsIdx=0,reqId=1,alive=false,lastPrintKey='',pendingProbe=null,probeQueue=[];
-
-const $=id=>document.getElementById(id);
-const granEl=$('gran'), spikeKEl=$('spikeK'), slKEl=$('slK'), tpKEl=$('tpK'), minRREl=$('minRR'), symSel=$('symSel');
-const fmt=n=>{if(n==null||!isFinite(n))return '—'; return Math.abs(n)>=1000?n.toFixed(2):n.toFixed(4)};
-
-function send(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify({...o,req_id:reqId++}))}
-function banner(t){const b=$('banner'); if(!t){b.style.display='none';return;} b.style.display='block'; b.textContent=t;}
-
-function connect(){
-  try{if(ws) ws.close();}catch(e){}
-  state.candles=[]; $('statusText').textContent='ws...';
-  ws=new WebSocket(WS_URLS[wsIdx%WS_URLS.length]);
-  ws.onopen=()=>{
-    alive=true; $('dot').classList.add('on'); $('statusText').textContent='symbols';
-    send({active_symbols:'brief',product_type:'basic'});
-  };
-  ws.onclose=()=>{
-    alive=false; $('dot').classList.remove('on'); $('statusText').textContent='RECONNECT';
-    wsIdx++; setTimeout(()=>{if(!document.hidden)connect()},1600);
-  };
-  ws.onerror=()=>{try{ws.close()}catch(e){}};
-  ws.onmessage=ev=>{
-    const msg=JSON.parse(ev.data);
-    if(msg.active_symbols){ ingestSymbols(msg.active_symbols); startFeed(); }
-    if(msg.candles){
-      state.candles=msg.candles.map(c=>({epoch:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close}));
-      if(state.candles.length){state.lastPrice=state.candles.at(-1).close;$('price').textContent=fmt(state.lastPrice)}
-      $('statusText').textContent=state.symbol; recompute();
-    }
-    if(msg.ohlc){
-      const o=msg.ohlc,c={epoch:+o.open_time||Math.floor(+o.epoch),open:+o.open,high:+o.high,low:+o.low,close:+o.close};
-      const last=state.candles.at(-1);
-      if(last&&last.epoch===c.epoch) state.candles[state.candles.length-1]=c;
-      else {state.candles.push(c); if(state.candles.length>360) state.candles.shift();}
-      state.lastPrice=c.close; $('price').textContent=fmt(c.close); recompute();
-    }
-    if(msg.tick&&msg.tick.quote!=null){
-      const q=+msg.tick.quote; state.lastPrice=q; $('price').textContent=fmt(q);
-      if(state.candles.length){const last=state.candles.at(-1); last.close=q; last.high=Math.max(last.high,q); last.low=Math.min(last.low,q);}
-    }
-    if(msg.error){
-      const m=String(msg.error.message||'');
-      if(pendingProbe){ nextProbe(); return; }
-      $('statusText').textContent=m.slice(0,28);
-    }
-  };
-}
-
-function ingestSymbols(list){
-  const rows=list.map(s=>({
-    symbol:s.symbol||s.underlying_symbol,
-    name:(s.display_name||s.underlying_symbol_name||'')+''
-  })).filter(r=>r.symbol);
-  const crash=rows.filter(r=>/crash/i.test(r.name+' '+r.symbol));
-  state.found=crash;
-  const seen=new Set(crash.map(r=>r.symbol));
-  PROBE.forEach(p=>{ if(!seen.has(p)) crash.push({symbol:p,name:p+' (probe)'}); });
-  symSel.innerHTML=crash.map(r=>`<option value="${r.symbol}">${r.symbol} — ${r.name}</option>`).join('')||'<option value="">none</option>';
-  const prefer=crash.find(r=>/crash\s*50/i.test(r.name)||/^CRASH50/i.test(r.symbol))
-            || crash.find(r=>r.symbol==='CRASH50N')
-            || crash.find(r=>r.symbol==='CRASH300N')
-            || crash[0];
-  if(prefer){ symSel.value=prefer.symbol; state.symbol=prefer.symbol; }
-  const has50=crash.some(r=>/crash\s*50/i.test(r.name)||/^CRASH50/i.test(r.symbol));
-  if(!has50) banner('Crash 50 is standard CFD-only. Desk fallback: '+ (state.symbol||'Crash') +'.');
-  else banner('');
-}
-
-function startFeed(){
-  const want=symSel.value||state.symbol||PROBE[0];
-  state.symbol=want; state.candles=[];
-  $('statusText').textContent='load '+want;
-  probeQueue=PROBE.filter(p=>p!==want);
-  pendingProbe=want;
-  send({forget_all:['ticks','candles']});
-  send({ticks_history:want,adjust_start_time:1,count:300,end:'latest',style:'candles',granularity:+granEl.value,subscribe:1});
-}
-
-function nextProbe(){
-  pendingProbe=probeQueue.shift();
-  if(!pendingProbe){ $('statusText').textContent='NO_FEED'; $('why').textContent='No public feed available for selected symbol.'; return; }
-  state.symbol=pendingProbe;
-  if([...symSel.options].some(o=>o.value===pendingProbe)) symSel.value=pendingProbe;
-  banner('Trying probe: '+pendingProbe+' …');
-  send({ticks_history:pendingProbe,adjust_start_time:1,count:300,end:'latest',style:'candles',granularity:+granEl.value,subscribe:1});
-}
-
-$('btnRefresh').onclick=()=>connect();
-granEl.onchange=()=>{if(state.symbol) startFeed()};
-symSel.onchange=()=>{state.symbol=symSel.value; banner(''); startFeed()};
-
-function ema(v,p){const k=2/(p+1),o=[];v.forEach((x,i)=>o.push(i===0?x:x*k+o[i-1]*(1-k)));return o}
-function cci(candles,p){
-  const tp=candles.map(c=>(c.high+c.low+c.close)/3),out=Array(candles.length).fill(null);
-  for(let i=p-1;i<candles.length;i++){const s=tp.slice(i-p+1,i+1),m=s.reduce((a,b)=>a+b,0)/p,md=s.reduce((a,b)=>a+Math.abs(b-m),0)/p;out[i]=md===0?0:(tp[i]-m)/(0.015*md)}
-  return out;
-}
-function atr(candles,p){
-  const tr=candles.map((c,i)=>i===0?c.high-c.low:Math.max(c.high-c.low,Math.abs(c.high-candles[i-1].close),Math.abs(c.low-candles[i-1].close)));
-  const out=Array(candles.length).fill(null);
-  for(let i=p-1;i<candles.length;i++) out[i]=tr.slice(i-p+1,i+1).reduce((a,b)=>a+b,0)/p;
-  return out;
-}
-function swingHigh(candles,n=12){return Math.max(...candles.slice(-n).map(c=>c.high))}
-
-function recompute(){
-  if(state.candles.length<40) return;
-  pendingProbe=null;
-  const closes=state.candles.map(c=>c.close);
-  state.ema=ema(closes,9); state.cci=cci(state.candles,14); state.atr=atr(state.candles,14);
-  const i=closes.length-1,c=state.candles[i],prev=state.candles[i-1];
-  const px=c.close,lastAtr=state.atr[i]||0,lastCci=state.cci[i]; if(!lastAtr) return;
-  const spikeK=+spikeKEl.value,slK=+slKEl.value,tpK=+tpKEl.value,minRR=+minRREl.value;
-  const body=c.open-c.close, range=c.high-c.low;
-  const downImpulse=body>=spikeK*lastAtr || (c.close<c.open && range>=spikeK*1.15*lastAtr);
-  const alreadySpent=downImpulse && (c.close-c.low)<0.18*range && body>1.6*lastAtr;
-  const fresh=downImpulse && c.close<=prev.close && !alreadySpent;
-  let lastSpike=null;
-  for(let k=i;k>=Math.max(0,i-80);k--){const a=state.atr[k]||lastAtr; if(state.candles[k].open-state.candles[k].close>=spikeK*0.85*a){lastSpike=k;break}}
-  state.barsSince=lastSpike==null?null:i-lastSpike;
-
-  let signal=null,zone;
-  if(alreadySpent) zone={code:'NO_CHASE',text:'Dump already extended. Do not sell the tail.'};
-  else if(fresh && lastCci!=null && lastCci<-20){
-    const sl=Math.max(swingHigh(state.candles,10), px+slK*lastAtr);
-    const tp=px-tpK*lastAtr; const risk=sl-px,reward=px-tp,rr=risk>0?reward/risk:0;
-    if(rr>=minRR && tp<px){
-      const st=Math.min(100,Math.round((body/lastAtr)*18+Math.min(rr,3)*16+(lastCci<-80?20:10)));
-      if(st>=50){ signal={dir:'SELL',entry:px,sl,tp,rr,strength:st,source:'Crash impulse'}; zone={code:'SELL_SPIKE',text:'Fresh down impulse. Sell the crash.'}; }
-    }
-    if(!signal) zone={code:'WATCH',text:'Impulse seen but R:R or strength condition failed.'};
-  } else zone={code:'WAIT_GRIND',text:'Up-drift / no fresh crash. Stay flat.'};
-
-  state.zone=zone; state.signal=signal;
-  if(signal){
-    const key=signal.dir+'|'+state.symbol+'|'+Math.round(signal.entry*100);
-    if(key!==lastPrintKey){ lastPrintKey=key; state.history.unshift({t:new Date().toLocaleTimeString(),dir:signal.dir,entry:signal.entry,sl:signal.sl,tp:signal.tp,src:state.symbol}); state.history=state.history.slice(0,12); }
+  try {
+    document.querySelectorAll('.adsbygoogle').forEach(function () {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    });
+  } catch (e) {
+    console.warn('AdSense not loaded yet:', e);
   }
-  render();
-}
-
-function render(){
-  if(!state.candles.length) return;
-  $('zone').textContent=state.zone?state.zone.code:'—';
-  $('since').textContent=state.barsSince==null?'—':String(state.barsSince);
-  $('cci').textContent=state.cci.at(-1)!=null?state.cci.at(-1).toFixed(1):'—';
-  $('atrv').textContent=state.atr.at(-1)!=null?fmt(state.atr.at(-1)):'—';
-  const card=$('chartCard'),entryCard=$('entryCard'),pill=$('pill');
-  card.classList.remove('sell'); entryCard.classList.remove('sell');
-  if(state.signal){
-    const s=state.signal; card.classList.add('sell'); entryCard.classList.add('sell');
-    pill.className='pill SELL'; pill.textContent='SELL'; $('src').textContent=s.source;
-    $('why').textContent=state.zone.text;
-    $('entry').textContent=fmt(s.entry); $('sl').textContent=fmt(s.sl); $('tp').textContent=fmt(s.tp);
-    $('rrstr').textContent=s.rr.toFixed(2)+' / '+s.strength;
-    $('plan').innerHTML=`<b>SHORT:</b> sell ${fmt(s.entry)} · SL ${fmt(s.sl)} · TP ${fmt(s.tp)} on ${state.symbol}.`;
-  } else {
-    const code=state.zone?.code||'WAIT';
-    pill.className='pill '+(code==='NO_CHASE'?'NO_CHASE':'WAIT');
-    pill.textContent=code==='NO_CHASE'?'NO_CHASE':(code==='WATCH'?'WATCH':'WAIT');
-    $('src').textContent='flat'; $('why').textContent=state.zone?state.zone.text:'No edge.';
-    $('entry').textContent='—';$('sl').textContent='—';$('tp').textContent='—';$('rrstr').textContent='—';
-    $('plan').textContent='NO TRADE. Need a fresh impulse and tight stop loss.';
-  }
-  $('hist').innerHTML=state.history.length?state.history.map(h=>`<div class="row"><div class="d ${h.dir}">${h.dir}</div><div>${fmt(h.entry)} → ${fmt(h.tp)}<br><span style="color:var(--dim)">${h.src}</span></div><div>${h.t}<br>SL ${fmt(h.sl)}</div></div>`).join(''):'<div style="color:var(--dim);font-size:11px">NONE_YET</div>';
-  drawChart();
-}
-
-function drawChart(){
-  const canvas=$('chart'),ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height; ctx.clearRect(0,0,W,H);
-  const candles=state.candles,emaArr=state.ema; if(!emaArr||emaArr.length<2) return;
-  const visible=90,start=Math.max(0,emaArr.length-visible),sliceC=candles.slice(start),sliceE=emaArr.slice(start);
-  let lo=Math.min(...sliceC.map(c=>c.low),...sliceE.filter(isFinite));
-  let hi=Math.max(...sliceC.map(c=>c.high),...sliceE.filter(isFinite));
-  if(state.signal){lo=Math.min(lo,state.signal.tp,state.signal.sl);hi=Math.max(hi,state.signal.tp,state.signal.sl)}
-  const pad=(hi-lo)*0.12||1; lo-=pad; hi+=pad; const range=(hi-lo)||1;
-  const x=i=>((i-start)/Math.max(1,emaArr.length-1-start))*(W-16)+8; const y=v=>H-((v-lo)/range)*(H-16)-8;
-  ctx.strokeStyle='#062006'; for(let g=0;g<6;g++){const gy=H*(g/5);ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke()}
-  const cw=Math.max(2,(W/Math.max(10,sliceC.length))*0.55);
-  sliceC.forEach((c,i)=>{const idx=start+i,cx=x(idx),up=c.close>=c.open; ctx.strokeStyle=ctx.fillStyle=up?'#00ff66':'#ff3333';
-    ctx.beginPath();ctx.moveTo(cx,y(c.high));ctx.lineTo(cx,y(c.low));ctx.stroke();
-    ctx.fillRect(cx-cw/2,Math.min(y(c.open),y(c.close)),cw,Math.max(1,Math.abs(y(c.close)-y(c.open))));});
-  ctx.strokeStyle='#b6ffb6';ctx.lineWidth=1.5;ctx.beginPath();
-  sliceE.forEach((v,i)=>{const idx=start+i;i===0?ctx.moveTo(x(idx),y(v)):ctx.lineTo(x(idx),y(v))}); ctx.stroke();
-  if(state.signal){ const line=(v,col)=>{const py=y(v);if(!isFinite(py))return;ctx.strokeStyle=col;ctx.setLineDash([6,3]);ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();ctx.setLineDash([])};
-    line(state.signal.entry,'#ff8b96'); line(state.signal.sl,'#ff3333'); line(state.signal.tp,'#00ff9c'); }
-}
-
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!alive)connect()});
-connect();
 </script>
+
 </body>
 </html>
