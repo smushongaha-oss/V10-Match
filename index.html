@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Auto Traders — Algorithmic Trading Systems</title>
+
+<!--
+  ============================================================
+  BEFORE THIS SITE CAN EARN ADSENSE APPROVAL:
+  1. Host it on a real domain (AdSense will not approve
+     localhost or file:// pages).
+  2. Go to adsense.google.com > Sites > Add site, enter that
+     domain.
+  3. Copy your real AdSense script tag and replace the one
+     below (currently uses a ca-pub-XXXXXXXXXXXXXXXX placeholder).
+  4. Add a real Privacy Policy page and link it in the footer —
+     AdSense requires this before approval.
+  ============================================================
+-->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2514425743225219"
+ crossorigin="anonymous"></script>
+<meta name="google-adsense-account" content="ca-pub-2514425743225219">
+
+<style>
+  :root {
+    --bg: #0b0f10;
+    --panel: #12181a;
+    --panel-line: #223033;
+    --ink: #e8f0ee;
+    --muted: #8ea3a1;
+    --signal: #2fe08a;
+    --warn: #e0a92f;
+    --mono: "SF Mono", "IBM Plex Mono", Consolas, monospace;
+    --display: "Georgia", "Iowan Old Style", serif;
+    --body: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    line-height: 1.6;
+  }
+  a { color: var(--signal); }
+
+  /* --- ticker signature element --- */
+  .ticker {
+    background: #06090a;
+    border-bottom: 1px solid var(--panel-line);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0.5rem 0;
+  }
+  .ticker span {
+    display: inline-block;
+    padding-left: 100%;
+    animation: scroll 28s linear infinite;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .ticker .up { color: var(--signal); }
+  .ticker .down { color: #e05a5a; }
+  @keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+
+  header.hero {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 3rem;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    margin: 0.5rem 0 1rem;
+    letter-spacing: -0.01em;
+  }
+  .lede {
+    color: var(--muted);
+    font-size: 1.05rem;
+    max-width: 60ch;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+  section { margin: 3rem 0; }
+  section h2 {
+    font-family: var(--display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    border-bottom: 1px solid var(--panel-line);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: 6px;
+    padding: 1.25rem;
+  }
+  .card .tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--signal);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .card h3 {
+    margin: 0.4rem 0 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+  .card p {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin: 0;
+  }
+
+  .ad-slot {
+    margin: 2rem 0;
+    padding: 0.5rem;
+    border: 1px dashed var(--panel-line);
+    border-radius: 6px;
+    background: var(--panel);
+  }
+  .ad-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+  .adsbygoogle { display: block; }
+
+  .disclaimer {
+    background: #16110a;
+    border: 1px solid #3a2c12;
+    border-radius: 6px;
+    padding: 1.25rem;
+    font-size: 0.88rem;
+    color: var(--warn);
+  }
+  .disclaimer strong { color: #f0c25a; }
+
+  footer {
+    border-top: 1px solid var(--panel-line);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--muted); text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="ticker">
+  <span>
+    V75 <span class="up">▲ 214,882.10</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    R_75 <span class="down">▼ 198,340.55</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    ZECUSD <span class="up">▲ 28.41</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    SPCXUSD <span class="down">▼ 611.20</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    XAUUSD <span class="up">▲ 2,412.60</span> &nbsp;&nbsp;|&nbsp;&nbsp;
+    US500 <span class="up">▲ 5,904.30</span>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="eyebrow">Focus Auto Traders</div>
+  <h1>Systematic trading, built in the open.</h1>
+  <p class="lede">
+    We design, backtest, and refine algorithmic trading systems for
+    synthetic indices, crypto derivatives, and CFDs — from MetaTrader 5
+    expert advisors to live browser-based indicator dashboards.
+  </p>
+</header>
+
+<main>
+
+  <section>
+    <h2>What we build</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="tag">MQL5 · Expert Advisors</div>
+        <h3>ZEC &amp; SPCX EAs</h3>
+        <p>
+          Iteratively developed automated trading systems on Vantage
+          MT5, using ATR-based position sizing, trailing stops, partial
+          closes, multi-timeframe confluence, and daily loss caps.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Signal Indicator</div>
+        <h3>FAT SignalPro</h3>
+        <p>
+          A buy/sell signal indicator combining five confluence layers
+          with visual take-profit and stop-loss markers, built for
+          discretionary traders who want a systematic second opinion.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Live Dashboards</div>
+        <h3>Synthetic Index Charting</h3>
+        <p>
+          Multi-timeframe candlestick dashboards for V75 and R_75, with
+          moving average crosses, RSI, MACD, Bollinger Bands, and
+          real-time bias gauges powered by the Deriv WebSocket API.
+        </p>
+      </div>
+      <div class="card">
+        <div class="tag">Cross-Asset Research</div>
+        <h3>US500 &amp; SPCXUSD Tools</h3>
+        <p>
+          Indicator builds spanning equity index proxies and perpetual
+          futures, connecting to multiple market-data providers to keep
+          feeds reliable across brokers.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ad unit: in-content -->
+  <div class="ad-slot">
+    <div class="ad-label">Advertisement</div>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-2514425743225219"
+         data-ad-slot="YOUR_AD_SLOT_ID"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+
+  <section>
+    <h2>Our approach</h2>
+    <p style="color:var(--muted); max-width:65ch;">
+      Every system starts as a hypothesis, gets backtested against
+      historical data, and is refined through iteration — not shipped on
+      day one. We favor risk controls (position sizing, drawdown limits,
+      cooldowns after consecutive losses) over chasing win rate, and we
+      publish our build process rather than hiding behind a black box.
+    </p>
+  </section>
+
+  <section>
+    <h2>Risk disclosure</h2>
+    <div class="disclaimer">
+      <strong>Trading CFDs, synthetic indices, and crypto derivatives
+      carries a high level of risk</strong> and may not be suitable for
+      all investors. Past performance of any strategy, indicator, or
+      expert advisor is not a reliable indicator of future results.
+      Nothing on this site constitutes financial advice or a
+      recommendation to trade any specific instrument. Only trade with
+      capital you can afford to lose, and consider seeking independent
+      financial advice before making trading decisions.
+    </div>
+  </section>
+
+  <!-- Ad unit: end of content -->
+  <div class="ad-slot">
+    <div class="ad-label">Advertisement</div>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-2514425743225219"
+         data-ad-slot="YOUR_AD_SLOT_ID"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+  </div>
+
+  <section>
+    <h2>Contact</h2>
+    <p style="color:var(--muted);">
+      Reach out at
+      <a href="mailto:contact@focusautotraders.com">contact@focusautotraders.com</a>
+      — replace with your real contact address before publishing.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  © 2026 Focus Auto Traders. All trading involves risk.
+  <br>
+  <a href="/privacy">Privacy Policy</a> — add a real page here before submitting to AdSense.
+</footer>
+
+<script>
+  try {
+    document.querySelectorAll('.adsbygoogle').forEach(function () {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    });
+  } catch (e) {
+    console.warn('AdSense not loaded yet:', e);
+  }
+</script>
+
+</body>
+</html>
